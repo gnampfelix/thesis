@@ -39,5 +39,16 @@ public class NcbiApiTests {
         assertEquals(0, genomes.size());
     }
 
+    @Test
+    public void getTaxonomy() throws ApiException, AmbiguousDataException {
+        NcbiApi api = new NcbiApi("https://api.ncbi.nlm.nih.gov/datasets/v2alpha");        
+        List<String> accessionCodes = new ArrayList<>(Arrays.asList("GCF_000819615.1", "GCF_000836805.1"));
+        List<Genome> genomes = api.getGenomes(accessionCodes);
+        TaxonomyTree tree = api.getTaxonomyTreeForGenomes(genomes);
+
+        // the tree that has those two leaves has 16 nodes in total
+        assertEquals(16, tree.getTree().nodes().size());
+    }
+
 
 }
