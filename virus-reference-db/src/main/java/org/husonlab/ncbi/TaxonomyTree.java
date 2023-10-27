@@ -1,6 +1,8 @@
 package org.husonlab.ncbi;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.graph.Graph;
@@ -26,5 +28,24 @@ public class TaxonomyTree {
     public Taxon getRoot() {
         // This is the root node in the NCBI taxonomy
         return this.taxa.get(1);
+    }
+
+    private String getSubtreeNewick(Taxon subtreeRoot) {
+        if(this.tree.successors(subtreeRoot).isEmpty()) {
+            return String.valueOf(subtreeRoot.getTaxonId());
+        }
+        StringBuilder result = new StringBuilder();
+        result.append("(");
+        List<String>subtrees = new ArrayList<>();
+        for(Taxon child : this.tree.successors(subtreeRoot)) {
+            subtrees.add(this.getSubtreeNewick(child));
+        }
+        result.append(String.join(",", subtrees));
+        result.append(")" + subtreeRoot.getTaxonId());
+        return result.toString();
+    }
+
+    public String getNewick() {
+        return this.getSubtreeNewick(this.getRoot());
     }
 }

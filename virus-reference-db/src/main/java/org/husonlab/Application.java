@@ -26,6 +26,7 @@ public class Application {
             db.insertGenomes(genomes);
             db.insertTaxonomy(tree);
             db.close();
+            System.out.println(tree.getNewick());
         } catch (Exception e) {
             System.out.println("well, f****");
             e.printStackTrace();
