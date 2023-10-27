@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.openapitools.client.ApiClient;
@@ -103,19 +105,28 @@ public class NcbiApi {
         return result;
     }
 
-    private void fetchLeafBatch(MutableGraph<Taxon> tree, Map<Integer, Taxon> taxa, Queue<List<String>> lineageQueryQueue, List<String> taxonBatch) throws ApiException {
+    private void fetchLeafBatch(
+        MutableGraph<Taxon> tree, 
+        Map<Integer, Taxon> taxa, 
+        Queue<List<String>> lineageQueryQueue, 
+        List<String> taxonBatch, 
+        Map<Integer, Integer> genomeParents
+    ) throws ApiException {
         V2TaxonomyMetadataResponse response = this.taxonomy.taxonomyMetadata(taxonBatch, V2TaxonomyMetadataRequestContentType.COMPLETE);
         List<V2TaxonomyMatch> nodes = response.getTaxonomyNodes();
         if (nodes != null) {
             for(V2TaxonomyMatch node : nodes) {
                 List<String> lineage = new ArrayList<>();
+                int directParent = 0;
                 for (int parent : node.getTaxonomy().getLineage()) {
                     lineage.add(String.valueOf(parent));
+                    directParent = parent;
                 }
                 lineageQueryQueue.add(lineage);
                 Taxon taxon = new Taxon(node.getTaxonomy().getOrganismName(), node.getTaxonomy().getTaxId());
                 taxa.put(taxon.getTaxonId(), taxon);
                 tree.addNode(taxon);
+                genomeParents.put(taxon.getTaxonId(), directParent);
             }                    
         }
     }
@@ -125,6 +136,7 @@ public class NcbiApi {
         
 
         Map<Integer, Taxon> taxa = new HashMap<>();
+        Map<Integer, Integer> genomeParents = new HashMap<>();
         MutableGraph<Taxon> tree = GraphBuilder.directed().build();
         // The taxonomy API does not support pagination as of now but the
         // requests could be come very large if we query the complete lineage of
@@ -137,44 +149,59 @@ public class NcbiApi {
         for (Genome g : genomes) {
             taxonBatch.add(String.valueOf(g.getTaxonId()));
             if (taxonBatch.size() >= TAXON_PAGE_SIZE) {
-                logger.fine("Leaf batch for " + taxonBatch.toString());
-                fetchLeafBatch(tree, taxa, lineageQueryQueue, taxonBatch);
+                logger.info("Leaf batch for " + taxonBatch.toString());
+                fetchLeafBatch(tree, taxa, lineageQueryQueue, taxonBatch, genomeParents);
                 taxonBatch.clear();
             }
         }
         // Process final batch
-        logger.fine("Leaf batch for " + taxonBatch.toString());
-        fetchLeafBatch(tree, taxa, lineageQueryQueue, taxonBatch);
+        logger.info("Leaf batch for " + taxonBatch.toString());
+        fetchLeafBatch(tree, taxa, lineageQueryQueue, taxonBatch, genomeParents);
         
         
         // Now, resolve all lineages, all elements are findable by construction
         logger.info("Processing lineages...");
         while (!lineageQueryQueue.isEmpty()) {
             List<String> lineageQuery = lineageQueryQueue.remove();
-            logger.fine("Fetching lineage " +lineageQuery.toString());
+            logger.info("Fetching lineage " +lineageQuery.toString());
 
             V2TaxonomyMetadataResponse response = taxonomy.taxonomyMetadata(lineageQuery, V2TaxonomyMetadataRequestContentType.COMPLETE);
+            
+            // First, create all nodes (their order is not the same as in the query!)
             List<V2TaxonomyMatch> nodes = response.getTaxonomyNodes();
             if (nodes != null) {
-                Taxon prev = null;
                 for(V2TaxonomyMatch node : nodes) {
+                    logger.info("processing taxon " + node.getTaxonomy().getTaxId() + "...");
                     Taxon current;
                     // We might have seen this taxon before (shared lineage)
-                    if (taxa.containsKey(node.getTaxonomy().getTaxId())) {
-                        current = taxa.get(node.getTaxonomy().getTaxId());
-                    } else {
+                    if (!taxa.containsKey(node.getTaxonomy().getTaxId())) {
+                        logger.info("taxon not known, creating new...");
                         current = new Taxon(node.getTaxonomy().getOrganismName(), node.getTaxonomy().getTaxId());
                         taxa.put(current.getTaxonId(), current);
                         tree.addNode(current);
                     }
+                }
 
-                    // Again, we might have processed the edge already for a
-                    // different subtree
+                // Then, add relationships as indicated by the lineage order
+                logger.info("checking edges...");
+                Taxon prev = null;
+                for(String lineageItem : lineageQuery) {
+                    Taxon current = taxa.get(Integer.parseInt(lineageItem));
                     if (prev != null && !tree.hasEdgeConnecting(prev, current)) {
+                        logger.info("inserting edge (" + prev.getTaxonId() + "," + current.getTaxonId() + ")...");
                         tree.putEdge(prev, current);
                     }
                     prev = current;
                 }
+            }
+        }
+
+        // Finally, insert the leaves
+        logger.info("Adding genome linkes...");
+        for (Entry<Integer, Integer> genomeLink : genomeParents.entrySet()) {
+            if (!tree.hasEdgeConnecting(taxa.get(genomeLink.getValue()), taxa.get(genomeLink.getKey()))) {
+                logger.info("inserting edge (" + genomeLink.getValue() + "," + genomeLink.getKey() + ")...");
+                tree.putEdge(taxa.get(genomeLink.getValue()), taxa.get(genomeLink.getKey()));
             }
         }
         logger.info("Fetched taxonomy tree!");

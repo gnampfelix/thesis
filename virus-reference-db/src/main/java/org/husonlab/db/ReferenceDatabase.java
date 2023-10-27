@@ -6,12 +6,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.husonlab.ncbi.Genome;
+import org.husonlab.ncbi.Taxon;
+import org.husonlab.ncbi.TaxonomyTree;
 import org.sqlite.SQLiteConfig;
 
 public class ReferenceDatabase implements Closeable{
     private Connection connection;
+    private Logger logger;
     
     public static ReferenceDatabase create(String path) throws SQLException {
         SQLiteConfig config = new SQLiteConfig();
@@ -26,9 +30,19 @@ public class ReferenceDatabase implements Closeable{
         return result;
     }
 
-    private ReferenceDatabase() {}
+    public static ReferenceDatabase open(String path) throws SQLException {
+        SQLiteConfig config = new SQLiteConfig();
+        ReferenceDatabase result = new ReferenceDatabase();
+        result.connection = config.createConnection("jdbc:sqlite:"+path);
+        return result;
+    }
+
+    private ReferenceDatabase() {
+        this.logger = Logger.getLogger(ReferenceDatabase.class.getName());
+    }
 
     public void insertGenomes(List<Genome> genomes) throws SQLException {
+        this.logger.info("Inserting genomes in DB...");
         PreparedStatement s = this.connection.prepareStatement("INSERT INTO genomes (taxon_id, genome_accession, genome_size, fasta_url) VALUES (?, ?, ?, ?);");
         for (Genome g : genomes) {
             s.setInt(1, g.getTaxonId());
@@ -37,6 +51,26 @@ public class ReferenceDatabase implements Closeable{
             s.setString(4, g.getFastaUrl());
             s.executeUpdate();
         }
+        this.logger.info("Finished inserting genomes in DB!");
+    }
+
+    public void insertTaxonomy(TaxonomyTree taxonomy) throws SQLException {
+        this.logger.info("Inserting taxa in DB...");
+        PreparedStatement s = this.connection.prepareStatement("INSERT INTO taxa (taxon_id, taxon_name, taxon_display_name, parent_id) VALUES (?, ?, ?, ?)");
+        for (Taxon t : taxonomy.getTaxa().values()) {
+            s.setInt(1, t.getTaxonId());
+            s.setString(2, t.getOrganismName());
+            s.setString(3, t.getOrganismName());
+            int parent = 0;
+            if (!taxonomy.getRoot().equals(t)) {
+                for (Taxon p : taxonomy.getTree().predecessors(t)) { // there is only one
+                    parent = p.getTaxonId();
+                }
+            }
+            s.setInt(4, parent);
+            s.executeUpdate();
+        }
+        this.logger.info("Finished inserting taxa in DB!");
     }
 
     @Override

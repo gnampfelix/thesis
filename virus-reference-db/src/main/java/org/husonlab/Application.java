@@ -1,5 +1,6 @@
 package org.husonlab;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,8 +19,12 @@ public class Application {
             List<String> accessionCodes = new ArrayList<>(Arrays.asList("GCF_000819615.1", "GCF_000836805.1"));
             List<Genome> genomes = api.getGenomes(accessionCodes);
             TaxonomyTree tree = api.getTaxonomyTreeForGenomes(genomes);
+            if ((new File("test.db")).exists()) {
+                (new File("test.db")).delete();
+            }
             ReferenceDatabase db = ReferenceDatabase.create("test.db");
             db.insertGenomes(genomes);
+            db.insertTaxonomy(tree);
             db.close();
         } catch (Exception e) {
             System.out.println("well, f****");
