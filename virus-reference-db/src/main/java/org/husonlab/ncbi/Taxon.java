@@ -1,5 +1,4 @@
 package org.husonlab.ncbi;
-import java.util.Objects;
 
 public class Taxon {
     private String organismName;

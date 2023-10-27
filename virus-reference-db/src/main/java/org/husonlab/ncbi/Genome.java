@@ -1,18 +1,22 @@
 package org.husonlab.ncbi;
 
+import java.nio.file.Paths;
+
 public class Genome {
     private String organismName;
     private String accession;
     private int taxonId;
     private String assemblyName;
     private String downloadLink;
+    private int genomeSize;
 
-    public Genome(String organismName, String accession, int taxonId, String assemblyName, String downloadLink) {
+    public Genome(String organismName, String accession, int taxonId, String assemblyName, String downloadLink, int genomeSize) {
         this.organismName = organismName;
         this.accession = accession;
         this.taxonId = taxonId;
         this.assemblyName = assemblyName;
         this.downloadLink = downloadLink;
+        this.genomeSize = genomeSize;
     }
 
     public String getOrganismName() {
@@ -55,6 +59,16 @@ public class Genome {
         this.downloadLink = downloadLink;
     }
 
+    public String getFastaUrl() {
+        return this.downloadLink + "/" + this.accession + "_" + this.assemblyName + "_genomic.fna.gz";
+    }
 
+    public void setGenomeSize(int genomeSize) {
+        this.genomeSize = genomeSize;
+    }
+
+    public int getGenomeSize() {
+        return this.genomeSize;
+    }
     
 }
