@@ -5,9 +5,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Map.Entry;
-import java.util.logging.Level;
+import java.util.Queue;
 import java.util.logging.Logger;
 
 import org.openapitools.client.ApiClient;

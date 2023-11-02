@@ -1,7 +1,5 @@
 package org.husonlab.ncbi;
 
-import java.nio.file.Paths;
-
 public class Genome {
     private String organismName;
     private String accession;
