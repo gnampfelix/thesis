@@ -59,8 +59,11 @@ public class FracMinHashSketch {
 
         final Map<Long, byte[]> hash2kmer = saveKMers ? new HashMap<>() : null;
 
-        // s = H / s', 0 <= s <= H
-        final double threshold = Long.MAX_VALUE * sParam;
+        // Irber et al define the hash function as h: o -> [0, H]. However, in
+        // the case of our Java Long hashes, the range is h: o -> [-H, H-1].
+        // Thus, we need to shift the threshold accordingly.
+        final double fraction = Long.MAX_VALUE * sParam * 2; //the complete range is 2H, thus a fraction is 2Hs
+        final double threshold = Long.MIN_VALUE + fraction;
 
         final BloomFilter bloomFilter;
         if (filterUniqueKMers) {
@@ -132,5 +135,13 @@ public class FracMinHashSketch {
         }
         progress.reportTaskCompleted();
         return sketch;        
+    }
+
+    public long[] getValues() {
+        return hashValues;
+    }
+
+    public byte[][] getKmers() {
+        return kmers;
     }
 }
