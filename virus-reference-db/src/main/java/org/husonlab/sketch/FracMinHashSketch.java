@@ -1,13 +1,17 @@
 package org.husonlab.sketch;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
 import jloda.kmers.bloomfilter.BloomFilter;
+import jloda.kmers.mash.MashSketch;
 import jloda.seq.SequenceUtils;
 import jloda.thirdparty.MurmurHash;
+import jloda.util.ByteInputBuffer;
+import jloda.util.ByteOutputBuffer;
 import jloda.util.CanceledException;
 import jloda.util.StringUtils;
 import jloda.util.progress.ProgressListener;
@@ -15,7 +19,7 @@ import jloda.util.progress.ProgressListener;
 public class FracMinHashSketch {
     public static final int MAGIC_INT = 1213415758; // for starters, I've just increased the number
 
-    private final double sParam;
+    private final int sParam;
     private final int kSize;
     private final String name;
     private final boolean isNucleotides;
@@ -23,7 +27,7 @@ public class FracMinHashSketch {
     private long[] hashValues;
     private byte[][] kmers;
 
-    public FracMinHashSketch(double sParam, int kSize, String name, boolean isNucleotides) {
+    public FracMinHashSketch(int sParam, int kSize, String name, boolean isNucleotides) {
         this.sParam = sParam;
         this.kSize = kSize;
         this.name = name;
@@ -35,7 +39,7 @@ public class FracMinHashSketch {
      * @param name
      * @param sequences
      * @param isNucleotides
-     * @param sParam scaling factor, 0 <= s <= 1; s*H defines the threshold
+     * @param sParam scaling factor, 0 <= 1/s <= 1; 1/s*H defines the threshold
      * @param kSize
      * @param seed
      * @param filterUniqueKMers
@@ -47,7 +51,7 @@ public class FracMinHashSketch {
         String name, 
         Collection<byte[]> sequences, 
         boolean isNucleotides, 
-        double sParam, 
+        int sParam, 
         int kSize, 
         int seed, 
         boolean filterUniqueKMers, 
@@ -62,7 +66,7 @@ public class FracMinHashSketch {
         // Irber et al define the hash function as h: o -> [0, H]. However, in
         // the case of our Java Long hashes, the range is h: o -> [-H, H-1].
         // Thus, we need to shift the threshold accordingly.
-        final double fraction = Long.MAX_VALUE * sParam * 2; //the complete range is 2H, thus a fraction is 2Hs
+        final double fraction = Long.MAX_VALUE * (1/(double)sParam) * 2; //the complete range is 2H, thus a fraction is 2Hs
         final double threshold = Long.MIN_VALUE + fraction;
 
         final BloomFilter bloomFilter;
@@ -138,10 +142,39 @@ public class FracMinHashSketch {
     }
 
     public long[] getValues() {
-        return hashValues;
+        return this.hashValues;
     }
 
     public byte[][] getKmers() {
-        return kmers;
+        return this.kmers;
+    }
+
+    public byte[] getBytes() {
+        ByteOutputBuffer bytes = new ByteOutputBuffer();
+        bytes.writeIntLittleEndian(MAGIC_INT);
+        bytes.writeIntLittleEndian(this.sParam);
+        bytes.writeIntLittleEndian(this.kSize);
+        bytes.writeIntLittleEndian(this.hashValues.length);
+        for (int i = 0; i < this.hashValues.length; i++) {
+            bytes.writeLongLittleEndian(this.hashValues[i]);
+        }
+        return bytes.copyBytes();
+    }
+
+    public static FracMinHashSketch parse(byte[] bytes) throws IOException {
+        final ByteInputBuffer buffer = new ByteInputBuffer(bytes);
+
+        if (buffer.readIntLittleEndian() != MAGIC_INT)
+            throw new IOException("Incorrect magic number");
+        int sParam = buffer.readIntLittleEndian();
+        int kMerSize = buffer.readIntLittleEndian();
+        int sketchSize = buffer.readIntLittleEndian();
+
+        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kMerSize, "", true);
+        sketch.hashValues = new long[sketchSize];
+        for (int i = 0; i < sketchSize; i++) {
+            sketch.hashValues[i] = buffer.readLongLittleEndian();
+        }
+        return sketch;
     }
 }

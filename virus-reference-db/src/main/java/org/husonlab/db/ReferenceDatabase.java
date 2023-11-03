@@ -11,7 +11,10 @@ import java.util.logging.Logger;
 import org.husonlab.ncbi.Genome;
 import org.husonlab.ncbi.Taxon;
 import org.husonlab.ncbi.TaxonomyTree;
+import org.husonlab.sketch.GenomeSketch;
 import org.sqlite.SQLiteConfig;
+
+import jloda.thirdparty.HexUtils;
 
 public class ReferenceDatabase implements Closeable{
     private Connection connection;
@@ -26,7 +29,7 @@ public class ReferenceDatabase implements Closeable{
         result.connection.createStatement().execute("CREATE TABLE taxa (taxon_id INTEGER PRIMARY KEY, taxon_name TEXT, taxon_display_name TEXT, parent_id INTEGER REFERENCES taxa(taxon_id)) WITHOUT ROWID;");
         result.connection.createStatement().execute("CREATE TABLE info (key TEXT PRIMARY KEY, value TEXT NOT NULL) WITHOUT ROWID;");
         result.connection.createStatement().execute("CREATE TABLE genomes (taxon_id INTEGER PRIMARY KEY, genome_accession TEXT NOT NULL, genome_size INTEGER, fasta_url TEXT) WITHOUT ROWID;");
-        result.connection.createStatement().execute("CREATE TABLE mash_sketches (taxon_id INTEGER PRIMARY KEY, mash_sketch TEXT NOT NULL) WITHOUT ROWID;");
+        result.connection.createStatement().execute("CREATE TABLE frac_min_hash_sketches (taxon_id INTEGER PRIMARY KEY, frac_min_hash_sketch TEXT NOT NULL) WITHOUT ROWID;");
         return result;
     }
 
@@ -52,6 +55,17 @@ public class ReferenceDatabase implements Closeable{
             s.executeUpdate();
         }
         this.logger.info("Finished inserting genomes in DB!");
+    }
+
+    public void insertSketches(List<GenomeSketch> sketches) throws SQLException {
+        this.logger.info("Inserting genome sketches in DB...");
+        PreparedStatement s = this.connection.prepareStatement("INSERT INTO frac_min_hash_sketches (taxon_id, frac_min_hash_sketch) VALUES (?, ?);");
+        for (GenomeSketch g : sketches) {
+            s.setInt(1, g.getGenome().getTaxonId());
+            s.setString(2, HexUtils.encodeHexString(g.getSketch().getBytes()));
+            s.executeUpdate();
+        }
+        this.logger.info("Finished inserting genome sketches in DB!");
     }
 
     public void insertTaxonomy(TaxonomyTree taxonomy) throws SQLException {
