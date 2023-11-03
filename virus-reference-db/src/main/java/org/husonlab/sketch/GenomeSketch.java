@@ -16,6 +16,7 @@ public class GenomeSketch {
     private static Logger logger = Logger.getLogger(GenomeSketch.class.getName());
 
     public static GenomeSketch sketch(Genome genome, int kSize, int sParam, int seed) throws IOException {
+        logger.info("Calculating sketch for " + genome.getAccession());
         final GenomeSketch result = new GenomeSketch(genome);
         try (FileLineIterator it = new FileLineIterator(genome.getDownloadLink())) {
             // TODO: change grouping behaviour

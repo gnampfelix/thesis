@@ -142,27 +142,27 @@ public class NcbiApi {
         // all taxa. So, maybe query the lineage for one taxon.
         Queue<List<String>> lineageQueryQueue = new LinkedList<>();
         
-        logger.info("Processing leaves...");
+        logger.fine("Processing leaves...");
         // First, get the lineage of all given genomes and create taxon for genome
         List<String> taxonBatch = new ArrayList<>();
         for (Genome g : genomes) {
             taxonBatch.add(String.valueOf(g.getTaxonId()));
             if (taxonBatch.size() >= TAXON_PAGE_SIZE) {
-                logger.info("Leaf batch for " + taxonBatch.toString());
+                logger.fine("Leaf batch for " + taxonBatch.toString());
                 fetchLeafBatch(tree, taxa, lineageQueryQueue, taxonBatch, genomeParents);
                 taxonBatch.clear();
             }
         }
         // Process final batch
-        logger.info("Leaf batch for " + taxonBatch.toString());
+        logger.fine("Leaf batch for " + taxonBatch.toString());
         fetchLeafBatch(tree, taxa, lineageQueryQueue, taxonBatch, genomeParents);
         
         
         // Now, resolve all lineages, all elements are findable by construction
-        logger.info("Processing lineages...");
+        logger.fine("Processing lineages...");
         while (!lineageQueryQueue.isEmpty()) {
             List<String> lineageQuery = lineageQueryQueue.remove();
-            logger.info("Fetching lineage " +lineageQuery.toString());
+            logger.fine("Fetching lineage " +lineageQuery.toString());
 
             V2TaxonomyMetadataResponse response = taxonomy.taxonomyMetadata(lineageQuery, V2TaxonomyMetadataRequestContentType.COMPLETE);
             
@@ -170,11 +170,11 @@ public class NcbiApi {
             List<V2TaxonomyMatch> nodes = response.getTaxonomyNodes();
             if (nodes != null) {
                 for(V2TaxonomyMatch node : nodes) {
-                    logger.info("processing taxon " + node.getTaxonomy().getTaxId() + "...");
+                    logger.fine("processing taxon " + node.getTaxonomy().getTaxId() + "...");
                     Taxon current;
                     // We might have seen this taxon before (shared lineage)
                     if (!taxa.containsKey(node.getTaxonomy().getTaxId())) {
-                        logger.info("taxon not known, creating new...");
+                        logger.fine("taxon not known, creating new...");
                         current = new Taxon(node.getTaxonomy().getOrganismName(), node.getTaxonomy().getTaxId());
                         taxa.put(current.getTaxonId(), current);
                         tree.addNode(current);
@@ -182,12 +182,12 @@ public class NcbiApi {
                 }
 
                 // Then, add relationships as indicated by the lineage order
-                logger.info("checking edges...");
+                logger.fine("checking edges...");
                 Taxon prev = null;
                 for(String lineageItem : lineageQuery) {
                     Taxon current = taxa.get(Integer.parseInt(lineageItem));
                     if (prev != null && !tree.hasEdgeConnecting(prev, current)) {
-                        logger.info("inserting edge (" + prev.getTaxonId() + "," + current.getTaxonId() + ")...");
+                        logger.fine("inserting edge (" + prev.getTaxonId() + "," + current.getTaxonId() + ")...");
                         tree.putEdge(prev, current);
                     }
                     prev = current;
@@ -196,10 +196,10 @@ public class NcbiApi {
         }
 
         // Finally, insert the leaves
-        logger.info("Adding genome linkes...");
+        logger.fine("Adding genome linkes...");
         for (Entry<Integer, Integer> genomeLink : genomeParents.entrySet()) {
             if (!tree.hasEdgeConnecting(taxa.get(genomeLink.getValue()), taxa.get(genomeLink.getKey()))) {
-                logger.info("inserting edge (" + genomeLink.getValue() + "," + genomeLink.getKey() + ")...");
+                logger.fine("inserting edge (" + genomeLink.getValue() + "," + genomeLink.getKey() + ")...");
                 tree.putEdge(taxa.get(genomeLink.getValue()), taxa.get(genomeLink.getKey()));
             }
         }

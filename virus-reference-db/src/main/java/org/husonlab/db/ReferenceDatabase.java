@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -44,7 +45,7 @@ public class ReferenceDatabase implements Closeable{
         this.logger = Logger.getLogger(ReferenceDatabase.class.getName());
     }
 
-    public void insertGenomes(List<Genome> genomes) throws SQLException {
+    public void insertGenomes(Collection<Genome> genomes) throws SQLException {
         this.logger.info("Inserting genomes in DB...");
         PreparedStatement s = this.connection.prepareStatement("INSERT INTO genomes (taxon_id, genome_accession, genome_size, fasta_url) VALUES (?, ?, ?, ?);");
         for (Genome g : genomes) {
@@ -57,7 +58,7 @@ public class ReferenceDatabase implements Closeable{
         this.logger.info("Finished inserting genomes in DB!");
     }
 
-    public void insertSketches(List<GenomeSketch> sketches) throws SQLException {
+    public void insertSketches(Collection<GenomeSketch> sketches) throws SQLException {
         this.logger.info("Inserting genome sketches in DB...");
         PreparedStatement s = this.connection.prepareStatement("INSERT INTO frac_min_hash_sketches (taxon_id, frac_min_hash_sketch) VALUES (?, ?);");
         for (GenomeSketch g : sketches) {
