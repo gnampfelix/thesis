@@ -1,13 +1,11 @@
 package org.husonlab.sketch;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.husonlab.ncbi.Genome;
 
-import jloda.util.FileLineIterator;
 import jloda.util.progress.ProgressSilent;
 
 public class GenomeSketch {
@@ -18,11 +16,8 @@ public class GenomeSketch {
     public static GenomeSketch sketch(Genome genome, int kSize, int sParam, int seed) throws IOException {
         logger.fine("Calculating sketch for " + genome.getAccession());
         final GenomeSketch result = new GenomeSketch(genome);
-        try (FileLineIterator it = new FileLineIterator(genome.getDownloadLink())) {
-            // TODO: change grouping behaviour
-			byte[] sequence =  it.stream().filter(line -> !line.startsWith(">")).map(line -> line.replaceAll("\\s+", "")).collect(Collectors.joining()).getBytes();
-            result.sketch = FracMinHashSketch.compute(genome.getAccession(), Collections.singleton(sequence), true, sParam, kSize, seed, false, true, new ProgressSilent());
-        }
+        List<byte[]> sequences = new SequenceGrouper(genome.getFastaUrl()).getGroups();
+        result.sketch = FracMinHashSketch.compute(genome.getAccession(), sequences, true, sParam, kSize, seed, false, true, new ProgressSilent());
         if (result.sketch.getValues().length == 0) {
             logger.warning("empty sketch for " + genome.getAccession());
         }
