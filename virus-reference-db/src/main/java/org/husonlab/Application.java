@@ -75,11 +75,8 @@ public class Application {
                 executor.shutdown();
                 executor.awaitTermination(1000, TimeUnit.DAYS);
             }
-            for (Genome g : genomes) {
 
-            }
             ReferenceDatabase db = ReferenceDatabase.create(output);
-            db.insertGenomes(genomes);
             db.insertTaxonomy(tree);
             db.insertSketches(sketches);
             db.close();

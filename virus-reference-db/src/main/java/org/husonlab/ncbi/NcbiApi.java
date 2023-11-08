@@ -1,5 +1,6 @@
 package org.husonlab.ncbi;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -22,12 +23,20 @@ import org.openapitools.client.model.V2TaxonomyMetadataResponse;
 import org.openapitools.client.model.V2reportsAssemblyDataReport;
 import org.openapitools.client.model.V2reportsAssemblyDataReportPage;
 
+import com.google.common.collect.Lists;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
+
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class NcbiApi {
     private ApiClient client;
     private final int TAXON_PAGE_SIZE = 100;
+    private final int MAX_TRY_COUNT = 5;
+    private final int RETRY_BACKOFF_DELAY=10;
     private final Logger logger;
     private final GenomeApi genomes;
     private final TaxonomyApi taxonomy;
@@ -35,9 +44,52 @@ public class NcbiApi {
     public NcbiApi(String basePath) {
         this.client = new ApiClient();
         this.client.setBasePath(basePath);
-        this.logger = Logger.getLogger(NcbiApi.class.getName());
-        this.genomes = new GenomeApi(this.client);
-        this.taxonomy = new TaxonomyApi(this.client);
+
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        builder.addInterceptor(
+            new Interceptor() {
+                @Override
+                public Response intercept(Chain chain) throws IOException {
+                    Request request = chain.request();
+
+                    // try the request
+                    Response response = null;
+                    int tryCount = 1;
+                    while (tryCount <= MAX_TRY_COUNT) {
+                        try {
+                            response = chain.proceed(request);
+                            break;
+                        } catch (Exception e) {
+                            if ("Canceled".equalsIgnoreCase(e.getMessage())) {
+                                // Request canceled, do not retry
+                                throw e;
+                            }
+                            if (tryCount >= MAX_TRY_COUNT) {
+                                // max retry count reached, giving up
+                                throw e;
+                            }
+
+                            try {
+                                // sleep delay * try count (e.g. 1st retry after 3000ms, 2nd after 6000ms, etc.)
+                                Thread.sleep(RETRY_BACKOFF_DELAY * tryCount);
+                            } catch (InterruptedException e1) {
+                                throw new RuntimeException(e1);
+                            }
+                            tryCount++;
+                        }
+                    }
+                    // otherwise just pass the original response on
+                    return response;
+                }
+            });
+    
+        // this.client.setReadTimeout(5000);
+        // this.client.setConnectTimeout(5000);
+        // this.client.setWriteTimeout(5000);
+        this.client.setHttpClient(builder.build());
+        this.logger=Logger.getLogger(NcbiApi.class.getName());
+        this.genomes=new GenomeApi(this.client);
+        this.taxonomy=new TaxonomyApi(this.client);
     }
 
     public List<Genome> getGenomes(List<String> accessionCodes) throws ApiException, AmbiguousDataException {
@@ -45,24 +97,28 @@ public class NcbiApi {
         Map<String, String> downloadLinks = new HashMap<>();      
         String nextPageToken = null;
         
+        logger.info("Downloading genome links...");
+        logger.info(String.format("Splitting list in %d batches", (accessionCodes.size() / TAXON_PAGE_SIZE)));
         // somehow, the links API does not require/provide pagination
-        V2AssemblyLinksReply linksReply = this.genomes.genomeLinksByAccession(accessionCodes);
-        List<V2AssemblyLinksReplyAssemblyLink> links = linksReply.getAssemblyLinks();
-        if (links != null) {
-            for (V2AssemblyLinksReplyAssemblyLink link : links) {
-                if(link.getAssemblyLinkType().equals(V2AssemblyLinksReplyAssemblyLinkType.FTP_LINK)) {
-                    if (downloadLinks.containsKey(link.getAccession())) {
-                        throw new AmbiguousDataException("multiple valid download links for accession code found");
+        int i = 0;
+        for (List<String> partition : Lists.partition(accessionCodes, TAXON_PAGE_SIZE)) {
+            logger.info(String.format("Downloading batch %d...", ++i));
+            V2AssemblyLinksReply linksReply = this.genomes.genomeLinksByAccession(partition);
+            List<V2AssemblyLinksReplyAssemblyLink> links = linksReply.getAssemblyLinks();
+            if (links != null) {
+                for (V2AssemblyLinksReplyAssemblyLink link : links) {
+                    if(link.getAssemblyLinkType().equals(V2AssemblyLinksReplyAssemblyLinkType.FTP_LINK)) {
+                        if (downloadLinks.containsKey(link.getAccession())) {
+                            throw new AmbiguousDataException("multiple valid download links for accession code found");
+                        }
+                        downloadLinks.put(link.getAccession(), link.getResourceLink());
                     }
-                    downloadLinks.put(link.getAccession(), link.getResourceLink());
                 }
             }
-        }
-        
-        do {
-            V2reportsAssemblyDataReportPage reportPage = 
+            do {
+                V2reportsAssemblyDataReportPage reportPage = 
                     this.genomes.genomeDatasetReport(
-                        accessionCodes, 
+                        partition, 
                         null, 
                         null, 
                         null,
@@ -100,21 +156,21 @@ public class NcbiApi {
                     }
                 }
             } while (nextPageToken != null);
-
+        }
         return result;
     }
 
     private void fetchLeafBatch(
-        MutableGraph<Taxon> tree, 
-        Map<Integer, Taxon> taxa, 
-        Queue<List<String>> lineageQueryQueue, 
-        List<String> taxonBatch, 
-        Map<Integer, Integer> genomeParents
-    ) throws ApiException {
-        V2TaxonomyMetadataResponse response = this.taxonomy.taxonomyMetadata(taxonBatch, V2TaxonomyMetadataRequestContentType.COMPLETE);
+            MutableGraph<Taxon> tree,
+            Map<Integer, Taxon> taxa,
+            Queue<List<String>> lineageQueryQueue,
+            List<String> taxonBatch,
+            Map<Integer, Integer> genomeParents) throws ApiException {
+        V2TaxonomyMetadataResponse response = this.taxonomy.taxonomyMetadata(taxonBatch,
+                V2TaxonomyMetadataRequestContentType.COMPLETE);
         List<V2TaxonomyMatch> nodes = response.getTaxonomyNodes();
         if (nodes != null) {
-            for(V2TaxonomyMatch node : nodes) {
+            for (V2TaxonomyMatch node : nodes) {
                 List<String> lineage = new ArrayList<>();
                 int directParent = 0;
                 for (int parent : node.getTaxonomy().getLineage()) {
@@ -126,13 +182,12 @@ public class NcbiApi {
                 taxa.put(taxon.getTaxonId(), taxon);
                 tree.addNode(taxon);
                 genomeParents.put(taxon.getTaxonId(), directParent);
-            }                    
+            }
         }
     }
-    
+
     public TaxonomyTree getTaxonomyTreeForGenomes(List<Genome> genomes) throws ApiException {
         logger.info("Fetching taxonomy tree...");
-        
 
         Map<Integer, Taxon> taxa = new HashMap<>();
         Map<Integer, Integer> genomeParents = new HashMap<>();
@@ -141,8 +196,8 @@ public class NcbiApi {
         // requests could be come very large if we query the complete lineage of
         // all taxa. So, maybe query the lineage for one taxon.
         Queue<List<String>> lineageQueryQueue = new LinkedList<>();
-        
-        logger.fine("Processing leaves...");
+
+        logger.info("Processing leaves...");
         // First, get the lineage of all given genomes and create taxon for genome
         List<String> taxonBatch = new ArrayList<>();
         for (Genome g : genomes) {
@@ -156,20 +211,20 @@ public class NcbiApi {
         // Process final batch
         logger.fine("Leaf batch for " + taxonBatch.toString());
         fetchLeafBatch(tree, taxa, lineageQueryQueue, taxonBatch, genomeParents);
-        
-        
+
         // Now, resolve all lineages, all elements are findable by construction
-        logger.fine("Processing lineages...");
+        logger.info("Processing lineages...");
         while (!lineageQueryQueue.isEmpty()) {
             List<String> lineageQuery = lineageQueryQueue.remove();
-            logger.fine("Fetching lineage " +lineageQuery.toString());
+            logger.fine("Fetching lineage " + lineageQuery.toString());
 
-            V2TaxonomyMetadataResponse response = taxonomy.taxonomyMetadata(lineageQuery, V2TaxonomyMetadataRequestContentType.COMPLETE);
-            
+            V2TaxonomyMetadataResponse response = taxonomy.taxonomyMetadata(lineageQuery,
+                    V2TaxonomyMetadataRequestContentType.COMPLETE);
+
             // First, create all nodes (their order is not the same as in the query!)
             List<V2TaxonomyMatch> nodes = response.getTaxonomyNodes();
             if (nodes != null) {
-                for(V2TaxonomyMatch node : nodes) {
+                for (V2TaxonomyMatch node : nodes) {
                     logger.fine("processing taxon " + node.getTaxonomy().getTaxId() + "...");
                     Taxon current;
                     // We might have seen this taxon before (shared lineage)
@@ -184,7 +239,7 @@ public class NcbiApi {
                 // Then, add relationships as indicated by the lineage order
                 logger.fine("checking edges...");
                 Taxon prev = null;
-                for(String lineageItem : lineageQuery) {
+                for (String lineageItem : lineageQuery) {
                     Taxon current = taxa.get(Integer.parseInt(lineageItem));
                     if (prev != null && !tree.hasEdgeConnecting(prev, current)) {
                         logger.fine("inserting edge (" + prev.getTaxonId() + "," + current.getTaxonId() + ")...");
@@ -196,7 +251,7 @@ public class NcbiApi {
         }
 
         // Finally, insert the leaves
-        logger.fine("Adding genome linkes...");
+        logger.info("Adding genome linkes...");
         for (Entry<Integer, Integer> genomeLink : genomeParents.entrySet()) {
             if (!tree.hasEdgeConnecting(taxa.get(genomeLink.getValue()), taxa.get(genomeLink.getKey()))) {
                 logger.fine("inserting edge (" + genomeLink.getValue() + "," + genomeLink.getKey() + ")...");
