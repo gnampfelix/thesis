@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.husonlab.sketch.FracMinHashSketch;
+import org.husonlab.sketch.SequenceGrouper;
 import org.junit.Test;
 
 import jloda.thirdparty.MurmurHash;
@@ -44,5 +45,18 @@ public class FracMinHashSketchTests {
             ));
             System.out.println();
         }
+    }
+
+    @Test
+    public void testSegments() throws IOException {
+        String url = "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/009/731/815/GCF_009731815.1_ASM973181v1/GCF_009731815.1_ASM973181v1_genomic.fna.gz";
+        try (FileLineIterator it = new FileLineIterator(url)) {
+			byte[] sequence =  it.stream().filter(line -> !line.startsWith(">")).map(line -> line.replaceAll("\\s+", "")).collect(Collectors.joining()).getBytes();
+            FracMinHashSketch sketch = FracMinHashSketch.compute("test", Collections.singleton(sequence), true, 10, 21, 42, false, true, new ProgressSilent());
+            System.out.println(sketch.getValues().length);
+        }
+        SequenceGrouper grp = new SequenceGrouper(url);
+        FracMinHashSketch sketch = FracMinHashSketch.compute("test", grp.getGroups(), true, 10, 21, 42, false, true, new ProgressSilent());
+        System.out.println(sketch.getValues().length);
     }
 }
