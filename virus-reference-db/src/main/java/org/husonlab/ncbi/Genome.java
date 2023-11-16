@@ -58,7 +58,7 @@ public class Genome {
     }
 
     public String getFastaUrl() {
-        return this.downloadLink + "/" + this.accession + "_" + this.assemblyName + "_genomic.fna.gz";
+        return this.downloadLink + "/" + this.accession + "_" + this.assemblyName.replaceAll("\\s+|\\/", "_") + "_genomic.fna.gz";
     }
 
     public void setGenomeSize(int genomeSize) {

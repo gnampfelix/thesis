@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import jloda.kmers.bloomfilter.BloomFilter;
-import jloda.kmers.mash.MashSketch;
 import jloda.seq.SequenceUtils;
 import jloda.thirdparty.MurmurHash;
 import jloda.util.ByteInputBuffer;
@@ -79,10 +78,9 @@ public class FracMinHashSketch {
         try {
             final byte[] kMer = new byte[kSize];
             final byte[] kMerReverseComplement = new byte[kSize];
-
             for (byte[] sequence : sequences) {
                 final int top = sequence.length - kSize;
-                for (int offset = 0; offset < top; offset++) {
+                for (int offset = 0; offset < top; offset++) {                    
                     // check if kMer contains ambiguous nucleotide "N"
                     if (isNucleotides) {
                         final int ambiguousPos = StringUtils.lastIndexOf(sequence, offset, kSize, 'N');

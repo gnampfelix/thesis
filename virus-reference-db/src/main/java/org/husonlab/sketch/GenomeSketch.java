@@ -17,7 +17,7 @@ public class GenomeSketch {
         logger.fine("Calculating sketch for " + genome.getAccession());
         final GenomeSketch result = new GenomeSketch(genome);
         List<byte[]> sequences = new SequenceGrouper(genome.getFastaUrl()).getGroups();
-        result.sketch = FracMinHashSketch.compute(genome.getAccession(), sequences, true, sParam, kSize, seed, false, true, new ProgressSilent());
+        result.sketch = FracMinHashSketch.compute(genome.getAccession(), sequences, true, sParam, kSize, seed, true, false, new ProgressSilent());
         if (result.sketch.getValues().length == 0) {
             logger.warning("empty sketch for " + genome.getAccession());
         }

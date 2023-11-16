@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.husonlab.db.ReferenceDatabase;
@@ -36,13 +37,13 @@ public class Application {
 
         final int kParameter = options.getOption("-k", "kmerSize", "Word size k", 21);
         final int sParameter = options.getOption("-s", "scalingFactor",
-                "Scaling factor s. Hash values h are only part of the sketch if h <= H/s", 100);
+                "Scaling factor s. Hash values h are only part of the sketch if h <= H/s", 2000);
         final int randomSeed = options.getOption("-rs", "randomSeed", "Hashing random seed", 42);
 
-        ProgramExecutorService.setNumberOfCoresToUse(options.getOption("-t", "threads", "Number of threads", 8));
+        ProgramExecutorService.setNumberOfCoresToUse(options.getOption("-t", "threads", "Number of threads", 6));
 
         options.done();
-
+        Logger logger = Logger.getLogger(Application.class.getName());
         try {
             FileLineIterator it = new FileLineIterator(input);
             List<String> accessionCodes = it.stream().map(line -> line.replaceAll("\\s+", ""))
@@ -56,18 +57,24 @@ public class Application {
             }
 
             Queue<GenomeSketch> sketches = new ConcurrentLinkedQueue<>();
-            final Single<IOException> exception = new Single<>();
+            final Single<Throwable> exception = new Single<>();
             final ExecutorService executor = Executors
                     .newFixedThreadPool(ProgramExecutorService.getNumberOfCoresToUse());
             try {
                 genomes.forEach(genome -> executor.submit(() -> {
                     if (exception.isNull()) {
                         try {
+                            logger.info(String.format("heap [%d, %d]", Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory()));
                             GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed);
+                            logger.info("added sketch");
                             sketches.add(sketch);
 
                         } catch (IOException ex) {
-                            exception.setIfCurrentValueIsNull(ex);
+                            logger.warning(ex.getMessage());
+                        } catch (Throwable e) {
+                            // Somethings wrong here - no way to recover.
+                            logger.warning(e.getMessage());
+                            exception.setIfCurrentValueIsNull(e);
                         }
                     }
                 }));

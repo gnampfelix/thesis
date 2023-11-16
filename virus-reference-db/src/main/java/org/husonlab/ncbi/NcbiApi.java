@@ -98,7 +98,7 @@ public class NcbiApi {
         String nextPageToken = null;
         
         logger.info("Downloading genome links...");
-        logger.info(String.format("Splitting list in %d batches", (accessionCodes.size() / TAXON_PAGE_SIZE)));
+        logger.info(String.format("Splitting list in %d batches", (accessionCodes.size() / TAXON_PAGE_SIZE + 1)));
         // somehow, the links API does not require/provide pagination
         int i = 0;
         for (List<String> partition : Lists.partition(accessionCodes, TAXON_PAGE_SIZE)) {
