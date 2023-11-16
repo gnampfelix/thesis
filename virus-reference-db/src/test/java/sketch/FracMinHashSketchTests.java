@@ -49,14 +49,16 @@ public class FracMinHashSketchTests {
 
     @Test
     public void testSegments() throws IOException {
-        String url = "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/009/731/815/GCF_009731815.1_ASM973181v1/GCF_009731815.1_ASM973181v1_genomic.fna.gz";
-        try (FileLineIterator it = new FileLineIterator(url)) {
-			byte[] sequence =  it.stream().filter(line -> !line.startsWith(">")).map(line -> line.replaceAll("\\s+", "")).collect(Collectors.joining()).getBytes();
-            FracMinHashSketch sketch = FracMinHashSketch.compute("test", Collections.singleton(sequence), true, 10, 21, 42, false, true, new ProgressSilent());
-            System.out.println(sketch.getValues().length);
-        }
+        String url = "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/026/225/685/GCA_026225685.1_Pinf1306_UCR_1/GCA_026225685.1_Pinf1306_UCR_1_genomic.fna.gz";
+        long initialHeap = Runtime.getRuntime().totalMemory();
+        long start = System.currentTimeMillis();
         SequenceGrouper grp = new SequenceGrouper(url);
-        FracMinHashSketch sketch = FracMinHashSketch.compute("test", grp.getGroups(), true, 10, 21, 42, false, true, new ProgressSilent());
-        System.out.println(sketch.getValues().length);
+        long groupingHeap = Runtime.getRuntime().totalMemory();
+        FracMinHashSketch sketch = FracMinHashSketch.compute("test", grp.getGroups(), true, 1000, 21, 42, false, false, new ProgressSilent());
+        long finalHeap = Runtime.getRuntime().totalMemory();
+        long end = System.currentTimeMillis();
+        System.out.println(String.format("sketch size: %d", sketch.getValues().length));
+        System.out.println(String.format("runtime: %d", (end-start)/1000));
+        System.out.println(String.format("initial heap: %d\ngrouping heap: %d\nfinal heap: %d", initialHeap / 1024 / 1024, groupingHeap / 1024 / 1024, finalHeap / 1024 /1024));
     }
 }
