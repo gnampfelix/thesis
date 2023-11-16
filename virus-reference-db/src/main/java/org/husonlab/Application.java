@@ -55,7 +55,6 @@ public class Application {
             if ((new File(output)).exists()) {
                 (new File(output)).delete();
             }
-
             Queue<GenomeSketch> sketches = new ConcurrentLinkedQueue<>();
             final Single<Throwable> exception = new Single<>();
             final ExecutorService executor = Executors
@@ -64,7 +63,6 @@ public class Application {
                 genomes.forEach(genome -> executor.submit(() -> {
                     if (exception.isNull()) {
                         try {
-                            logger.info(String.format("heap [%d, %d]", Runtime.getRuntime().totalMemory(), Runtime.getRuntime().maxMemory()));
                             GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed);
                             logger.info("added sketch");
                             sketches.add(sketch);
@@ -73,7 +71,7 @@ public class Application {
                             logger.warning(ex.getMessage());
                         } catch (Throwable e) {
                             // Somethings wrong here - no way to recover.
-                            logger.warning(e.getMessage());
+                            logger.severe(e.getMessage());
                             exception.setIfCurrentValueIsNull(e);
                         }
                     }

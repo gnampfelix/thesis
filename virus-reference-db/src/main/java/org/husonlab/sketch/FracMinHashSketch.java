@@ -1,10 +1,13 @@
 package org.husonlab.sketch;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
+
+import org.husonlab.util.KMerIterator;
 
 import jloda.kmers.bloomfilter.BloomFilter;
 import jloda.seq.SequenceUtils;
@@ -48,16 +51,16 @@ public class FracMinHashSketch {
      */
     public static FracMinHashSketch compute(
         String name, 
-        Collection<byte[]> sequences, 
+        KMerIterator kmers,
+        int genomeSize, 
         boolean isNucleotides, 
         int sParam, 
-        int kSize, 
         int seed, 
         boolean filterUniqueKMers, 
         boolean saveKMers, 
         ProgressListener progress
     ) {
-        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kSize, name, isNucleotides);
+        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, isNucleotides);
         final TreeSet<Long> sortedSet = new TreeSet<>();
 
         final Map<Long, byte[]> hash2kmer = saveKMers ? new HashMap<>() : null;
@@ -70,55 +73,49 @@ public class FracMinHashSketch {
 
         final BloomFilter bloomFilter;
         if (filterUniqueKMers) {
-            bloomFilter = new BloomFilter(sequences.stream().mapToInt(s -> s.length).sum(), 500000000);
+            bloomFilter = new BloomFilter(genomeSize, 500000000);
         } else {
             bloomFilter = null;
         }
 
         try {
-            final byte[] kMer = new byte[kSize];
-            final byte[] kMerReverseComplement = new byte[kSize];
-            for (byte[] sequence : sequences) {
-                final int top = sequence.length - kSize;
-                for (int offset = 0; offset < top; offset++) {                    
-                    // check if kMer contains ambiguous nucleotide "N"
-                    if (isNucleotides) {
-                        final int ambiguousPos = StringUtils.lastIndexOf(sequence, offset, kSize, 'N');
+            final byte[] kMer = new byte[kmers.getK()];
+            final byte[] kMerReverseComplement = new byte[kmers.getK()];
+            while (kmers.hasNext()) {
+                byte[] next = kmers.next();
+                if (isNucleotides) {
+                        final int ambiguousPos = StringUtils.lastIndexOf(next, 0, sketch.kSize, 'N');
                         if (ambiguousPos != -1) {
-                            offset = ambiguousPos;
                             continue;
                         }
-                    }
-
-                    SequenceUtils.getSegment(sequence, offset, kSize, kMer);
-                    final byte[] kMerUse;
-                    if (isNucleotides) {
-                        SequenceUtils.getReverseComplement(sequence, offset, kSize, kMerReverseComplement);
-
-                        if (SequenceUtils.compare(kMer, kMerReverseComplement) <= 0) {
-                            kMerUse = kMer;
-                        } else {
-                            kMerUse = kMerReverseComplement;
-                        }
-                    } else {
-                        kMerUse = kMer;
-                    }
-
-                    if (bloomFilter != null && bloomFilter.add(kMerUse)) {
-                        continue; // we have just seen this k-mer for the first time
-                    }
-
-                    final long hash = MurmurHash.hash64(kMerUse, 0, kSize, seed);
-
-                    if (hash < threshold) {
-                        sortedSet.add(hash);
-                        if (hash2kmer != null) {
-                            hash2kmer.put(hash, kMerUse.clone());
-                        }
-                    }
-
-                    progress.checkForCancel();
                 }
+                System.arraycopy(kmers.next(), 0, kMer, 0, sketch.kSize);
+                final byte[] kMerUse;
+                if (isNucleotides) {
+                    SequenceUtils.getReverseComplement(kMer, 0, sketch.kSize, kMerReverseComplement);
+                    if (SequenceUtils.compare(kMer, kMerReverseComplement) <= 0) {
+                        kMerUse = kMer;
+                    } else {
+                        kMerUse = kMerReverseComplement;
+                    }
+                } else {
+                    kMerUse = kMer;
+                }
+
+                if (bloomFilter != null && bloomFilter.add(kMerUse)) {
+                    continue; // we have just seen this k-mer for the first time
+                }
+
+                final long hash = MurmurHash.hash64(kMerUse, 0, sketch.kSize, seed);
+
+                if (hash < threshold) {
+                    sortedSet.add(hash);
+                    if (hash2kmer != null) {
+                        hash2kmer.put(hash, kMerUse.clone());
+                    }
+                }
+
+                progress.checkForCancel();
             }
             sketch.hashValues = new long[sortedSet.size()];
             int pos = 0;

@@ -6,8 +6,6 @@ import java.util.logging.Logger;
 
 import org.husonlab.ncbi.Genome;
 
-import jloda.util.progress.ProgressSilent;
-
 public class GenomeSketch {
     private Genome genome;
     private FracMinHashSketch sketch;
@@ -17,10 +15,10 @@ public class GenomeSketch {
         logger.fine("Calculating sketch for " + genome.getAccession());
         final GenomeSketch result = new GenomeSketch(genome);
         List<byte[]> sequences = new SequenceGrouper(genome.getFastaUrl()).getGroups();
-        result.sketch = FracMinHashSketch.compute(genome.getAccession(), sequences, true, sParam, kSize, seed, true, false, new ProgressSilent());
-        if (result.sketch.getValues().length == 0) {
-            logger.warning("empty sketch for " + genome.getAccession());
-        }
+        // result.sketch = FracMinHashSketch.compute(genome.getAccession(), sequences, true, sParam, kSize, seed, true, false, new ProgressSilent());
+        // if (result.sketch.getValues().length == 0) {
+        //     logger.warning("empty sketch for " + genome.getAccession());
+        // }
         return result;
     }
 

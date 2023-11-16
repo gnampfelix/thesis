@@ -11,9 +11,11 @@ import java.util.stream.Collectors;
 
 import org.husonlab.sketch.FracMinHashSketch;
 import org.husonlab.sketch.SequenceGrouper;
+import org.husonlab.util.KMerIterator;
 import org.junit.Test;
 
 import jloda.thirdparty.MurmurHash;
+import jloda.util.FileLineBytesIterator;
 import jloda.util.FileLineIterator;
 import jloda.util.progress.ProgressSilent;
 
@@ -23,9 +25,9 @@ public class FracMinHashSketchTests {
      */
     @Test
     public void shouldCalculateFracMinSketch() throws IOException {
-        try (FileLineIterator it = new FileLineIterator("src/test/resources/virus1.fasta")) {
-			byte[] sequence =  it.stream().filter(line -> !line.startsWith(">")).map(line -> line.replaceAll("\\s+", "")).collect(Collectors.joining()).getBytes();
-            FracMinHashSketch sketch = FracMinHashSketch.compute("test", Collections.singleton(sequence), true, 10, 21, 42, true, true, new ProgressSilent());
+        try (FileLineBytesIterator it = new FileLineBytesIterator("src/test/resources/virus1.fasta")) {
+			KMerIterator kmers = new KMerIterator(it, 21);
+            FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, 420, true, 21, 42, true, true, new ProgressSilent());
             
             // the test file contains the kmer "TTGGATGAAACGCACCCGCTAT". For
             // this, the reverse complement is "ATAGCGGGTGCGTTTCATCCA", which
@@ -52,13 +54,15 @@ public class FracMinHashSketchTests {
         String url = "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/026/225/685/GCA_026225685.1_Pinf1306_UCR_1/GCA_026225685.1_Pinf1306_UCR_1_genomic.fna.gz";
         long initialHeap = Runtime.getRuntime().totalMemory();
         long start = System.currentTimeMillis();
-        SequenceGrouper grp = new SequenceGrouper(url);
-        long groupingHeap = Runtime.getRuntime().totalMemory();
-        FracMinHashSketch sketch = FracMinHashSketch.compute("test", grp.getGroups(), true, 1000, 21, 42, false, false, new ProgressSilent());
-        long finalHeap = Runtime.getRuntime().totalMemory();
-        long end = System.currentTimeMillis();
-        System.out.println(String.format("sketch size: %d", sketch.getValues().length));
-        System.out.println(String.format("runtime: %d", (end-start)/1000));
-        System.out.println(String.format("initial heap: %d\ngrouping heap: %d\nfinal heap: %d", initialHeap / 1024 / 1024, groupingHeap / 1024 / 1024, finalHeap / 1024 /1024));
+        try (FileLineBytesIterator it = new FileLineBytesIterator(url)) {
+			KMerIterator kmers = new KMerIterator(it, 21);
+            FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, 246895792, true, 1000, 42, false, false, new ProgressSilent());
+            long finalHeap = Runtime.getRuntime().totalMemory();
+            long end = System.currentTimeMillis();
+            System.out.println(String.format("sketch size: %d", sketch.getValues().length));
+            System.out.println(String.format("runtime: %d", (end-start)/1000));
+            System.out.println(String.format("initial heap: %d\nfinal heap: %d", initialHeap / 1024 / 1024, finalHeap / 1024/1024));
+        }
+        
     }
 }
