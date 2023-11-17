@@ -2,6 +2,10 @@ package sketch;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.DynamicTest.stream;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,5 +68,44 @@ public class FracMinHashSketchTests {
             System.out.println(String.format("initial heap: %d\nfinal heap: %d", initialHeap / 1024 / 1024, finalHeap / 1024/1024));
         }
         
+    }
+
+    @Test
+    public void compareKMerCount() throws IOException {
+        String url = "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/026/225/685/GCA_026225685.1_Pinf1306_UCR_1/GCA_026225685.1_Pinf1306_UCR_1_genomic.fna.gz";
+        int k = 21;
+        int s = 1000;
+        
+        SequenceGrouper group = new SequenceGrouper(url);
+        FracMinHashSketch s1 = FracMinHashSketch.compute(
+            "test", 
+            group.getGroups(), 
+            true,
+            s,
+            k,
+            42,
+            false,
+            false,
+            new ProgressSilent()
+        );
+
+        FracMinHashSketch s2;
+        try (FileLineBytesIterator it = new FileLineBytesIterator(url)) {
+            KMerIterator kmers = new KMerIterator(it, k);
+            s2 = FracMinHashSketch.compute(
+                "test",
+                kmers,
+                246895792,
+                true,
+                s,
+                42,
+                false,
+                false,
+                new ProgressSilent()
+            );
+        }
+        assertEquals(s1.getValues().length, s2.getValues().length);
+        // order should also be the same!
+        assertArrayEquals(s1.getValues(), s2.getValues());
     }
 }
