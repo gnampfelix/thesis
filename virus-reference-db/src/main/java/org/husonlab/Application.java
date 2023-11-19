@@ -22,6 +22,7 @@ import jloda.fx.util.ProgramExecutorService;
 import jloda.util.FileLineIterator;
 import jloda.util.Single;
 import jloda.util.UsageException;
+import jloda.util.progress.ProgressSilent;
 
 public class Application {
     private static NcbiApi api = new NcbiApi("https://api.ncbi.nlm.nih.gov/datasets/v2alpha");
@@ -62,17 +63,21 @@ public class Application {
             try {
                 genomes.forEach(genome -> executor.submit(() -> {
                     if (exception.isNull()) {
-                        try {
-                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed);
-                            logger.info("added sketch");
-                            sketches.add(sketch);
-
-                        } catch (IOException ex) {
-                            logger.warning(ex.getMessage());
-                        } catch (Throwable e) {
-                            // Somethings wrong here - no way to recover.
-                            logger.severe(e.getMessage());
-                            exception.setIfCurrentValueIsNull(e);
+                        int retries = 5;
+                        // Sometimes, the connection to NCBI breaks - this is a quick workaround
+                        while(retries--  > 0) {
+                            try {
+                                GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed, true, false, new ProgressSilent());
+                                sketches.add(sketch);
+                                break;
+                            } catch (Exception ex) {
+                                logger.warning(ex.getMessage());
+                            } catch (Throwable e) {
+                                // Somethings wrong here - no way to recover.
+                                logger.severe(e.getMessage());
+                                exception.setIfCurrentValueIsNull(e);
+                                break;
+                            }
                         }
                     }
                 }));
@@ -84,6 +89,7 @@ public class Application {
             ReferenceDatabase db = ReferenceDatabase.create(output);
             db.insertTaxonomy(tree);
             db.insertSketches(sketches);
+            db.insertInfo(kParameter, sParameter, randomSeed);
             db.close();
         } catch (Exception e) {
             System.out.println("well, f****");

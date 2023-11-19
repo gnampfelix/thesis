@@ -34,6 +34,12 @@ public class KMerIterator implements Iterator<byte[]> {
             return false;
         }
         byte[] nextLine = this.fastaProvider.next();
+        
+        if (nextLine == null) {
+            // this is an error in the fastaProvider - there should not be 
+            // a null result! Don't do anything here to fail loudly!
+        }
+
         // new sequence - start new k-mers, remaining bases are discarded
         if (nextLine[0] == '>') {
             if (!this.fastaProvider.hasNext()) {

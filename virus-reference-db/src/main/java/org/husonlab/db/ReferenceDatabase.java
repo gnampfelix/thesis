@@ -90,6 +90,18 @@ public class ReferenceDatabase implements Closeable{
         this.logger.info("Finished inserting taxa in DB!");
     }
 
+    public void insertInfo(int kSize, int sParam, int seed) throws SQLException{
+        this.logger.info("Inserting sketch creation info...");
+        PreparedStatement s = this.connection.prepareStatement("INSERT INTO info (key, value) VALUES (?, ?);");
+        int[] values = new int[]{kSize, sParam, seed};
+        String[] keys = new String[]{"sketch_k", "sketch_s", "sketch_seed"};
+        for (int i=0; i < 3; i++) {
+            s.setInt(1, values[i]);
+            s.setString(2, keys[i]);
+            s.executeUpdate();
+        }
+    }
+
     @Override
     public void close() throws IOException {
         try {

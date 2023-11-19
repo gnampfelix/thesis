@@ -5,20 +5,23 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.husonlab.ncbi.Genome;
+import org.husonlab.util.KMerIterator;
+
+import jloda.util.FileLineBytesIterator;
+import jloda.util.progress.ProgressListener;
 
 public class GenomeSketch {
     private Genome genome;
     private FracMinHashSketch sketch;
     private static Logger logger = Logger.getLogger(GenomeSketch.class.getName());
 
-    public static GenomeSketch sketch(Genome genome, int kSize, int sParam, int seed) throws IOException {
+    public static GenomeSketch sketch(Genome genome, int kSize, int sParam, int seed, boolean filterUniqueKMers, boolean saveKMers, ProgressListener progress) throws IOException {
         logger.fine("Calculating sketch for " + genome.getAccession());
         final GenomeSketch result = new GenomeSketch(genome);
-        List<byte[]> sequences = new SequenceGrouper(genome.getFastaUrl()).getGroups();
-        // result.sketch = FracMinHashSketch.compute(genome.getAccession(), sequences, true, sParam, kSize, seed, true, false, new ProgressSilent());
-        // if (result.sketch.getValues().length == 0) {
-        //     logger.warning("empty sketch for " + genome.getAccession());
-        // }
+        try (FileLineBytesIterator it = new FileLineBytesIterator(genome.getFastaUrl())) {
+            KMerIterator kmers = new KMerIterator(it, kSize);
+            result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, genome.getGenomeSize(), true, sParam, seed, filterUniqueKMers, saveKMers, progress);
+        }
         return result;
     }
 
