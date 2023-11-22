@@ -24,11 +24,11 @@ import jloda.util.Single;
 import jloda.util.UsageException;
 import jloda.util.progress.ProgressSilent;
 
-public class Application {
+public class DBCreation {
     private static NcbiApi api = new NcbiApi("https://api.ncbi.nlm.nih.gov/datasets/v2alpha");
 
     public static void main(String[] args) throws UsageException {
-        final ArgsOptions options = new ArgsOptions(args, Application.class,
+        final ArgsOptions options = new ArgsOptions(args, DBCreation.class,
                 "Generates a reference database based on NCBI viral genomes and FracMinHash");
 
         final String input = options.getOptionMandatory("-i", "input",
@@ -44,7 +44,7 @@ public class Application {
         ProgramExecutorService.setNumberOfCoresToUse(options.getOption("-t", "threads", "Number of threads", 6));
 
         options.done();
-        Logger logger = Logger.getLogger(Application.class.getName());
+        Logger logger = Logger.getLogger(DBCreation.class.getName());
         try {
             FileLineIterator it = new FileLineIterator(input);
             List<String> accessionCodes = it.stream().map(line -> line.replaceAll("\\s+", ""))
