@@ -1,4 +1,4 @@
-package org.husonlab;
+package org.husonlab.cmd;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package sketch;
+package org.husonlab.sketch;
 
 import static org.junit.Assert.assertEquals;
 

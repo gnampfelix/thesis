@@ -1,4 +1,4 @@
-package sketch;
+package org.husonlab.sketch;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
