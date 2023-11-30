@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.util.List;
 
-import org.husonlab.sketch.SequenceGrouper;
 import org.junit.Test;
 
 public class SequenceGrouperTests {

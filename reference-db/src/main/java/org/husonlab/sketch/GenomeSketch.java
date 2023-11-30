@@ -1,7 +1,6 @@
 package org.husonlab.sketch;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.logging.Logger;
 
 import org.husonlab.ncbi.Genome;

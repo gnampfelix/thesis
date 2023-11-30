@@ -35,8 +35,6 @@ public class FracMinHashSketch {
     private final int sParam;
     private final int kSize;
     private final int lastKmerIndex;
-    private final String name;
-    private final boolean isNucleotides;
 
     private long[] hashValues;
     private byte[][] kmers;
@@ -44,8 +42,6 @@ public class FracMinHashSketch {
     public FracMinHashSketch(int sParam, int kSize, String name, boolean isNucleotides) {
         this.sParam = sParam;
         this.kSize = kSize;
-        this.name = name;
-        this.isNucleotides = isNucleotides;
         this.lastKmerIndex = kSize-1;
     }
 
