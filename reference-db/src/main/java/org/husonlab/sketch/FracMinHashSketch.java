@@ -236,6 +236,14 @@ public class FracMinHashSketch {
         return this.kmers;
     }
 
+    public int getKSize() {
+        return this.kSize;
+    }
+
+    public int getSParam() {
+        return this.sParam;
+    }
+
     public byte[] getBytes() {
         ByteOutputBuffer bytes = new ByteOutputBuffer();
         bytes.writeIntLittleEndian(MAGIC_INT);
