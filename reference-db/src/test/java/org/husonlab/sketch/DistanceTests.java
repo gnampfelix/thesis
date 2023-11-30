@@ -1,18 +1,17 @@
 package org.husonlab.sketch;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.husonlab.util.KMerIterator;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import jloda.util.FileLineBytesIterator;
 import jloda.util.progress.ProgressSilent;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
 
 public class DistanceTests {

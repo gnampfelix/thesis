@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.husonlab.sketch.FracMinHashSketch;
-import org.husonlab.sketch.SequenceGrouper;
 import org.husonlab.util.KMerIterator;
 import org.junit.Ignore;
 import org.junit.Test;

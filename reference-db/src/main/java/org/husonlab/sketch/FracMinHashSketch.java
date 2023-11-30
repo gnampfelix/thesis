@@ -20,8 +20,21 @@ import jloda.util.progress.ProgressListener;
 public class FracMinHashSketch {
     public static final int MAGIC_INT = 1213415758; // for starters, I've just increased the number
 
+    private static final byte[] complementTable = new byte[128];
+    static {
+        complementTable['A'] = 'T';
+        complementTable['T'] = 'A';
+        complementTable['G'] = 'C';
+        complementTable['C'] = 'G';
+        complementTable['a'] = 't';
+        complementTable['t'] = 'a';
+        complementTable['g'] = 'c';
+        complementTable['c'] = 'g';
+    }
+
     private final int sParam;
     private final int kSize;
+    private final int lastKmerIndex;
     private final String name;
     private final boolean isNucleotides;
 
@@ -33,6 +46,7 @@ public class FracMinHashSketch {
         this.kSize = kSize;
         this.name = name;
         this.isNucleotides = isNucleotides;
+        this.lastKmerIndex = kSize-1;
     }
 
     public static FracMinHashSketch compute(
@@ -82,7 +96,7 @@ public class FracMinHashSketch {
                     SequenceUtils.getSegment(sequence, offset, kSize, kMer);
                     final byte[] kMerUse;
                     if (isNucleotides) {
-                        SequenceUtils.getReverseComplement(sequence, offset, kSize, kMerReverseComplement);
+                        sketch.fastReverseComplement(kMer, kMerReverseComplement);
 
                         if (SequenceUtils.compare(kMer, kMerReverseComplement) <= 0) {
                             kMerUse = kMer;
@@ -184,7 +198,7 @@ public class FracMinHashSketch {
                 System.arraycopy(next, 0, kMer, 0, sketch.kSize);
                 final byte[] kMerUse;
                 if (isNucleotides) {
-                    SequenceUtils.getReverseComplement(kMer, 0, sketch.kSize, kMerReverseComplement);
+                    sketch.fastReverseComplement(kMer, kMerReverseComplement);
                     if (SequenceUtils.compare(kMer, kMerReverseComplement) <= 0) {
                         kMerUse = kMer;
                     } else {
@@ -242,6 +256,12 @@ public class FracMinHashSketch {
 
     public int getSParam() {
         return this.sParam;
+    }
+
+    public void fastReverseComplement(byte[]kmer, byte[]result) {
+        for (int i = 0; i < this.kSize; i++) {
+            result[i] = complementTable[kmer[this.lastKmerIndex - i]];
+        }
     }
 
     public byte[] getBytes() {
