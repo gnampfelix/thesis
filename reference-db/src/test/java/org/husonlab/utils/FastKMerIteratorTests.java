@@ -16,7 +16,7 @@ import org.junit.Test;
 public class FastKMerIteratorTests {
     @Test
     public void shouldIterateKmers() throws IOException {
-        try(FastKMerIterator km = new FastKMerIterator(21, "src/test/resources/fastaWith1Seq.fasta")) {
+        try(FastKMerIterator km = new FastKMerIterator(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
 
             List<String>kmers = new ArrayList<>();
             while(km.hasNext()) {
@@ -427,7 +427,7 @@ public class FastKMerIteratorTests {
 
     @Test
     public void shouldIterateKmersInMultipleSequences() throws IOException {
-        try(FastKMerIterator km = new FastKMerIterator(21, "src/test/resources/fastaWith2Seq.fasta")) {
+        try(FastKMerIterator km = new FastKMerIterator(21, "src/test/resources/fastaWith2Seq.fasta", true)) {
             List<String>kmers = new ArrayList<>();
             while(km.hasNext()) {
                 kmers.add(new String(km.next()));
@@ -438,8 +438,29 @@ public class FastKMerIteratorTests {
 
     @Test
     public void shouldNotCreateKmers() throws IOException {
-        try(FastKMerIterator km = new FastKMerIterator(21, "src/test/resources/fastaWithTwoShortSeq.fasta")) {
+        try(FastKMerIterator km = new FastKMerIterator(21, "src/test/resources/fastaWithTwoShortSeq.fasta", true)) {
             assertThat(km.hasNext(), equalTo(false));
+        }
+    }
+
+    @Test
+    public void checkComplement() throws IOException {
+        try(FastKMerIterator km = new FastKMerIterator(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
+            assertThat(km.hasNext(), equalTo(true));
+            assertThat(new String(km.next()), equalTo("ACTCGTATGAACTTTGACTGG"));
+            assertThat(new String(km.getComplement()), equalTo("CCAGTCAAAGTTCATACGAGT"));
+        }
+    }
+
+        @Test
+    public void checkDiscardAmbiguousChars() throws IOException {
+        try(FastKMerIterator km = new FastKMerIterator(21, "src/test/resources/fastaWithAmbSeq.fasta", true)) {
+            int i = 0;
+            while(km.hasNext()) {
+                km.next();
+                i++;
+            }
+            assertThat(i, equalTo((70*6) - 21 + 1 - 21));
         }
     }
 

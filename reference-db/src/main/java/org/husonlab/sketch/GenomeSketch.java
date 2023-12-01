@@ -16,7 +16,7 @@ public class GenomeSketch {
     public static GenomeSketch sketch(Genome genome, int kSize, int sParam, int seed, boolean filterUniqueKMers, boolean saveKMers, ProgressListener progress) throws IOException {
         logger.fine("Calculating sketch for " + genome.getAccession());
         final GenomeSketch result = new GenomeSketch(genome);
-        try (FastKMerIterator kmers = new FastKMerIterator(kSize, genome.getFastaUrl())) {
+        try (FastKMerIterator kmers = new FastKMerIterator(kSize, genome.getFastaUrl(), true)) {
             result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, genome.getGenomeSize(), true, sParam, seed, filterUniqueKMers, saveKMers, progress);
         }
         return result;

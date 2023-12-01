@@ -71,7 +71,7 @@ public class DistanceTests {
         final int s = 1000;
         List<FracMinHashSketch> sketches = new ArrayList<>(); 
         for(String url : downloadUrls) {
-            try(FastKMerIterator kmers = new FastKMerIterator(k, url)) {
+            try(FastKMerIterator kmers = new FastKMerIterator(k, url, true)) {
                 sketches.add(FracMinHashSketch.compute(
                     url,
                     kmers,

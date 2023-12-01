@@ -22,7 +22,7 @@ public class FracMinHashSketchTests {
      */
     @Test
     public void shouldCalculateFracMinSketch() throws IOException {
-        try (FastKMerIterator kmers = new FastKMerIterator(21, "src/test/resources/virus1.fasta")) {
+        try (FastKMerIterator kmers = new FastKMerIterator(21, "src/test/resources/virus1.fasta", true)) {
 			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, 420, true, 21, 42, true, true, new ProgressSilent());
             
             // the test file contains the kmer "TTGGATGAAACGCACCCGCTAT". For
@@ -65,7 +65,7 @@ public class FracMinHashSketchTests {
         );
 
         FracMinHashSketch s2;
-        try (FastKMerIterator kmers = new FastKMerIterator(k, url)) {
+        try (FastKMerIterator kmers = new FastKMerIterator(k, url, true)) {
             s2 = FracMinHashSketch.compute(
                 "test",
                 kmers,
@@ -92,7 +92,7 @@ public class FracMinHashSketchTests {
         long initialHeap = Runtime.getRuntime().totalMemory();
         long start = System.currentTimeMillis();
         
-        try (FastKMerIterator kmers = new FastKMerIterator(k, url)) {
+        try (FastKMerIterator kmers = new FastKMerIterator(k, url, true)) {
             FracMinHashSketch.compute(
                 "test",
                 kmers,
@@ -111,13 +111,13 @@ public class FracMinHashSketchTests {
         }
     }
 
+    //@Ignore // Not a real test, but for understanding the performance
     @Test
-    @Ignore // Not a real test, but for understanding the performance
     public void testSegments() throws IOException {
-        String url = "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/026/225/685/GCA_026225685.1_Pinf1306_UCR_1/GCA_026225685.1_Pinf1306_UCR_1_genomic.fna.gz";
+        String url = "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/PhyInf1.fna.gz";
         long initialHeap = Runtime.getRuntime().totalMemory();
         long start = System.currentTimeMillis();
-        try (FastKMerIterator kmers = new FastKMerIterator(21, url)) {
+        try (FastKMerIterator kmers = new FastKMerIterator(21, url, true)) {
 			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, 246895792, true, 1000, 42, false, false, new ProgressSilent());
             long finalHeap = Runtime.getRuntime().totalMemory();
             long end = System.currentTimeMillis();
@@ -126,4 +126,5 @@ public class FracMinHashSketchTests {
             System.out.println(String.format("initial heap: %d\nfinal heap: %d", initialHeap / 1024 / 1024, finalHeap / 1024/1024));
         }        
     }
+
 }

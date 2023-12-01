@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import org.husonlab.util.FastKMerIterator;
-import org.husonlab.util.KMerIterator;
 
 import jloda.kmers.bloomfilter.BloomFilter;
 import jloda.seq.SequenceUtils;
@@ -186,16 +185,10 @@ public class FracMinHashSketch {
             final byte[] kMerReverseComplement = new byte[kmers.getK()];
             while (kmers.hasNext()) {
                 byte[] next = kmers.next();
-                if (isNucleotides) {
-                        final int ambiguousPos = StringUtils.lastIndexOf(next, 0, sketch.kSize, 'N');
-                        if (ambiguousPos != -1) {
-                            continue;
-                        }
-                }
                 System.arraycopy(next, 0, kMer, 0, sketch.kSize);
                 final byte[] kMerUse;
                 if (isNucleotides) {
-                    sketch.fastReverseComplement(kMer, kMerReverseComplement);
+                    System.arraycopy(kmers.getComplement(), 0, kMerReverseComplement, 0, kmers.getK());
                     if (SequenceUtils.compare(kMer, kMerReverseComplement) <= 0) {
                         kMerUse = kMer;
                     } else {
