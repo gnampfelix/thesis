@@ -448,7 +448,7 @@ public class FastKMerIteratorTests {
         try(FastKMerIterator km = new FastKMerIterator(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
             assertThat(km.hasNext(), equalTo(true));
             assertThat(new String(km.next()), equalTo("ACTCGTATGAACTTTGACTGG"));
-            assertThat(new String(km.getComplement()), equalTo("CCAGTCAAAGTTCATACGAGT"));
+            assertThat(new String(km.getReverseComplement()), equalTo("CCAGTCAAAGTTCATACGAGT"));
         }
     }
 

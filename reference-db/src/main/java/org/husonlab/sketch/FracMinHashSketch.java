@@ -188,7 +188,7 @@ public class FracMinHashSketch {
                 System.arraycopy(next, 0, kMer, 0, sketch.kSize);
                 final byte[] kMerUse;
                 if (isNucleotides) {
-                    System.arraycopy(kmers.getComplement(), 0, kMerReverseComplement, 0, kmers.getK());
+                    System.arraycopy(kmers.getReverseComplement(), 0, kMerReverseComplement, 0, kmers.getK());
                     if (SequenceUtils.compare(kMer, kMerReverseComplement) <= 0) {
                         kMerUse = kMer;
                     } else {
