@@ -7,10 +7,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.husonlab.util.KMerIterator;
+import org.husonlab.util.FastKMerIterator;
 import org.junit.Test;
 
-import jloda.util.FileLineBytesIterator;
 import jloda.util.progress.ProgressSilent;
 
 
@@ -72,8 +71,7 @@ public class DistanceTests {
         final int s = 1000;
         List<FracMinHashSketch> sketches = new ArrayList<>(); 
         for(String url : downloadUrls) {
-            try(FileLineBytesIterator it = new FileLineBytesIterator(url)) {
-                KMerIterator kmers = new KMerIterator(it, k);
+            try(FastKMerIterator kmers = new FastKMerIterator(k, url)) {
                 sketches.add(FracMinHashSketch.compute(
                     url,
                     kmers,

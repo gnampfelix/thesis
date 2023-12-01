@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
+import org.husonlab.util.FastKMerIterator;
 import org.husonlab.util.KMerIterator;
 
 import jloda.kmers.bloomfilter.BloomFilter;
@@ -153,7 +154,7 @@ public class FracMinHashSketch {
      */
     public static FracMinHashSketch compute(
         String name, 
-        KMerIterator kmers,
+        FastKMerIterator kmers,
         int genomeSize, 
         boolean isNucleotides, 
         int sParam, 

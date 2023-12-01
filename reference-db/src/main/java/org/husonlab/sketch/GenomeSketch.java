@@ -4,9 +4,8 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.husonlab.ncbi.Genome;
-import org.husonlab.util.KMerIterator;
+import org.husonlab.util.FastKMerIterator;
 
-import jloda.util.FileLineBytesIterator;
 import jloda.util.progress.ProgressListener;
 
 public class GenomeSketch {
@@ -17,8 +16,7 @@ public class GenomeSketch {
     public static GenomeSketch sketch(Genome genome, int kSize, int sParam, int seed, boolean filterUniqueKMers, boolean saveKMers, ProgressListener progress) throws IOException {
         logger.fine("Calculating sketch for " + genome.getAccession());
         final GenomeSketch result = new GenomeSketch(genome);
-        try (FileLineBytesIterator it = new FileLineBytesIterator(genome.getFastaUrl())) {
-            KMerIterator kmers = new KMerIterator(it, kSize);
+        try (FastKMerIterator kmers = new FastKMerIterator(kSize, genome.getFastaUrl())) {
             result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, genome.getGenomeSize(), true, sParam, seed, filterUniqueKMers, saveKMers, progress);
         }
         return result;
