@@ -9,14 +9,14 @@ public class Distance {
         int unionSize = (a.length + b.length - intersectionSize);
         double jHat = (double)intersectionSize/(double)unionSize;
         double j = jHat / (1.0 - Math.pow(1.0 - (1.0 / (double)s), unionSize));
-        return j;
+        return Math.min(1.0, j);
     }
 
     public static double calculateContainmentIndex(long[] a, long[] b, int s) {
         int intersectionSize = getIntersectionSize(a, b);
         double cHat = (double)intersectionSize/(double)a.length;
         double c = cHat/(1.0-Math.pow(1.0-(1.0/(double)s),a.length));
-        return c;
+        return Math.min(1.0, c);
     }
 
     public static double jaccardToDistance(double j, int k) {

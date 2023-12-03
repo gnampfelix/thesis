@@ -46,23 +46,24 @@ public class DistanceTests {
         assertThat(Distance.jaccardToDistance(1, 21), equalTo(0.0));
     }
 
+    // Not really a test, more an example!
     @Test
-    public void shouldCalculateDistancesCorrectly() throws IOException, IncompatibleParameterException {
+    public void runExampleDistanceCalculation() throws IOException, IncompatibleParameterException {
         final String[] downloadUrls = new String[]{
-            "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/012/295/175/GCA_012295175.1_ASM1229517v1/GCA_012295175.1_ASM1229517v1_genomic.fna.gz",
-            "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/011/316/315/GCA_011316315.1_UAnd_PInf_RC1-10.1/GCA_011316315.1_UAnd_PInf_RC1-10.1_genomic.fna.gz",
-            "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/024/300/685/GCA_024300685.1_ASM2430068v1/GCA_024300685.1_ASM2430068v1_genomic.fna.gz",
-            "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/003/018/455/GCA_003018455.1_ASM301845v1/GCA_003018455.1_ASM301845v1_genomic.fna.gz",
-            "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/025/722/995/GCA_025722995.1_ASM2572299v1/GCA_025722995.1_ASM2572299v1_genomic.fna.gz",
-            "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/333/115/GCA_000333115.2_PhyKer844_4v2/GCA_000333115.2_PhyKer844_4v2_genomic.fna.gz"
+            "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/EColi1.fna.gz",
+            "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/EColi2.fna.gz",
+            "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/PhyAga.fna.gz",
+            "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/PhyInf1.fna.gz",
+            "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/PhyInf2.fna.gz",
+            "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/PhyKer.fna.gz"
         };
 
         final String[] taxa = new String[]{
-            "P. infestans",
-            "P. infestans",
             "E. coli",
             "E. coli",
             "P. agathidic",
+            "P. infestans",
+            "P. infestans",
             "P. kernoviae"
         };
 
@@ -94,15 +95,14 @@ public class DistanceTests {
                 List<Double> currentDistances = new ArrayList<>();
                 double containment = Distance.calculateContainmentIndex(sketches.get(i).getValues(), sketches.get(j).getValues(), s);
                 double jaccard = Distance.calculateJaccardIndex(sketches.get(i).getValues(), sketches.get(j).getValues(), s);
-                currentDistances.add(Distance.containmentToDistance(containment, k));
                 currentDistances.add(Distance.jaccardToDistance(jaccard, k));
-                currentDistances.add(Distance.jaccardToMashDistance(jaccard, k));
+                currentDistances.add(jaccard);
                 currentRow.add(currentDistances);
             }
             distances.add(currentRow);
         }
         
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 2; i++) {
             for (int j = 0; j < distances.size(); j++) {
                 System.out.print(String.format("%s:\t", taxa[j]));
                 for (int l = 0; l < distances.get(j).size(); l++) {
@@ -112,7 +112,6 @@ public class DistanceTests {
             }
             System.out.print("\n");
         }
-        System.out.println(distances);
         System.out.println();
         
     }
