@@ -26,6 +26,11 @@ public class GenomeSketch {
         this.genome = genome;
     }
 
+    public GenomeSketch(Genome genome, FracMinHashSketch sketch) {
+        this.genome = genome;
+        this.sketch = sketch;
+    }
+
     public Genome getGenome() {
         return this.genome;
     }

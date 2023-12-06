@@ -6,11 +6,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
+import org.husonlab.ncbi.Genome;
 import org.husonlab.ncbi.Taxon;
 import org.husonlab.ncbi.TaxonomyTree;
+import org.husonlab.sketch.FracMinHashSketch;
 import org.husonlab.sketch.GenomeSketch;
 import org.sqlite.SQLiteConfig;
 
@@ -42,6 +47,27 @@ public class ReferenceDatabase implements Closeable{
 
     private ReferenceDatabase() {
         this.logger = Logger.getLogger(ReferenceDatabase.class.getName());
+    }
+
+    public Collection<GenomeSketch> getSketches() throws SQLException, IOException {
+        this.logger.info("Getting genomes and sketches from DB...");
+        Collection<GenomeSketch> result = new ArrayList<>();
+        PreparedStatement view_statement = this.connection.prepareStatement("SELECT b.genome_size as genome_size, a.frac_min_hash_sketch as sketch, a.taxon_id as taxon_id, b.genome_accession, b.fasta_url, c.taxon_name FROM frac_min_hash_sketches as a JOIN genomes as b ON a.taxon_id = b.taxon_id JOIN taxa as c ON a.taxon_id = c.taxon_id;");
+        ResultSet rs = view_statement.executeQuery();
+        while(rs.next()) {
+            byte[] serializedSketch = HexUtils.decodeHexString(rs.getString("sketch"));
+            int taxonId = rs.getInt("taxon_id");
+            long genomeSize = rs.getLong("genome_size");
+            String accession = rs.getString("genome_accession");
+            String taxonName = rs.getString("taxon_name");
+            String fastaUrl = rs.getString("fasta_url");
+            Genome currentGenome = new Genome(taxonName, accession, taxonId, taxonName, fastaUrl, genomeSize);
+            FracMinHashSketch sketch = FracMinHashSketch.parse(serializedSketch);
+            result.add(new GenomeSketch(currentGenome, sketch));
+        }
+
+        this.logger.info("Finished getting genomes and sketches from DB!");
+        return result;
     }
 
     public void insertSketches(Collection<GenomeSketch> sketches) throws SQLException {
@@ -96,10 +122,21 @@ public class ReferenceDatabase implements Closeable{
         int[] values = new int[]{kSize, sParam, seed};
         String[] keys = new String[]{"sketch_k", "sketch_s", "sketch_seed"};
         for (int i=0; i < 3; i++) {
-            s.setInt(1, values[i]);
-            s.setString(2, keys[i]);
+            s.setString(1, keys[i]);
+            s.setInt(2, values[i]);
             s.executeUpdate();
         }
+    }
+
+    public Map<String, Integer> getInfo() throws SQLException {
+        this.logger.info("Fetching sketch creation info from DB...");
+        Map<String, Integer> result = new HashMap<>();
+        PreparedStatement s = this.connection.prepareStatement("SELECT key, value FROM info;");
+        ResultSet rs = s.executeQuery();
+        while(rs.next()) {
+            result.put(rs.getString("key"), rs.getInt("value"));
+        }
+        return result;        
     }
 
     @Override

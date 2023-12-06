@@ -1,8 +1,13 @@
 package org.husonlab.cmd;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -10,9 +15,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.husonlab.db.ReferenceDatabase;
 import org.husonlab.ncbi.Genome;
 import org.husonlab.ncbi.NcbiApi;
+import org.husonlab.sketch.Distance;
 import org.husonlab.sketch.GenomeSketch;
+import org.husonlab.sketch.IncompatibleParameterException;
+
 
 import jloda.fx.util.ArgsOptions;
 import jloda.fx.util.ProgramExecutorService;
@@ -81,7 +90,55 @@ public class DistanceCalculator {
                 executor.shutdown();
                 executor.awaitTermination(1000, TimeUnit.DAYS);
             }
-            logger.info("Done sketching query sequences");
+            
+            logger.info("Loading reference DB!");
+            ReferenceDatabase db = ReferenceDatabase.open(database);
+            Map<String, Integer> info = db.getInfo();
+            Collection<GenomeSketch> refSketches = db.getSketches();
+            db.close();
+            if (
+                !info.containsKey("sketch_k") || 
+                !info.containsKey("sketch_s") || 
+                !info.containsKey("sketch_seed") ||
+                info.get("sketch_k") != kParameter ||
+                info.get("sketch_s") != sParameter ||
+                info.get("sketch_seed") != randomSeed
+            ) {
+                throw new IncompatibleParameterException("passed sketch params (s, k, seed) are not compatible to the sketch params of the passed reference DB!");
+            }
+
+            logger.info("Finding closest reference genomes...");
+            Set<GenomeSketch> resultSketchSet = new HashSet<>();
+            for (GenomeSketch querySketch : sketches) {
+                for (GenomeSketch refSketch : refSketches) {
+                    double jaccard = Distance.calculateJaccardIndex(querySketch.getSketch().getValues(), refSketch.getSketch().getValues(), sParameter);
+                    double distance = Distance.jaccardToDistance(jaccard, kParameter);
+                    if (distance <= maxDistance){
+                        resultSketchSet.add(refSketch);
+                    }
+                }
+                resultSketchSet.add(querySketch);
+            }
+
+            logger.info("Calculating pairwise distances...");
+            List<GenomeSketch> resultSketchesList = new ArrayList<>(resultSketchSet);
+            double[][] distances = new double[resultSketchSet.size()][resultSketchSet.size()];
+            for (int i = 0; i < resultSketchSet.size(); i++) {
+                for (int j = i; j < resultSketchSet.size(); j++) {
+                    double jaccard = Distance.calculateJaccardIndex(resultSketchesList.get(i).getSketch().getValues(), resultSketchesList.get(j).getSketch().getValues(), sParameter);
+                    double distance = Distance.jaccardToDistance(jaccard, kParameter);
+                    distances[i][j] = distance;
+                    distances[j][i] = distance;
+                }
+            }
+
+            for (int i = 0; i < resultSketchSet.size(); i++) {
+                System.out.print(String.format("%s\t", resultSketchesList.get(i).getGenome().getOrganismName()));
+                for (int j = 0; j < resultSketchSet.size(); j++) {
+                    System.out.print(String.format("%f\t", distances[i][j]));
+                }
+                System.out.println();
+            }
             
         } catch (Exception e) {
             System.out.println("well, f****");
