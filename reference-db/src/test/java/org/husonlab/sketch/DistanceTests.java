@@ -80,7 +80,7 @@ public class DistanceTests {
                     true,
                     s,
                     42,
-                    false,
+                    true,
                     false,
                     new ProgressSilent()));
             }

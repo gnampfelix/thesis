@@ -1,20 +1,36 @@
 package org.husonlab.ncbi;
 
+import jloda.util.FileUtils;
+
 public class Genome {
     private String organismName;
     private String accession;
     private int taxonId;
     private String assemblyName;
     private String downloadLink;
-    private int genomeSize;
+    private long genomeSize;
+    private boolean isDraft;
 
-    public Genome(String organismName, String accession, int taxonId, String assemblyName, String downloadLink, int genomeSize) {
+    public Genome(String organismName, String accession, int taxonId, String assemblyName, String downloadLink, long genomeSize) {
         this.organismName = organismName;
         this.accession = accession;
         this.taxonId = taxonId;
         this.assemblyName = assemblyName;
         this.downloadLink = downloadLink;
         this.genomeSize = genomeSize;
+        this.isDraft = false;
+    }
+
+    public Genome(String organismName, String path) {
+        this.organismName = organismName;
+        this.accession = organismName;
+        this.assemblyName = organismName;
+        this.downloadLink = path;
+
+        // Estimate will include the headers as well - but this is a good enough
+        // approximation for now. 
+        this.genomeSize = FileUtils.guessUncompressedSizeOfFile(path);
+        this.isDraft = true;
     }
 
     public String getOrganismName() {
@@ -58,6 +74,9 @@ public class Genome {
     }
 
     public String getFastaUrl() {
+        if (this.isDraft) {
+            return this.downloadLink;
+        }
         return this.downloadLink + "/" + this.accession + "_" + this.assemblyName.replaceAll("\\s+|\\/", "_") + "_genomic.fna.gz";
     }
 
@@ -65,8 +84,12 @@ public class Genome {
         this.genomeSize = genomeSize;
     }
 
-    public int getGenomeSize() {
+    public long getGenomeSize() {
         return this.genomeSize;
+    }
+
+    public boolean isDraft() {
+        return this.isDraft;
     }
     
 }

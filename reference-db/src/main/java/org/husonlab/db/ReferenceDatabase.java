@@ -60,7 +60,7 @@ public class ReferenceDatabase implements Closeable{
 
             genome_statement.setInt(1, g.getGenome().getTaxonId());
             genome_statement.setString(2, g.getGenome().getAccession());
-            genome_statement.setInt(3, g.getGenome().getGenomeSize());
+            genome_statement.setLong(3, g.getGenome().getGenomeSize());
             genome_statement.setString(4, g.getGenome().getFastaUrl());
             genome_statement.executeUpdate();
 

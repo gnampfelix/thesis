@@ -39,7 +39,7 @@ public class FracMinHashSketch {
     private long[] hashValues;
     private byte[][] kmers;
 
-    public FracMinHashSketch(int sParam, int kSize, String name, boolean isNucleotides) {
+    private FracMinHashSketch(int sParam, int kSize, String name, boolean isNucleotides) {
         this.sParam = sParam;
         this.kSize = kSize;
         this.lastKmerIndex = kSize-1;
@@ -154,7 +154,7 @@ public class FracMinHashSketch {
     public static FracMinHashSketch compute(
         String name, 
         FastKMerIterator kmers,
-        int genomeSize, 
+        long genomeSize, 
         boolean isNucleotides, 
         int sParam, 
         int seed, 
@@ -175,7 +175,7 @@ public class FracMinHashSketch {
 
         final BloomFilter bloomFilter;
         if (filterUniqueKMers) {
-            bloomFilter = new BloomFilter(genomeSize, 500000000);
+            bloomFilter = new BloomFilter((int)genomeSize, 500000000);
         } else {
             bloomFilter = null;
         }
