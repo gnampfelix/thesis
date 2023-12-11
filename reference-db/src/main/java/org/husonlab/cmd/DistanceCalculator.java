@@ -1,5 +1,6 @@
 package org.husonlab.cmd;
 
+import java.io.FileWriter;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +30,10 @@ import jloda.util.FileLineIterator;
 import jloda.util.Single;
 import jloda.util.UsageException;
 import jloda.util.progress.ProgressSilent;
+import splitstree6.data.DistancesBlock;
+import splitstree6.data.TaxaBlock;
+import splitstree6.io.writers.distances.NexusWriter;
+import splitstree6.io.writers.distances.PhylipWriter;
 
 public class DistanceCalculator {
     
@@ -45,7 +50,7 @@ public class DistanceCalculator {
                 "Path to reference database file", "database.db");
 
         final String output = options.getOption("-o", "output",
-                "Path to the output file in which the distances are written. Existing files will be overwritten", "out.txt");
+                "Path to the output file in which the distances are written. Existing files will be overwritten", "out.nex");
 
         final int kParameter = options.getOption("-k", "kmerSize", "Word size k", 21);
         final int sParameter = options.getOption("-s", "scalingFactor",
@@ -122,23 +127,22 @@ public class DistanceCalculator {
 
             logger.info("Calculating pairwise distances...");
             List<GenomeSketch> resultSketchesList = new ArrayList<>(resultSketchSet);
-            double[][] distances = new double[resultSketchSet.size()][resultSketchSet.size()];
+            DistancesBlock distances = new DistancesBlock();
+            distances.setNtax(resultSketchSet.size());
+            TaxaBlock taxa = new TaxaBlock();
             for (int i = 0; i < resultSketchSet.size(); i++) {
+                taxa.addTaxonByName(resultSketchesList.get(i).getGenome().getAccession().substring(4, resultSketchesList.get(i).getGenome().getAccession().length()));
                 for (int j = i; j < resultSketchSet.size(); j++) {
                     double jaccard = Distance.calculateJaccardIndex(resultSketchesList.get(i).getSketch().getValues(), resultSketchesList.get(j).getSketch().getValues(), sParameter);
                     double distance = Distance.jaccardToDistance(jaccard, kParameter);
-                    distances[i][j] = distance;
-                    distances[j][i] = distance;
+                    distances.setBoth(i+1, j+1, distance); //for some reason, the method is 1-based
                 }
             }
 
-            for (int i = 0; i < resultSketchSet.size(); i++) {
-                System.out.print(String.format("%s\t", resultSketchesList.get(i).getGenome().getOrganismName()));
-                for (int j = 0; j < resultSketchSet.size(); j++) {
-                    System.out.print(String.format("%f\t", distances[i][j]));
-                }
-                System.out.println();
-            }
+            FileWriter outFile = new FileWriter(output, false);
+            PhylipWriter writer = new PhylipWriter();
+            writer.write(outFile, taxa, distances);
+            outFile.close();
             
         } catch (Exception e) {
             System.out.println("well, f****");
