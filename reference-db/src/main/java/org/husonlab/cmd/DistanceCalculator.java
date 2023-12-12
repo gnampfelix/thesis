@@ -33,7 +33,6 @@ import jloda.util.progress.ProgressSilent;
 import splitstree6.data.DistancesBlock;
 import splitstree6.data.TaxaBlock;
 import splitstree6.io.writers.distances.NexusWriter;
-import splitstree6.io.writers.distances.PhylipWriter;
 
 public class DistanceCalculator {
     
@@ -50,7 +49,7 @@ public class DistanceCalculator {
                 "Path to reference database file", "database.db");
 
         final String output = options.getOption("-o", "output",
-                "Path to the output file in which the distances are written. Existing files will be overwritten", "out.nex");
+                "Path to the output file in which the distances are written. Existing files will be overwritten", "out.nxs");
 
         final int kParameter = options.getOption("-k", "kmerSize", "Word size k", 21);
         final int sParameter = options.getOption("-s", "scalingFactor",
@@ -131,7 +130,7 @@ public class DistanceCalculator {
             distances.setNtax(resultSketchSet.size());
             TaxaBlock taxa = new TaxaBlock();
             for (int i = 0; i < resultSketchSet.size(); i++) {
-                taxa.addTaxonByName(resultSketchesList.get(i).getGenome().getAccession().substring(4, resultSketchesList.get(i).getGenome().getAccession().length()));
+                taxa.addTaxonByName(resultSketchesList.get(i).getGenome().getOrganismName());
                 for (int j = i; j < resultSketchSet.size(); j++) {
                     double jaccard = Distance.calculateJaccardIndex(resultSketchesList.get(i).getSketch().getValues(), resultSketchesList.get(j).getSketch().getValues(), sParameter);
                     double distance = Distance.jaccardToDistance(jaccard, kParameter);
@@ -140,7 +139,8 @@ public class DistanceCalculator {
             }
 
             FileWriter outFile = new FileWriter(output, false);
-            PhylipWriter writer = new PhylipWriter();
+            outFile.write("#nexus\n");
+            NexusWriter writer = new NexusWriter();
             writer.write(outFile, taxa, distances);
             outFile.close();
             
