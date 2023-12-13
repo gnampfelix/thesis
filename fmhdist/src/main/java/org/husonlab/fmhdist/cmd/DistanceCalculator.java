@@ -36,12 +36,26 @@ public class DistanceCalculator {
             String input,
             String output,
             String database,
-            int kParameter,
-            int sParameter,
-            double maxDistance,
-            int randomSeed) {
+            double maxDistance) {
         Logger logger = Logger.getLogger(DistanceCalculator.class.getName());
         try {
+            logger.info("Loading reference DB!");
+            ReferenceDatabase db = ReferenceDatabase.open(database);
+            Map<String, Integer> info = db.getInfo();
+            Collection<GenomeSketch> refSketches = db.getSketches();
+            db.close();
+
+            if (!info.containsKey("sketch_k") ||
+                    !info.containsKey("sketch_s") ||
+                    !info.containsKey("sketch_seed")) {
+                throw new IncompatibleParameterException(
+                        "reference db does not provide all sketching parameters (s, k, seed)");
+            }
+            int kParameter = info.get("sketch_k");
+            int sParameter = info.get("sketch_s");
+            int randomSeed = info.get("sketch_seed");
+
+            logger.info("Reading queries list...");
             FileLineIterator it = new FileLineIterator(input);
             List<Genome> sequencePaths = it.stream().map(line -> line.replaceAll("\\s+", ""))
                     .map(line -> new Genome(Paths.get(line).getFileName().toString(), line))
@@ -54,6 +68,7 @@ public class DistanceCalculator {
                     .newFixedThreadPool(ProgramExecutorService.getNumberOfCoresToUse());
 
             logger.info("Sketching query sequences...");
+            logger.info(String.format("Using reference DB parameters: s: %d, k: %d, seed: %d", sParameter, kParameter, randomSeed));
             try {
                 sequencePaths.forEach(genome -> executor.submit(() -> {
                     if (exception.isNull()) {
@@ -75,20 +90,7 @@ public class DistanceCalculator {
                 executor.awaitTermination(1000, TimeUnit.DAYS);
             }
 
-            logger.info("Loading reference DB!");
-            ReferenceDatabase db = ReferenceDatabase.open(database);
-            Map<String, Integer> info = db.getInfo();
-            Collection<GenomeSketch> refSketches = db.getSketches();
-            db.close();
-            if (!info.containsKey("sketch_k") ||
-                    !info.containsKey("sketch_s") ||
-                    !info.containsKey("sketch_seed") ||
-                    info.get("sketch_k") != kParameter ||
-                    info.get("sketch_s") != sParameter ||
-                    info.get("sketch_seed") != randomSeed) {
-                throw new IncompatibleParameterException(
-                        "passed sketch params (s, k, seed) are not compatible to the sketch params of the passed reference DB!");
-            }
+
 
             logger.info("Finding closest reference genomes...");
             Set<GenomeSketch> resultSketchSet = new HashSet<>();
@@ -119,6 +121,7 @@ public class DistanceCalculator {
                 }
             }
 
+            logger.info("Exporting...");
             FileWriter outFile = new FileWriter(output, false);
             outFile.write("#nexus\n");
             NexusWriter writer = new NexusWriter();

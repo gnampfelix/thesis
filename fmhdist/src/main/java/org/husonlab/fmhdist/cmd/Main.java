@@ -60,7 +60,7 @@ public class Main {
                 break;
             case COMPARE_SKETCH_COMMAND:
                 DistanceCalculator distanceCalculator = new DistanceCalculator();
-                distanceCalculator.run(input, output, database, kParameter, sParameter, maxDistance, randomSeed);
+                distanceCalculator.run(input, output, database, maxDistance);
                 break;
         }
     }
