@@ -36,7 +36,8 @@ public class DistanceCalculator {
             String input,
             String output,
             String database,
-            double maxDistance) {
+            double maxDistance
+            ) {
         Logger logger = Logger.getLogger(DistanceCalculator.class.getName());
         try {
             logger.info("Loading reference DB!");
@@ -108,16 +109,42 @@ public class DistanceCalculator {
 
             logger.info("Calculating pairwise distances...");
             List<GenomeSketch> resultSketchesList = new ArrayList<>(resultSketchSet);
-            DistancesBlock distances = new DistancesBlock();
-            distances.setNtax(resultSketchSet.size());
+
+            DistancesBlock distances_jaccard = new DistancesBlock();
+            distances_jaccard.setNtax(resultSketchSet.size());
+
+            DistancesBlock distances_mash = new DistancesBlock();
+            distances_mash.setNtax(resultSketchSet.size());
+
+            DistancesBlock distances_containment = new DistancesBlock();
+            distances_containment.setNtax(resultSketchSet.size());
+
             TaxaBlock taxa = new TaxaBlock();
             for (int i = 0; i < resultSketchSet.size(); i++) {
                 taxa.addTaxonByName(resultSketchesList.get(i).getGenome().getOrganismName());
                 for (int j = i; j < resultSketchSet.size(); j++) {
-                    double jaccard = Distance.calculateJaccardIndex(resultSketchesList.get(i).getSketch().getValues(),
-                            resultSketchesList.get(j).getSketch().getValues(), sParameter);
-                    double distance = Distance.jaccardToDistance(jaccard, kParameter);
-                    distances.setBoth(i + 1, j + 1, distance); // for some reason, the method is 1-based
+                    double jaccard = Distance.calculateJaccardIndex(
+                        resultSketchesList.get(i).getSketch().getValues(),
+                        resultSketchesList.get(j).getSketch().getValues(), 
+                        sParameter
+                    );
+                    // Containment is not symmetrical
+                    double containment_i = Distance.calculateContainmentIndex(
+                        resultSketchesList.get(i).getSketch().getValues(),
+                        resultSketchesList.get(j).getSketch().getValues(), 
+                        sParameter
+                    );
+                    double containment_j = Distance.calculateContainmentIndex(
+                        resultSketchesList.get(j).getSketch().getValues(),
+                        resultSketchesList.get(i).getSketch().getValues(), 
+                        sParameter
+                    );
+
+                    
+                    distances_jaccard.setBoth(i + 1, j + 1, Distance.jaccardToDistance(jaccard, kParameter)); // for some reason, the method is 1-based
+                    distances_containment.set(i+1, j+1, Distance.containmentToDistance(containment_i, kParameter));
+                    distances_containment.set(j+1, i+1, Distance.containmentToDistance(containment_j, kParameter));
+                    distances_mash.setBoth(i+1, j+1, Distance.jaccardToMashDistance(jaccard, kParameter));
                 }
             }
 
@@ -125,7 +152,19 @@ public class DistanceCalculator {
             FileWriter outFile = new FileWriter(output, false);
             outFile.write("#nexus\n");
             NexusWriter writer = new NexusWriter();
-            writer.write(outFile, taxa, distances);
+            writer.write(outFile, taxa, distances_jaccard);
+            outFile.close();
+
+            outFile = new FileWriter(output + ".containment", false);
+            outFile.write("#nexus\n");
+            writer = new NexusWriter();
+            writer.write(outFile, taxa, distances_containment);
+            outFile.close();
+
+            outFile = new FileWriter(output + ".mash", false);
+            outFile.write("#nexus\n");
+            writer = new NexusWriter();
+            writer.write(outFile, taxa, distances_containment);
             outFile.close();
 
         } catch (Exception e) {
