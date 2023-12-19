@@ -7,6 +7,7 @@ import jloda.util.UsageException;
 public class Main {
     private final static String CREATE_DB_COMMAND = "db";
     private final static String COMPARE_SKETCH_COMMAND = "dist";
+    private final static String SKETCH_COMMAND = "sketch";
 
     public static void main(String[] args) throws UsageException {
         final ArgsOptions options = new ArgsOptions(args, Main.class,
@@ -18,19 +19,25 @@ public class Main {
                         "Create a new reference database from the given NCBI accession codes."),
                 new ArgsOptions.Command(
                         COMPARE_SKETCH_COMMAND,
-                        "Find the closest database entries (in terms of distance) to given query sequences\n" +
-                                "and calculate all pairwise distances for those + the query sequences."));
+                        "Find the closest database entries (in terms of distance) to given query sequences\n"
+                                +
+                                "and calculate all pairwise distances for those + the query sequences."),
+                new ArgsOptions.Command(
+                        SKETCH_COMMAND,
+                        "Calculate the sketch for all given sequences and store them on the file system"));
 
         options.comment("Input/Output options");
         final String input = options.getOptionMandatory("-i", "input",
                 String.format(
                         "New-line delimited list of\n" +
                                 "(a - for %s command) NCBI accession codes\n" +
-                                "(b - for %s command) sequence file paths or URLs to fasta files (gzip ok)",
+                                "(b - for other commands) sequence file paths or URLs to fasta files (gzip ok)"
+                                +
+                                ", a line consists of the mandatory path and (comma-separated) the optional label",
                         CREATE_DB_COMMAND, COMPARE_SKETCH_COMMAND),
                 "");
 
-        final String database = options.getOptionMandatory("-db", "database",
+        final String database = options.getOption("-db", "database",
                 String.format(
                         "Path to reference database file (input for %s command, output for %s command)",
                         COMPARE_SKETCH_COMMAND, CREATE_DB_COMMAND),
@@ -50,7 +57,8 @@ public class Main {
                 0.4);
 
         options.comment("Performance options");
-        ProgramExecutorService.setNumberOfCoresToUse(options.getOption("-t", "threads", "Number of threads", 1));
+        ProgramExecutorService
+                .setNumberOfCoresToUse(options.getOption("-t", "threads", "Number of threads", 1));
 
         options.done();
         switch (command) {
@@ -61,6 +69,10 @@ public class Main {
             case COMPARE_SKETCH_COMMAND:
                 DistanceCalculator distanceCalculator = new DistanceCalculator();
                 distanceCalculator.run(input, output, database, maxDistance);
+                break;
+            case SKETCH_COMMAND:
+                SequenceSketcher sketcher = new SequenceSketcher();
+                sketcher.run(input, output, kParameter, sParameter, randomSeed);
                 break;
         }
     }
