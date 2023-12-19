@@ -18,7 +18,7 @@ import jloda.util.StringUtils;
 import jloda.util.progress.ProgressListener;
 
 public class FracMinHashSketch {
-    public static final int MAGIC_INT = 1213415758; // for starters, I've just increased the number
+    public static final int MAGIC_INT = 1213415759; // for starters, I've just increased the number
 
     private static final byte[] complementTable = new byte[128];
     static {
@@ -39,10 +39,15 @@ public class FracMinHashSketch {
     private long[] hashValues;
     private byte[][] kmers;
 
-    private FracMinHashSketch(int sParam, int kSize, String name, boolean isNucleotides) {
+    private String name;
+    private int seed;
+
+    private FracMinHashSketch(int sParam, int kSize, String name, boolean isNucleotides, int seed) {
         this.sParam = sParam;
         this.kSize = kSize;
         this.lastKmerIndex = kSize-1;
+        this.name = name;
+        this.seed = seed;
     }
 
     public static FracMinHashSketch compute(
@@ -56,7 +61,7 @@ public class FracMinHashSketch {
         boolean saveKMers, 
         ProgressListener progress
     ) {
-        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kSize, name, isNucleotides);
+        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kSize, name, isNucleotides, seed);
         final TreeSet<Long> sortedSet = new TreeSet<>();
 
         final Map<Long, byte[]> hash2kmer = saveKMers ? new HashMap<>() : null;
@@ -162,7 +167,7 @@ public class FracMinHashSketch {
         boolean saveKMers, 
         ProgressListener progress
     ) {
-        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, isNucleotides);
+        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, isNucleotides, seed);
         final TreeSet<Long> sortedSet = new TreeSet<>();
 
         final Map<Long, byte[]> hash2kmer = saveKMers ? new HashMap<>() : null;
@@ -248,6 +253,10 @@ public class FracMinHashSketch {
         return this.sParam;
     }
 
+    public int getSeed() {
+        return this.seed;
+    }
+
     public void fastReverseComplement(byte[]kmer, byte[]result) {
         for (int i = 0; i < this.kSize; i++) {
             result[i] = complementTable[kmer[this.lastKmerIndex - i]];
@@ -259,11 +268,20 @@ public class FracMinHashSketch {
         bytes.writeIntLittleEndian(MAGIC_INT);
         bytes.writeIntLittleEndian(this.sParam);
         bytes.writeIntLittleEndian(this.kSize);
+        bytes.writeIntLittleEndian(this.seed);
         bytes.writeIntLittleEndian(this.hashValues.length);
         for (int i = 0; i < this.hashValues.length; i++) {
             bytes.writeLongLittleEndian(this.hashValues[i]);
         }
         return bytes.copyBytes();
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public static FracMinHashSketch parse(byte[] bytes) throws IOException {
@@ -273,9 +291,10 @@ public class FracMinHashSketch {
             throw new IOException("Incorrect magic number");
         int sParam = buffer.readIntLittleEndian();
         int kMerSize = buffer.readIntLittleEndian();
+        int seed = buffer.readIntLittleEndian();
         int sketchSize = buffer.readIntLittleEndian();
 
-        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kMerSize, "", true);
+        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kMerSize, "", true, seed);
         sketch.hashValues = new long[sketchSize];
         for (int i = 0; i < sketchSize; i++) {
             sketch.hashValues[i] = buffer.readLongLittleEndian();

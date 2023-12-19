@@ -63,6 +63,7 @@ public class ReferenceDatabase implements Closeable{
             String fastaUrl = rs.getString("fasta_url");
             Genome currentGenome = new Genome(taxonName, accession, taxonId, taxonName, fastaUrl, genomeSize);
             FracMinHashSketch sketch = FracMinHashSketch.parse(serializedSketch);
+            sketch.setName(taxonName);
             result.add(new GenomeSketch(currentGenome, sketch));
         }
 

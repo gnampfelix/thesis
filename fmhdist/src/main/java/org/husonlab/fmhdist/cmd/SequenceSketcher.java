@@ -75,7 +75,7 @@ public class SequenceSketcher {
 
             logger.info("Saving sketches...");
             for(GenomeSketch sketch : sketches) {
-                FileWriter writer = new FileWriter(Paths.get(output, String.format("%s_k%d_s%d_seed%d.sketch", sketch.getGenome().getOrganismName(), kParameter, sParameter, randomSeed)).toFile());
+                FileWriter writer = new FileWriter(Paths.get(output, String.format("%s.sketch", sketch.getGenome().getOrganismName())).toFile());
                 writer.write(HexUtils.encodeHexString(sketch.getSketch().getBytes()));
                 writer.close();
             }
