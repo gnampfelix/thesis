@@ -25,3 +25,8 @@ nw_rename mashtree.tree map.txt > renamed_tree.tree
 ```
 
 This is the procedure to generate `mashtree_r10.tree`.
+
+Moreover, I have saved the resulting distances to create a tree with SplitsTree
+itself. Those can be found as `mashtree_r10_dist.out` (for the accession codes
+as leaves) and `mashtree_r10_dist.nxs` (for the cryptic species names as
+leaves).
