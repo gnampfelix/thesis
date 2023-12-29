@@ -117,7 +117,7 @@ public class DistanceCalculator {
             outFile = new FileWriter(output + ".mash", false);
             outFile.write("#nexus\n");
             writer = new NexusWriter();
-            writer.write(outFile, taxa, distances_containment);
+            writer.write(outFile, taxa, distances_mash);
             outFile.close();
 
         } catch (Exception e) {
