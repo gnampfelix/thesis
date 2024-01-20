@@ -111,7 +111,7 @@ public class FracMinHashSketchTests {
         }
     }
 
-    @Ignore // Not a real test, but for understanding the performance
+    // @Ignore // Not a real test, but for understanding the performance
     @Test
     public void testSegments() throws IOException {
         String url = "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/PhyInf1.fna.gz";

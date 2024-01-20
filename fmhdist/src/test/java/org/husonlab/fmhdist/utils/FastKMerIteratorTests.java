@@ -13,6 +13,8 @@ import java.util.List;
 import org.husonlab.fmhdist.util.FastKMerIterator;
 import org.junit.Test;
 
+import jloda.util.Pair;
+
 public class FastKMerIteratorTests {
     @Test
     public void shouldIterateKmers() throws IOException {
@@ -452,7 +454,7 @@ public class FastKMerIteratorTests {
         }
     }
 
-        @Test
+    @Test
     public void checkDiscardAmbiguousChars() throws IOException {
         try(FastKMerIterator km = new FastKMerIterator(21, "src/test/resources/fastaWithAmbSeq.fasta", true)) {
             int i = 0;
@@ -463,6 +465,36 @@ public class FastKMerIteratorTests {
             assertThat(i, equalTo((70*6) - 21 + 1 - 21));
         }
     }
+
+    @Test
+    public void checkCoordinates() throws IOException {
+        try(FastKMerIterator km = new FastKMerIterator(8, "src/test/resources/fastaWithMultipleAmbSeq.fasta", true)) {
+            int i = 0;
+            int[] ambigPos = new int[]{0, 1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+            while(km.hasNext()) {
+                km.next();
+                Pair<Integer, Integer> coords = km.getCoordinates();
+                Pair<Integer, Integer> ambCoords = km.getCoordinatesIncludingAmbiguous();
+                System.out.println(i);
+                if (i < 13) {
+                    assertThat(coords.getFirst(), equalTo(0));
+                    assertThat(ambCoords.getFirst(), equalTo(0));
+                    assertThat(coords.getSecond(), equalTo(i));
+                    assertThat(ambCoords.getSecond(), equalTo(ambigPos[i]));
+                    
+                } else {
+                    assertThat(coords.getFirst(), equalTo(1));
+                    assertThat(ambCoords.getFirst(), equalTo(1));
+                    assertThat(coords.getSecond(), equalTo(i-13));
+                    assertThat(ambCoords.getSecond(), equalTo(ambigPos[i-13]));
+                }
+                
+                i++;
+            }
+            
+        }
+    }
+
 
 
 }

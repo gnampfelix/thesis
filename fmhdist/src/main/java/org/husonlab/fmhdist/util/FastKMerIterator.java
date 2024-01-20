@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 
 import jloda.util.FileUtils;
+import jloda.util.Pair;
 
 /**
  * Iterator to extract all valid k-mers from a fasta file (raw, zipped or
@@ -47,8 +48,16 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
     private final InputStreamReader reader;
     private final int k;
     
-    private byte nextByte; 
-    private boolean isNewSequence;
+    private byte nextByte;
+    // Whenever we need to completely build a new kmer instead of extending
+    // the previous one, we are in a preload situation. 
+    private boolean isPreloadSituation;
+    private boolean isSequenceStart;
+
+    private int recordIndexInFile = -1;
+    private int skippedKmers = 0;
+    private int sequenceIndexInRecord = -1;
+    private int ambiguousCharCount = 0;
 
     /**
      * Create a new Iterator to extract the kmers from the given file.
@@ -69,6 +78,8 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         this.isAmbiguousChar['N'] = skipN;
         this.isAmbiguousChar['n'] = skipN;
     
+        this.isSequenceStart = true;
+
         this.reader = new InputStreamReader(FileUtils.getInputStreamPossiblyZIPorGZIP(fileName));
         this.readUntilSequenceStart();
         this.preloadKmer();
@@ -110,7 +121,7 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
             i++;
             this.nextByte = (byte) this.reader.read();
         }
-        this.isNewSequence = true;
+        this.isPreloadSituation = true;
     }
 
     /**
@@ -158,14 +169,27 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
 
     @Override
     public byte[] next() {
-        if (this.isNewSequence) {
+        if (this.isPreloadSituation) {
             System.arraycopy(this.preloaded_kmer, 0, this.kmer, 0, this.k - 1);
             System.arraycopy(this.preloaded_complement, 1, this.complement, 1, this.k-1);
-            this.isNewSequence = false;
+            if (this.ambiguousCharCount > 0) {
+                this.skippedKmers += ambiguousCharCount + this.k - 1;
+            }
+            if (this.isSequenceStart) {
+                this.recordIndexInFile++;
+                this.sequenceIndexInRecord = -1;
+                this.skippedKmers = 0;
+                this.isSequenceStart = false;
+            }
+            this.isPreloadSituation = false;
         } else {
             System.arraycopy(this.kmer, 1, this.kmer, 0, this.k - 1);
             System.arraycopy(this.complement, 0, this.complement, 1, this.k - 1);
         }
+
+        this.sequenceIndexInRecord++;
+        this.ambiguousCharCount = 0;
+
         this.kmer[this.k-1] = this.nextByte;
         this.complement[0] = complementTable[this.nextByte];
         try {
@@ -173,17 +197,21 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
             // Skip ambiguous characters ("N"/"n"), dicard all k-mers
             while(this.hasNext() && isAmbiguousChar[this.nextByte]) {
                 this.nextByte = (byte) reader.read();
-                this.isNewSequence = true;
+                this.isPreloadSituation = true;
+                this.ambiguousCharCount++;
             }
             while(this.hasNext() && isLineContainingSkippableChar[this.nextByte]) {
-                this.isNewSequence = this.nextByte == '>' || this.isNewSequence;
+                this.isPreloadSituation = this.nextByte == '>' || this.isPreloadSituation;
+                if (this.nextByte == '>') {
+                    this.isSequenceStart = true;
+                }
                 skipToNextLine();
             }
 
             // If we start a new sequence (i.e. new entry in fasta file or after
             // an amb. character), we need to preload all of the next k-1
             // characters
-            if(this.isNewSequence) {
+            if(this.isPreloadSituation) {
                 this.preloadKmer();
             }
             
@@ -201,6 +229,14 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
      */
     public byte[] getReverseComplement() {
         return this.complement;
+    }
+
+    public Pair<Integer, Integer> getCoordinates() {
+        return new Pair<Integer,Integer>(this.recordIndexInFile, this.sequenceIndexInRecord);
+    }
+
+    public Pair<Integer,Integer> getCoordinatesIncludingAmbiguous() {
+        return new Pair<Integer, Integer>(this.recordIndexInFile, this.sequenceIndexInRecord + this.skippedKmers);
     }
     
 }
