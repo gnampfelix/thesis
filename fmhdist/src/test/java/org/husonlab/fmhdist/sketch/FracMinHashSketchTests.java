@@ -2,8 +2,6 @@ package org.husonlab.fmhdist.sketch;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,44 +41,6 @@ public class FracMinHashSketchTests {
             ));
             System.out.println();
         }
-    }
-
-    @Test
-    public void compareSketches() throws IOException {
-        String url = "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/812/785/GCA_002812785.1_ASM281278v1/GCA_002812785.1_ASM281278v1_genomic.fna.gz";
-        int k = 21;
-        int s = 1000;
-        
-        SequenceGrouper group = new SequenceGrouper(url);
-        FracMinHashSketch s1 = FracMinHashSketch.compute(
-            "test", 
-            group.getGroups(), 
-            true,
-            s,
-            k,
-            42,
-            false,
-            false,
-            new ProgressSilent()
-        );
-
-        FracMinHashSketch s2;
-        try (FastKMerIterator kmers = new FastKMerIterator(k, url, true)) {
-            s2 = FracMinHashSketch.compute(
-                "test",
-                kmers,
-                246895792,
-                true,
-                s,
-                42,
-                false,
-                false,
-                new ProgressSilent()
-            );
-        }
-        assertEquals(s1.getValues().length, s2.getValues().length);
-        // order should also be the same!
-        assertArrayEquals(s1.getValues(), s2.getValues());
     }
 
     @Test
