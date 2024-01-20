@@ -1,8 +1,9 @@
 package org.husonlab.fmhdist.sketch;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -14,7 +15,7 @@ import jloda.thirdparty.MurmurHash;
 import jloda.util.ByteInputBuffer;
 import jloda.util.ByteOutputBuffer;
 import jloda.util.CanceledException;
-import jloda.util.StringUtils;
+import jloda.util.Pair;
 import jloda.util.progress.ProgressListener;
 
 public class FracMinHashSketch {
@@ -42,12 +43,17 @@ public class FracMinHashSketch {
     private String name;
     private int seed;
 
+    private List<Pair<Integer, Integer>> coordinates;
+    private List<Pair<Integer, Integer>> coordinatesByFile;
+
     private FracMinHashSketch(int sParam, int kSize, String name, boolean isNucleotides, int seed) {
         this.sParam = sParam;
         this.kSize = kSize;
         this.lastKmerIndex = kSize-1;
         this.name = name;
         this.seed = seed;
+        this.coordinates = new ArrayList<>();
+        this.coordinatesByFile = new ArrayList<>();
     }
 
     /**
@@ -118,6 +124,8 @@ public class FracMinHashSketch {
 
                 if (hash < threshold) {
                     sortedSet.add(hash);
+                    sketch.coordinates.add(kmers.getCoordinatesIncludingAmbiguous(false));
+                    sketch.coordinatesByFile.add(kmers.getCoordinatesIncludingAmbiguous(true));
                     if (hash2kmer != null) {
                         hash2kmer.put(hash, kMerUse.clone());
                     }
@@ -207,5 +215,12 @@ public class FracMinHashSketch {
             sketch.hashValues[i] = buffer.readLongLittleEndian();
         }
         return sketch;
+    }
+
+    public List<Pair<Integer,Integer>> getCoordinates(boolean byFile) {
+        if (byFile) {
+            return new ArrayList<>(this.coordinatesByFile);
+        }
+        return new ArrayList<>(this.coordinates);
     }
 }

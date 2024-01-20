@@ -51,6 +51,10 @@ public class Main {
                 "Path to the output file in which the distances are written. Existing files will be overwritten. Format is nexus.",
                 "out.nxs");
 
+        final boolean saveCoordinates = options.getOption("-c", "save-coordinates", 
+                "When running " + SKETCH_COMMAND + ", control if the coordinates of the k-mers that are part of the sketch should be saved." + 
+                "They will be saved using <output>.coordinates. The first component is the index of the sequence in the file and the second the index of the k-mer in the sequence.", false);
+
         options.comment("Algorithm parameters");
         final int kParameter = options.getOption("-k", "kmerSize", "Word size k", 21);
         final int sParameter = options.getOption("-s", "scalingFactor",
@@ -80,7 +84,7 @@ public class Main {
                 break;
             case SKETCH_COMMAND:
                 SequenceSketcher sketcher = new SequenceSketcher();
-                sketcher.run(input, output, kParameter, sParameter, randomSeed);
+                sketcher.run(input, output, kParameter, sParameter, randomSeed, saveCoordinates);
                 break;
         }
     }

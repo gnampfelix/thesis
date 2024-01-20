@@ -57,6 +57,7 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
     private int recordIndexInFile = -1;
     private int skippedKmers = 0;
     private int sequenceIndexInRecord = -1;
+    private int sequenceIndexInFile = -1;
     private int ambiguousCharCount = 0;
 
     /**
@@ -188,6 +189,7 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         }
 
         this.sequenceIndexInRecord++;
+        this.sequenceIndexInFile++;
         this.ambiguousCharCount = 0;
 
         this.kmer[this.k-1] = this.nextByte;
@@ -231,11 +233,15 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         return this.complement;
     }
 
-    public Pair<Integer, Integer> getCoordinates() {
+    public Pair<Integer, Integer> getCoordinates(boolean byFile) {
+        if (byFile)
+            return new Pair<Integer,Integer>(0, this.sequenceIndexInFile);
         return new Pair<Integer,Integer>(this.recordIndexInFile, this.sequenceIndexInRecord);
     }
 
-    public Pair<Integer,Integer> getCoordinatesIncludingAmbiguous() {
+    public Pair<Integer,Integer> getCoordinatesIncludingAmbiguous(boolean byFile) {
+        if (byFile)
+            return new Pair<Integer,Integer>(0, this.sequenceIndexInFile + this.skippedKmers);
         return new Pair<Integer, Integer>(this.recordIndexInFile, this.sequenceIndexInRecord + this.skippedKmers);
     }
     

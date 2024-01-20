@@ -17,6 +17,7 @@ import org.husonlab.fmhdist.sketch.GenomeSketch;
 import jloda.fx.util.ProgramExecutorService;
 import jloda.thirdparty.HexUtils;
 import jloda.util.FileLineIterator;
+import jloda.util.Pair;
 import jloda.util.Single;
 import jloda.util.progress.ProgressSilent;
 
@@ -27,7 +28,8 @@ public class SequenceSketcher {
         String output,
         int kParameter,
         int sParameter,
-        int randomSeed
+        int randomSeed,
+        boolean saveCoordinates
     ) {
         Logger logger = Logger.getLogger(SequenceSketcher.class.getName());
         try {
@@ -77,6 +79,12 @@ public class SequenceSketcher {
             for(GenomeSketch sketch : sketches) {
                 FileWriter writer = new FileWriter(Paths.get(output, String.format("%s.sketch", sketch.getGenome().getOrganismName())).toFile());
                 writer.write(HexUtils.encodeHexString(sketch.getSketch().getBytes()));
+                writer.close();
+
+                writer = new FileWriter(Paths.get(output, String.format("%s.sketch.coordinates", sketch.getGenome().getOrganismName())).toFile());
+                for (Pair<Integer, Integer> coord : sketch.getSketch().getCoordinates(true)) {
+                    writer.write(String.format("(%d, %d)\n", coord.getFirst(), coord.getSecond()));
+                }
                 writer.close();
             }
         } catch (Exception e) {

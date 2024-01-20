@@ -473,8 +473,8 @@ public class FastKMerIteratorTests {
             int[] ambigPos = new int[]{0, 1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
             while(km.hasNext()) {
                 km.next();
-                Pair<Integer, Integer> coords = km.getCoordinates();
-                Pair<Integer, Integer> ambCoords = km.getCoordinatesIncludingAmbiguous();
+                Pair<Integer, Integer> coords = km.getCoordinates(false);
+                Pair<Integer, Integer> ambCoords = km.getCoordinatesIncludingAmbiguous(false);
                 System.out.println(i);
                 if (i < 13) {
                     assertThat(coords.getFirst(), equalTo(0));
