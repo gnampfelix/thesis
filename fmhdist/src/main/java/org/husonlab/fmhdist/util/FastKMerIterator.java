@@ -55,7 +55,8 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
     private boolean isSequenceStart;
 
     private int recordIndexInFile = -1;
-    private int skippedKmers = 0;
+    private int skippedKmersInFile = 0;
+    private int skippedKmersInRecord = 0;
     private int sequenceIndexInRecord = -1;
     private int sequenceIndexInFile = -1;
     private int ambiguousCharCount = 0;
@@ -174,12 +175,13 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
             System.arraycopy(this.preloaded_kmer, 0, this.kmer, 0, this.k - 1);
             System.arraycopy(this.preloaded_complement, 1, this.complement, 1, this.k-1);
             if (this.ambiguousCharCount > 0) {
-                this.skippedKmers += ambiguousCharCount + this.k - 1;
+                this.skippedKmersInFile += ambiguousCharCount + this.k - 1;
+                this.skippedKmersInRecord += ambiguousCharCount + this.k - 1;
             }
             if (this.isSequenceStart) {
                 this.recordIndexInFile++;
                 this.sequenceIndexInRecord = -1;
-                this.skippedKmers = 0;
+                this.skippedKmersInRecord = 0;
                 this.isSequenceStart = false;
             }
             this.isPreloadSituation = false;
@@ -233,16 +235,16 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         return this.complement;
     }
 
-    public Pair<Integer, Integer> getCoordinates(boolean byFile) {
-        if (byFile)
-            return new Pair<Integer,Integer>(0, this.sequenceIndexInFile);
-        return new Pair<Integer,Integer>(this.recordIndexInFile, this.sequenceIndexInRecord);
+    public KMerCoordinates getCoordinates() {
+        return new KMerCoordinates(
+            this.recordIndexInFile, 
+            this.sequenceIndexInFile, 
+            this.sequenceIndexInRecord,
+            this.sequenceIndexInFile + this.skippedKmersInFile,
+            this.sequenceIndexInRecord + this.skippedKmersInRecord, 
+            this.kmer);
     }
 
-    public Pair<Integer,Integer> getCoordinatesIncludingAmbiguous(boolean byFile) {
-        if (byFile)
-            return new Pair<Integer,Integer>(0, this.sequenceIndexInFile + this.skippedKmers);
-        return new Pair<Integer, Integer>(this.recordIndexInFile, this.sequenceIndexInRecord + this.skippedKmers);
-    }
+
     
 }

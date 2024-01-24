@@ -473,20 +473,17 @@ public class FastKMerIteratorTests {
             int[] ambigPos = new int[]{0, 1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
             while(km.hasNext()) {
                 km.next();
-                Pair<Integer, Integer> coords = km.getCoordinates(false);
-                Pair<Integer, Integer> ambCoords = km.getCoordinatesIncludingAmbiguous(false);
+                var c = km.getCoordinates();
                 System.out.println(i);
                 if (i < 13) {
-                    assertThat(coords.getFirst(), equalTo(0));
-                    assertThat(ambCoords.getFirst(), equalTo(0));
-                    assertThat(coords.getSecond(), equalTo(i));
-                    assertThat(ambCoords.getSecond(), equalTo(ambigPos[i]));
+                    assertThat(c.getRecordIndexInFile(), equalTo(0));
+                    assertThat(c.getSequenceIndexInRecord(), equalTo(i));
+                    assertThat(c.getSequenceIndexInRecordIncludingAmbiguous(), equalTo(ambigPos[i]));
                     
                 } else {
-                    assertThat(coords.getFirst(), equalTo(1));
-                    assertThat(ambCoords.getFirst(), equalTo(1));
-                    assertThat(coords.getSecond(), equalTo(i-13));
-                    assertThat(ambCoords.getSecond(), equalTo(ambigPos[i-13]));
+                    assertThat(c.getRecordIndexInFile(), equalTo(1));
+                    assertThat(c.getSequenceIndexInRecord(), equalTo(i-13));
+                    assertThat(c.getSequenceIndexInRecordIncludingAmbiguous(), equalTo(ambigPos[i-13]));
                 }
                 
                 i++;

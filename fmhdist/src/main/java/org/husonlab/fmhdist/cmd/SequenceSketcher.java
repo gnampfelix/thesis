@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.husonlab.fmhdist.ncbi.Genome;
 import org.husonlab.fmhdist.sketch.GenomeSketch;
+import org.husonlab.fmhdist.util.KMerCoordinates;
 
 import jloda.fx.util.ProgramExecutorService;
 import jloda.thirdparty.HexUtils;
@@ -82,12 +83,10 @@ public class SequenceSketcher {
                 writer.close();
 
                 writer = new FileWriter(Paths.get(output, String.format("%s.sketch.coordinates", sketch.getGenome().getOrganismName())).toFile());
-                List<Pair<Integer, Integer>> coordsIncludingAmbiguous = sketch.getSketch().getCoordinatesIncludingAmbiguous(true);
-                List<Pair<Integer, Integer>> coords = sketch.getSketch().getCoordinates(true);
-                for (int i = 0; i < coords.size(); i++) {
-                    var coordIncludingAmbiguous = coordsIncludingAmbiguous.get(i);
-                    var coord = coords.get(i);
-                    writer.write(String.format("(%d, %d):(%d, %d)\n", coord.getFirst(), coord.getSecond(), coordIncludingAmbiguous.getFirst(), coordIncludingAmbiguous.getSecond()));
+                List<KMerCoordinates> coordinates = sketch.getSketch().getCoordinates();
+                for (KMerCoordinates coord : coordinates) {
+                    writer.write(coord.toString());
+                    writer.write("\n");
                 }
                 writer.close();
             } 

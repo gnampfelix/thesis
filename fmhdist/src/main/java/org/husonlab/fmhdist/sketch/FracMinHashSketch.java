@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import org.husonlab.fmhdist.util.FastKMerIterator;
+import org.husonlab.fmhdist.util.KMerCoordinates;
 
 import jloda.kmers.bloomfilter.BloomFilter;
 import jloda.seq.SequenceUtils;
@@ -16,6 +17,7 @@ import jloda.util.ByteInputBuffer;
 import jloda.util.ByteOutputBuffer;
 import jloda.util.CanceledException;
 import jloda.util.Pair;
+import jloda.util.Triplet;
 import jloda.util.progress.ProgressListener;
 
 public class FracMinHashSketch {
@@ -43,10 +45,7 @@ public class FracMinHashSketch {
     private String name;
     private int seed;
 
-    private List<Pair<Integer, Integer>> coordinates;
-    private List<Pair<Integer, Integer>> coordinatesIncludingAmbiguous;
-    private List<Pair<Integer, Integer>> coordinatesByFile;
-    private List<Pair<Integer, Integer>> coordinatesByFileIncludingAmbiguous;
+    private List<KMerCoordinates> coordinates;
 
     private FracMinHashSketch(int sParam, int kSize, String name, boolean isNucleotides, int seed) {
         this.sParam = sParam;
@@ -55,9 +54,6 @@ public class FracMinHashSketch {
         this.name = name;
         this.seed = seed;
         this.coordinates = new ArrayList<>();
-        this.coordinatesIncludingAmbiguous = new ArrayList<>();
-        this.coordinatesByFile = new ArrayList<>();
-        this.coordinatesByFileIncludingAmbiguous = new ArrayList<>();
     }
 
     /**
@@ -128,10 +124,7 @@ public class FracMinHashSketch {
 
                 if (hash < threshold) {
                     sortedSet.add(hash);
-                    sketch.coordinates.add(kmers.getCoordinates(false));
-                    sketch.coordinatesIncludingAmbiguous.add(kmers.getCoordinatesIncludingAmbiguous(false));
-                    sketch.coordinatesByFile.add(kmers.getCoordinates(true));
-                    sketch.coordinatesByFileIncludingAmbiguous.add(kmers.getCoordinatesIncludingAmbiguous(true));
+                    sketch.coordinates.add(kmers.getCoordinates());
                     if (hash2kmer != null) {
                         hash2kmer.put(hash, kMerUse.clone());
                     }
@@ -223,17 +216,7 @@ public class FracMinHashSketch {
         return sketch;
     }
 
-    public List<Pair<Integer,Integer>> getCoordinates(boolean byFile) {
-        if (byFile) {
-            return new ArrayList<>(this.coordinatesByFile);
-        }
+    public List<KMerCoordinates> getCoordinates() {
         return new ArrayList<>(this.coordinates);
-    }
-
-    public List<Pair<Integer,Integer>> getCoordinatesIncludingAmbiguous(boolean byFile) {
-        if (byFile) {
-            return new ArrayList<>(this.coordinatesByFileIncludingAmbiguous);
-        }
-        return new ArrayList<>(this.coordinatesIncludingAmbiguous);
     }
 }
