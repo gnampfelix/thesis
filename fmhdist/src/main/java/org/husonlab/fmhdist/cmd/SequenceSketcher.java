@@ -82,11 +82,15 @@ public class SequenceSketcher {
                 writer.close();
 
                 writer = new FileWriter(Paths.get(output, String.format("%s.sketch.coordinates", sketch.getGenome().getOrganismName())).toFile());
-                for (Pair<Integer, Integer> coord : sketch.getSketch().getCoordinates(true)) {
-                    writer.write(String.format("(%d, %d)\n", coord.getFirst(), coord.getSecond()));
+                List<Pair<Integer, Integer>> coordsIncludingAmbiguous = sketch.getSketch().getCoordinatesIncludingAmbiguous(true);
+                List<Pair<Integer, Integer>> coords = sketch.getSketch().getCoordinates(true);
+                for (int i = 0; i < coords.size(); i++) {
+                    var coordIncludingAmbiguous = coordsIncludingAmbiguous.get(i);
+                    var coord = coords.get(i);
+                    writer.write(String.format("(%d, %d):(%d, %d)\n", coord.getFirst(), coord.getSecond(), coordIncludingAmbiguous.getFirst(), coordIncludingAmbiguous.getSecond()));
                 }
                 writer.close();
-            }
+            } 
         } catch (Exception e) {
             System.out.println("well, f****");
             e.printStackTrace();
