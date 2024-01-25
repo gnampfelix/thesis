@@ -243,8 +243,5 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
             this.sequenceIndexInFile + this.skippedKmersInFile,
             this.sequenceIndexInRecord + this.skippedKmersInRecord, 
             this.kmer);
-    }
-
-
-    
+    }    
 }

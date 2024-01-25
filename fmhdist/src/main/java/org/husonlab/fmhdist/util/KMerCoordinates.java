@@ -51,11 +51,10 @@ public class KMerCoordinates {
 
     public String toString() {
         return String.format(
-            "(%d, %d, %d)/(%d, %d, %d): %s", 
+            "%d,%d,%d,%d,%d,%s",
             this.recordIndexInFile, 
             this.sequenceIndexInFile,
             this.sequenceIndexInRecord,
-            this.recordIndexInFile,
             this.sequenceIndexInFileIncludingAmbiguous,
             this.sequenceIndexInRecordIncludingAmbiguous,
             new String(this.kmer));
