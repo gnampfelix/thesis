@@ -40,6 +40,20 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         complementTable['c'] = 'g';
     }
 
+    private static final byte[] toUpperTable = new byte[128];
+    static {
+        toUpperTable['A'] = 'A';
+        toUpperTable['T'] = 'T';
+        toUpperTable['G'] = 'G';
+        toUpperTable['C'] = 'C';
+        toUpperTable['a'] = 'A';
+        toUpperTable['t'] = 'T';
+        toUpperTable['g'] = 'G';
+        toUpperTable['c'] = 'C';
+        toUpperTable['n'] = 'N';
+        toUpperTable['N'] = 'N';
+    }
+
     private final boolean[] isAmbiguousChar = new boolean[128];    
     private final byte[] kmer;
     private final byte[] complement;
@@ -118,8 +132,8 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
                 continue;
             }
 
-            this.preloaded_kmer[i] = this.nextByte;
-            this.preloaded_complement[this.k-1-i] = complementTable[this.nextByte];
+            this.preloaded_kmer[i] = toUpperTable[this.nextByte];
+            this.preloaded_complement[this.k-1-i] = toUpperTable[complementTable[this.nextByte]];
             i++;
             this.nextByte = (byte) this.reader.read();
         }
@@ -194,8 +208,8 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         this.sequenceIndexInFile++;
         this.ambiguousCharCount = 0;
 
-        this.kmer[this.k-1] = this.nextByte;
-        this.complement[0] = complementTable[this.nextByte];
+        this.kmer[this.k-1] = toUpperTable[this.nextByte];
+        this.complement[0] = toUpperTable[complementTable[this.nextByte]];
         try {
             this.nextByte = (byte) reader.read();
             // Skip ambiguous characters ("N"/"n"), dicard all k-mers
