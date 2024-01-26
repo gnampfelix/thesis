@@ -8,6 +8,23 @@ public class KMerCoordinates {
     private int sequenceIndexInFileIncludingAmbiguous;
     private byte[] kmer;
 
+    /**
+     * Creates a new instance of a kmer.
+     * @param recordIndexInFile - the index of the record in the FASTA file from
+     * which the k-mer is
+     * @param sequenceIndexInFile - the index of the k-mer in the file (assuming
+     * the first k-mer is 0), excluding all ambiguous k-mers when counting
+     * @param sequenceIndexInRecord - the index of the k-mer in the record
+     * (assuming the first k-mer is 0), excluding all ambiguous k-mers when
+     * counting
+     * @param sequenceIndexInFileIncludingAmbiguous - the index of the k-mer in
+     * the file (assuming the first k-mer is 0), including  all ambiguous k-mers
+     * when counting
+     * @param sequenceIndexInRecordIncludingAmbiguous - the index of the k-mer in
+     * the record (assuming the first k-mer is 0), including  all ambiguous k-mers
+     * when counting
+     * @param kmer A reference to the k-mer content. Will be clonedm on initialization.
+     */
     public KMerCoordinates(
         int recordIndexInFile, 
         int sequenceIndexInFile, 
@@ -23,7 +40,6 @@ public class KMerCoordinates {
         this.sequenceIndexInRecordIncludingAmbiguous = sequenceIndexInRecordIncludingAmbiguous;
         this.kmer = kmer.clone();
     } 
-
 
     public int getRecordIndexInFile() {
         return this.recordIndexInFile;

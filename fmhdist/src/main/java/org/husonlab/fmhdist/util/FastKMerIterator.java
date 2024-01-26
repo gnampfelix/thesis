@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 
 import jloda.util.FileUtils;
-import jloda.util.Pair;
 
 /**
  * Iterator to extract all valid k-mers from a fasta file (raw, zipped or
@@ -15,8 +14,8 @@ import jloda.util.Pair;
  * The iterator can skip ambiguous bases (N/n) and calculate the reverse
  * complement for the given k-mer.
  *
- * If the fasta file contains multiple records, there won't be any k-mers in the
- * result of this iterator that span multiple records.
+ * With each new record in the file, a new k-mer is created, i.e. this iterator
+ * won't return k-mers spanning multiple records.
  */
 public class FastKMerIterator implements Closeable, Iterator<byte[]> {
     private static boolean[] isLineContainingSkippableChar = new boolean[128];
@@ -63,18 +62,20 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
     private final int k;
     
     private byte nextByte;
-    // Whenever we need to completely build a new kmer instead of extending
-    // the previous one, we are in a preload situation. 
-    private boolean isPreloadSituation;
-    private boolean isSequenceStart;
+    private boolean hasPreloaded;
 
-    private int recordIndexInFile = -1;
+    private int recordIndexInFile = 0;
     private int skippedKmersInFile = 0;
     private int skippedKmersInRecord = 0;
-    private int sequenceIndexInRecord = -1;
-    private int sequenceIndexInFile = -1;
-    private int ambiguousCharCount = 0;
+    private int sequenceIndexInRecord = 0;
+    private int sequenceIndexInFile = 0;
 
+    private int preloadedRecordIndexInFile = 0;
+    private int preloadedSkippedKmersInFile = 0;
+    private int preloadedSkippedKmersInRecord = 0;
+    private int preloadedSequenceIndexInRecord = 0;
+    private int preloadedSequenceIndexInFile = 0;
+ 
     /**
      * Create a new Iterator to extract the kmers from the given file.
      * @param k the size of the k-mer
@@ -85,6 +86,19 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
      * @throws IOException
      */
     public FastKMerIterator(int k, String fileName, boolean skipN) throws IOException {
+        this(k, new InputStreamReader(FileUtils.getInputStreamPossiblyZIPorGZIP(fileName)), skipN);        
+    }
+
+    /**
+     * Create a new Iterator to extract the kmers from the given file.
+     * @param k the size of the k-mer
+     * @param reader the InputStreamReader to read the sequence from.
+     * @param skipN indicate if k-mers containing the letter "N" or "n" should
+     * be skipped. This is typically the case if the base is ambiguous for
+     * genomic sequences.
+     * @throws IOException
+     */
+    public FastKMerIterator(int k, InputStreamReader reader, boolean skipN) throws IOException {
         this.k = k;
         this.kmer = new byte[k];
         this.preloaded_kmer = new byte[k];
@@ -93,80 +107,11 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
 
         this.isAmbiguousChar['N'] = skipN;
         this.isAmbiguousChar['n'] = skipN;
-    
-        this.isSequenceStart = true;
 
-        this.reader = new InputStreamReader(FileUtils.getInputStreamPossiblyZIPorGZIP(fileName));
-        this.readUntilSequenceStart();
-        this.preloadKmer();
-    }
-
-
-    /**
-     * Assuming this.nextByte is the start of a new k-mer, this function reads
-     * at least the next k-1 letters to preload the next k-mer. If those k-1
-     * bytes contain any character that needs special treatment (new-line,
-     * beginning of new record, amb. character), this function will read so many
-     * bytes until preloaded_kmer contains k-1 bytes (or EOF)
-     * @throws IOException
-     */
-    private void preloadKmer() throws IOException {
-        // only prepare the first k-1 letters, user will call hasNext() and
-        // next(). Assume: We are at the beginning of the actual sequence,
-        // headers are already skipped.
-        // Also assume: this.nextByte is at the first character of the new k-mer
-
-        int i = 0;
-        while (i < this.k-1 && this.hasNext()) {
-            if(isLineContainingSkippableChar[this.nextByte]) {
-                this.skipToNextLine();
-                if (this.nextByte == '>') {
-                    this.readUntilSequenceStart();
-                    i = 0; // the current sequence is not long enough to support the k-mer
-                }           
-            }
-
-            if(isAmbiguousChar[this.nextByte]) {
-                this.nextByte = (byte) this.reader.read();
-                i = 0; // we need to start over again!
-                continue;
-            }
-
-            this.preloaded_kmer[i] = toUpperTable[this.nextByte];
-            this.preloaded_complement[this.k-1-i] = toUpperTable[complementTable[this.nextByte]];
-            i++;
-            this.nextByte = (byte) this.reader.read();
-        }
-        this.isPreloadSituation = true;
-    }
-
-    /**
-     * Read bytes until the next character is neither whitespace or part of a
-     * header-line. After this function returns, this.nextByte points at the
-     * first byte of the sequence.
-     * @throws IOException
-     */
-    private void readUntilSequenceStart() throws IOException {  
-        if (!this.hasNext())
-            return;
-
-        this.nextByte = (byte) this.reader.read();
-        while (this.hasNext() && isLineContainingSkippableChar[this.nextByte]) {
-            this.skipToNextLine();
-        }
-    }
-
-    /**
-     * Read bytes until the next line. After this function returns,
-     * this.nextByte points at the first byte of the new line.
-     * @throws IOException
-     */
-    private void skipToNextLine() throws IOException {
-        while (this.hasNext() && this.nextByte != '\n') {
-            this.nextByte = (byte) this.reader.read();
-        }
-        if (this.hasNext())
-            this.nextByte = (byte) this.reader.read();
+        this.reader = reader;
+        this.nextByte = (byte) reader.read();
+        this.preloadedRecordIndexInFile = -1;
+        this.preload();
     }
 
     public int getK() {
@@ -183,60 +128,142 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         return this.nextByte != -1;
     }
 
+    private boolean isSequenceChar() {
+        return !isLineContainingSkippableChar[this.nextByte];
+    }
+
+    private boolean isHeaderStart() {
+        return this.nextByte == '>';
+    }
+
+    private void skipToNextLine() throws IOException {
+        while (this.hasNext() && this.nextByte != '\n') {
+            this.nextByte = (byte) this.reader.read();
+        }
+        if (this.hasNext())
+            this.nextByte = (byte) this.reader.read();
+    }
+
+    private void handleSequenceStart() throws IOException {
+        this.preloadedRecordIndexInFile++;
+        this.preloadedSequenceIndexInRecord = 0;
+        this.preloadedSkippedKmersInRecord = 0;
+        skipToNextLine();
+    }
+
+    /**
+     * Assuming that "this.nextByte" has NOT been handled yet, this function
+     * reads as many bytes as needed to fill in the first k-1 bytes of a NEW
+     * k-mer. This is needed if
+     * 1. A new sequence starts
+     * 2. An existing k-mer cannot be extended because the next character is
+     *    ambiguous. In this case, the caller MUST already have loaded the byte
+     *    AFTER the ambiguous nucleotide.
+     *
+     * If this function needs to skip k-mers because it encounters ambiguous
+     * nucleotides, it updates the according counters.
+     * @throws IOException
+     */
+    private void preload() throws IOException {
+        this.hasPreloaded = true;
+        int i = 0;
+        while(this.hasNext() && i < this.k - 1) {
+            if(isSequenceChar()) {
+                if (isAmbiguousChar[this.nextByte]) {
+                    // we need to discard the previous i k-mers (0-based, thus
+                    // +1)
+                    this.preloadedSkippedKmersInFile += i + 1;
+                    this.preloadedSkippedKmersInRecord += i + 1;
+                    i = 0;
+                    this.nextByte = (byte) this.reader.read();
+                    continue;
+                }
+                this.preloaded_kmer[i] = toUpperTable[this.nextByte];
+                this.preloaded_complement[this.k - i - 1] = toUpperTable[complementTable[this.nextByte]];
+                this.nextByte = (byte) this.reader.read();
+                i++;
+            } else {
+                if (isHeaderStart()) {
+                    handleSequenceStart();
+                    i = 0;
+                } else {
+                    skipToNextLine();
+                }
+            }
+        }
+    }
+
+    private void copyIndices() {
+        this.recordIndexInFile = this.preloadedRecordIndexInFile;
+        this.sequenceIndexInFile = this.preloadedSequenceIndexInFile;
+        this.sequenceIndexInRecord = this.preloadedSequenceIndexInRecord;
+        this.skippedKmersInFile = this.preloadedSkippedKmersInFile;
+        this.skippedKmersInRecord = this.preloadedSkippedKmersInRecord;
+    }
+
     @Override
     public byte[] next() {
-        if (this.isPreloadSituation) {
+        // First, finalize current k-mer
+        if (this.hasPreloaded) {
             System.arraycopy(this.preloaded_kmer, 0, this.kmer, 0, this.k - 1);
             System.arraycopy(this.preloaded_complement, 1, this.complement, 1, this.k-1);
-            if (this.ambiguousCharCount > 0) {
-                this.skippedKmersInFile += ambiguousCharCount + this.k - 1;
-                this.skippedKmersInRecord += ambiguousCharCount + this.k - 1;
-            }
-            if (this.isSequenceStart) {
-                this.recordIndexInFile++;
-                this.sequenceIndexInRecord = -1;
-                this.skippedKmersInRecord = 0;
-                this.isSequenceStart = false;
-            }
-            this.isPreloadSituation = false;
+            this.hasPreloaded = false;
         } else {
             System.arraycopy(this.kmer, 1, this.kmer, 0, this.k - 1);
             System.arraycopy(this.complement, 0, this.complement, 1, this.k - 1);
         }
 
-        this.sequenceIndexInRecord++;
-        this.sequenceIndexInFile++;
-        this.ambiguousCharCount = 0;
-
+        this.copyIndices();
         this.kmer[this.k-1] = toUpperTable[this.nextByte];
         this.complement[0] = toUpperTable[complementTable[this.nextByte]];
+        
+        // Now, k-mer is finished. Time to prepare the next one!
         try {
             this.nextByte = (byte) reader.read();
-            // Skip ambiguous characters ("N"/"n"), dicard all k-mers
-            while(this.hasNext() && isAmbiguousChar[this.nextByte]) {
-                this.nextByte = (byte) reader.read();
-                this.isPreloadSituation = true;
-                this.ambiguousCharCount++;
-            }
-            while(this.hasNext() && isLineContainingSkippableChar[this.nextByte]) {
-                this.isPreloadSituation = this.nextByte == '>' || this.isPreloadSituation;
-                if (this.nextByte == '>') {
-                    this.isSequenceStart = true;
-                }
-                skipToNextLine();
-            }
+            this.preloadedSequenceIndexInFile++;
+            this.preloadedSequenceIndexInRecord++;
 
-            // If we start a new sequence (i.e. new entry in fasta file or after
-            // an amb. character), we need to preload all of the next k-1
-            // characters
-            if(this.isPreloadSituation) {
-                this.preloadKmer();
+            boolean forceNextIteration = true;
+            boolean needsPreload = false;
+
+            // There are four possible cases to consider:
+            // 1. The next character is a valid sequence character
+            // 2. The next character is a ambiguous sequence character
+            // 3. The next character is the start of a new header
+            // 4. The next character is a \n
+            while(hasNext() & forceNextIteration){
+                forceNextIteration = false;
+                if (isSequenceChar()) {
+                    if (isAmbiguousChar[this.nextByte]){
+                        // We need to skip the next k k-mers
+                        this.preloadedSkippedKmersInFile += this.k;
+                        this.preloadedSkippedKmersInRecord += this.k;
+                        this.nextByte = (byte) reader.read();
+                        needsPreload = true;
+                    } 
+                } else {
+                    if (isHeaderStart()){
+                        handleSequenceStart();
+                        needsPreload = true;
+                    } else {
+                        skipToNextLine();
+                        forceNextIteration = true;
+                    }
+                }
+
+                if(needsPreload) {
+                    this.preload();
+                    // We do not need to break because in above, it is
+                    // impossible to needPreload AND forceNextIteration, but to
+                    // be explicit here:
+                    break;
+                }
             }
-            
         } catch (IOException e) {
             this.nextByte = -1;
         }
-        
+
+        // At last: finished!
         return this.kmer;
     }
 
@@ -249,6 +276,11 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         return this.complement;
     }
 
+    /**
+     * Returns the coordinates of the current k-mer. Only correct if called
+     * after next()!
+     * @return
+     */
     public KMerCoordinates getCoordinates() {
         return new KMerCoordinates(
             this.recordIndexInFile, 
