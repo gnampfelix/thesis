@@ -1,96 +1,111 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from collections import Counter
 
-def findGapsLargerThan(sortedList, threshold):
+class Coordinates:
+    def __init__(
+        self, 
+        record_index_in_file, 
+        sequence_index_in_file, 
+        sequence_index_in_record, 
+        sequence_index_in_file_including_ambiguous, 
+        sequence_index_in_record_including_ambiguous, 
+        kmer
+    ) -> None:
+        self.record_index_in_file = record_index_in_file
+        self.sequence_index_in_file = sequence_index_in_file
+        self.sequence_index_in_record = sequence_index_in_record
+        self.sequence_index_in_file_including_ambiguous = sequence_index_in_file_including_ambiguous
+        self.sequence_index_in_refcord_including_ambiguous = sequence_index_in_record_including_ambiguous
+        self.kmer = kmer
+
+
+coords = []
+with open("fmhdist/PhyInf1.fna.gz.sketch.coordinates", "r") as f:
+    for line in f.readlines():
+        parts = line.split(",")
+        coords.append(Coordinates(int(parts[0]), int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]), parts[5].strip()))
+    
+def findGapsLargerThan(c, threshold):
     result = []
-    for i in range(1, len(sortedList)):
-        delta = sortedList[i] - sortedList[i-1]
+    for i in range(1, len(c)):
+        delta = c[i].sequence_index_in_file_including_ambiguous - c[i-1].sequence_index_in_file_including_ambiguous
         if delta > threshold:
-            result.append((delta, i, sortedList[i]))
+            result.append((delta, i-1, c[i-1].sequence_index_in_file_including_ambiguous))
     return result
 
-def collectWindowForRow(row, df, window_size):
-    start_pos = row["sequenceIndexInFile"]
-    window = df[(df["sequenceIndexInFile"] < start_pos + window_size) & (df["sequenceIndexInFile"] >= start_pos)]
-    size = len(window)
-    counts = window["kmer"].value_counts()
-    unique_ratio = len(counts[counts == 1]) / size
-    return (start_pos, size, unique_ratio)
-
-def collectWindowsForDf(sorted_df, window_size):
-    rows = []
-    for i in range(len(sorted_df)):
-        current_row = sorted_df.iloc[i, :]
-        window_start = current_row["sequenceIndexInFile"]
-        kmers = [current_row["kmer"]]
+def collect_windows(c, window_size):
+    windows = []
+    for i in range(len(c)):
+        current_kmers = [c[i].kmer]
         j = i + 1
-        while j < len(sorted_df) and sorted_df.iloc[j, :]["sequenceIndexInFile"] - window_start < window_size:
-            kmers.append(sorted_df.iloc[j, :]["kmer"])
+        while (
+            j < len(c) and 
+            c[j].sequence_index_in_file_including_ambiguous - c[i].sequence_index_in_file_including_ambiguous < window_size
+        ):
+            current_kmers.append(c[j].kmer)
             j += 1
-        unique_kmers = [kmer for kmer in kmers if kmers.count(kmer) == 1]
-        current_window = [window_start, len(kmers), len(unique_kmers)/len(kmers)]
-        rows.append(current_window)
-    return pd.DataFrame(rows, columns=["window_start", "kmer_count", "unique_kmer_ratio"])
+        unique_kmers = list(Counter(current_kmers).keys())
+        windows.append((i, c[i].sequence_index_in_file_including_ambiguous, current_kmers, unique_kmers))
+    return windows
 
-def collectWindows(sorted_list, window_size):
-    result = []
-    for i in range(len(sorted_list)):
-        current_window = [sorted_list[i]]
-        j = i + 1
-        while j < len(sorted_list) and sorted_list[j] - sorted_list[i] < window_size:
-            current_window.append(sorted_list[j])
-            j += 1
-        result.append(current_window)
-    return result
-
-def findDensestWindows(window_list, threshold):
-    result = []
-    for window in window_list:
-        if len(window) > threshold:
-            result.append((window[0], len(window)))
-    return result
-
-df = pd.read_csv("fmhdist/PhyInf1.fna.gz.sketch.coordinates", names=[
-    "recordIndex",
-    "sequenceIndexInFile",
-    "sequenceIndexInRecord",
-    "sequenceIndexInFileIncludingAmbiguous",
-    "sequenceIndexInRecordIncludingAmbiguous",
-    "kmer"
-    ])
-
-df["kmer"] = df["kmer"].astype("string")
-counts = df["kmer"].value_counts()
-df["counts"] = df.apply(lambda row: counts[row["kmer"]],axis=1)
-
-pos = df["sequenceIndexInFile"].to_numpy()
-pos_ambig = df["sequenceIndexInFileIncludingAmbiguous"].to_numpy()
-counts = df["counts"].to_numpy()
 
 window_size = 10000
-density_threshold = 20
-gap_threshold = 20000
-pos = np.array(pos, dtype=np.uint)
-pos_ambig = np.array(pos_ambig, dtype=np.uint)
+density_threshold = 15
+gap_threshold = 40000
 
-windows = collectWindowsForDf(df, window_size)
+pos = [c.sequence_index_in_file_including_ambiguous for c in coords]
+windows = collect_windows(coords, window_size)
+densest_windows_unique = [(i, p, k, u) for i, p, k, u in windows if len(u) > density_threshold]
+gaps = findGapsLargerThan(coords, gap_threshold)
+min_gap_size = np.min([d for d, _, _ in gaps])
+max_gap_size = np.max([d for d, _, _ in gaps])
 
-largerThanT = findGapsLargerThan(pos_ambig, gap_threshold)
-max_gap_size = np.max([size for size, _, _ in largerThanT])
-min_gap_size = np.min([size for size, _, _ in largerThanT])
+# print("densest windows including repeats")
+# for w in densest_windows:
+#     print(f"window starting at {w[1]}")
+#     for kmer in w[2]:
+#         print(kmer)
+#     print()
+#plt.scatter([p for _, p, _, _ in densest_windows], len(densest_windows) * [0.1], s=[len(k) for _, _, k, _ in densest_windows], c="black")
 
-densestWindows = windows[windows["kmer_count"] > density_threshold]
-densestWindowsMaxDensity = np.max(densestWindows["kmer_count"].to_numpy())
-densestWindowsMinDensity = np.min(densestWindows["kmer_count"].to_numpy())
+print("densest windows excluding repeats")
+for w in densest_windows_unique:
+    print(f"window starting at {w[1]}")
+    for kmer in w[3]:
+        print(kmer)
+    print()
 
-plt.scatter(pos, len(pos) * [0], s=1, c="blue", label="hash origin position excluding ambiguous $k$-mers")
-plt.scatter(pos_ambig, len(pos_ambig) * [0.01], s=1, c="orange", label="hash origin position including ambigouos $k$-mers")
+print()
+print("results")
+print(f"there are {len(gaps)} gaps that are longer than {gap_threshold}:")
+print([size for size, _, _ in gaps])
+print()
+print(f"there are {len(densest_windows_unique)} windows of size {window_size} with more than {density_threshold} unique k-mers in it")
+print("-see window content above-")
+print()
 
-plt.scatter([pos for _, _, pos in largerThanT], len(largerThanT)* [0.11], s=[(size-min_gap_size)/(max_gap_size-min_gap_size) * 100 for size, _, _ in largerThanT], c="green", label=f"gaps larger than $t={gap_threshold}$")
-plt.scatter(densestWindows["window_start"], len(densestWindows)*[-0.11], s=(densestWindows["kmer_count"].to_numpy()-densestWindowsMinDensity)/(densestWindowsMaxDensity-densestWindowsMinDensity) * 100, c=densestWindows["unique_kmer_ratio"], label=f"windows with size $s={window_size}$ that are denser than $t={density_threshold}$")
 
-plt.xlim(0, np.max(pos_ambig))
+plt.scatter(
+    [p for _, p, _, _ in densest_windows_unique], 
+    len(densest_windows_unique) * [0.1], 
+    s=[len(u) for _, _, _, u in densest_windows_unique], 
+    c="black", 
+    label=f"position of windows of size {window_size} with more than {density_threshold} unique $k$-mers in it"
+)
+
+plt.scatter(pos, len(pos) * [0.00], s=1, c="orange", label="hash origin position including ambigouos $k$-mers")
+
+plt.scatter(
+    [pos for _, _, pos in gaps], 
+    len(gaps)* [-0.1], 
+    s=[(size-min_gap_size)/(max_gap_size-min_gap_size) * 100 for size, _, _ in gaps], 
+    c="green", 
+    label=f"start position of gaps larger than $t={gap_threshold}$"
+)
+
+plt.xlim(0, np.max(pos))
 plt.ylim(-1, 1)
 plt.gca().get_yaxis().set_visible(False)
 plt.legend()
