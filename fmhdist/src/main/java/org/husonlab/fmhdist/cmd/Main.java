@@ -9,6 +9,7 @@ public class Main {
     private final static String COMPARE_SKETCH_COMMAND = "dist";
     private final static String COMPARE_REF_SKETCH_COMMAND = "ref_dist";
     private final static String SKETCH_COMMAND = "sketch";
+    private final static String ANALYZE_COORDS_COMMAND = "analyze";
 
     public static void main(String[] args) throws UsageException {
         final ArgsOptions options = new ArgsOptions(args, Main.class,
@@ -28,12 +29,15 @@ public class Main {
                                 "and calculate all pairwise distances for those + the query sequences."),
                 new ArgsOptions.Command(
                         SKETCH_COMMAND,
-                        "Calculate the sketch for all given sequences and store them on the file system"));
+                        "Calculate the sketch for all given sequences and store them on the file system"),
+                new ArgsOptions.Command(
+                        ANALYZE_COORDS_COMMAND,
+                        "Analyze the coordinates for a given sketch"));
 
         options.comment("Input/Output options");
         final String input = options.getOptionMandatory("-i", "input",
                 String.format(
-                        "New-line delimited list of\n" +
+                        "Either the path to a coordinates file OR new-line delimited list of\n" +
                                 "(a - for %s command) NCBI accession codes\n" +
                                 "(b - for other commands) sequence file paths or URLs to fasta files (gzip ok)"
                                 +
@@ -48,12 +52,12 @@ public class Main {
                 "database.db");
 
         final String output = options.getOption("-o", "output",
-                "Path to the output file in which the distances are written. Existing files will be overwritten. Format is nexus.",
-                "out.nxs");
+                "Path to the output file (distances, sketches, coordinates, windows)",
+                "");
 
         final boolean saveCoordinates = options.getOption("-c", "save-coordinates", 
                 "When running " + SKETCH_COMMAND + ", control if the coordinates of the k-mers that are part of the sketch should be saved." + 
-                "They will be saved using <output>.coordinates. The first component is the index of the sequence in the file and the second the index of the k-mer in the sequence.", false);
+                "They will be saved using <output>.coordinates.", false);
 
         options.comment("Algorithm parameters");
         final int kParameter = options.getOption("-k", "kmerSize", "Word size k", 21);
@@ -63,6 +67,8 @@ public class Main {
         final double maxDistance = options.getOption("-md", "maxDistance",
                 "The maximum distance that a query sequence should have to have to a reference sequence for the reference sequence to be included in the output",
                 0.4);
+
+        final int  windowSize = options.getOption("-w", "windowSize", "The window size that should be used for analyzing the coordinates", 2000);
 
         options.comment("Performance options");
         ProgramExecutorService
@@ -85,6 +91,10 @@ public class Main {
             case SKETCH_COMMAND:
                 SequenceSketcher sketcher = new SequenceSketcher();
                 sketcher.run(input, output, kParameter, sParameter, randomSeed, saveCoordinates);
+                break;
+            case ANALYZE_COORDS_COMMAND:
+                CoordinatesAnalyzer analyzer = new CoordinatesAnalyzer();
+                analyzer.run(input, output, windowSize);
                 break;
         }
     }

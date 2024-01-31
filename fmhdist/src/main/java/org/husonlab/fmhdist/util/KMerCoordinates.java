@@ -75,4 +75,22 @@ public class KMerCoordinates {
             this.sequenceIndexInRecordIncludingAmbiguous,
             new String(this.kmer));
     }
+
+    public static KMerCoordinates fromString(String input) {
+        String[] parts = input.split(",");
+        int recordIndexInFile = Integer.parseInt(parts[0]);
+        int sequenceIndexInFile = Integer.parseInt(parts[1]);
+        int sequenceIndexInRecord = Integer.parseInt(parts[2]);
+        int sequenceIndexInFileIncludingAmbiguous = Integer.parseInt(parts[3]);
+        int sequenceIndexInRecordIncludingAmbiguous = Integer.parseInt(parts[4]);
+        String kmer = parts[5].strip();
+        return new KMerCoordinates(
+            recordIndexInFile, 
+            sequenceIndexInFile, 
+            sequenceIndexInRecord, 
+            sequenceIndexInFileIncludingAmbiguous, 
+            sequenceIndexInRecordIncludingAmbiguous, 
+            kmer.getBytes()
+        );
+    }
 }

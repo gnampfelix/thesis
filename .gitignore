@@ -5,3 +5,4 @@ target
 !analysis/**
 *.sketch
 *.coordinates
+*.windows
