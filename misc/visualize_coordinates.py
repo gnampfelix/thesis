@@ -2,6 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from collections import Counter
+import argparse
+
+def create_parser():
+    p = argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    p.add_argument("-w", "--window-size", help="The window size for density analysis", type=int, default=10000, required=False) 
+    p.add_argument("-d", "--density-threshold", help="The threshold for unique k-mers in a window", type=int, default=15, required=False)  
+    p.add_argument("-g", "--gap-threshold", help="The gap threshold", default=10000, type=int, required=False) 
+    p.add_argument("-i", "--input", help="The coordinates file to analyze", required=True)
+    return (p.parse_args())
 
 class Coordinates:
     def __init__(
@@ -20,13 +31,6 @@ class Coordinates:
         self.sequence_index_in_refcord_including_ambiguous = sequence_index_in_record_including_ambiguous
         self.kmer = kmer
 
-
-coords = []
-with open("fmhdist/PhyInf1.fna.gz.sketch.coordinates", "r") as f:
-    for line in f.readlines():
-        parts = line.split(",")
-        coords.append(Coordinates(int(parts[0]), int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]), parts[5].strip()))
-    
 def findGapsLargerThan(c, threshold):
     result = []
     for i in range(1, len(c)):
@@ -51,9 +55,17 @@ def collect_windows(c, window_size):
     return windows
 
 
-window_size = 10000
-density_threshold = 15
-gap_threshold = 40000
+args = create_parser()
+window_size = args.window_size
+density_threshold = args.density_threshold
+gap_threshold = args.gap_threshold
+
+coords = []
+with open(args.input, "r") as f:
+    for line in f.readlines():
+        parts = line.split(",")
+        coords.append(Coordinates(int(parts[0]), int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]), parts[5].strip()))
+    
 
 pos = [c.sequence_index_in_file_including_ambiguous for c in coords]
 windows = collect_windows(coords, window_size)
