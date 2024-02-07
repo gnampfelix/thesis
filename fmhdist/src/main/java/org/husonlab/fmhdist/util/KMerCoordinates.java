@@ -7,6 +7,7 @@ public class KMerCoordinates {
     private int sequenceIndexInFile;
     private int sequenceIndexInFileIncludingAmbiguous;
     private byte[] kmer;
+    private long hash;
 
     /**
      * Creates a new instance of a kmer.
@@ -65,15 +66,24 @@ public class KMerCoordinates {
         return this.kmer;
     }
 
+    public long getHash() {
+        return this.hash;
+    }
+
+    public void setHash(long hash) {
+        this.hash = hash;
+    }
+
     public String toString() {
         return String.format(
-            "%d,%d,%d,%d,%d,%s",
+            "%d,%d,%d,%d,%d,%s,%d",
             this.recordIndexInFile, 
             this.sequenceIndexInFile,
             this.sequenceIndexInRecord,
             this.sequenceIndexInFileIncludingAmbiguous,
             this.sequenceIndexInRecordIncludingAmbiguous,
-            new String(this.kmer));
+            new String(this.kmer),
+            this.hash);
     }
 
     public static KMerCoordinates fromString(String input) {
@@ -84,7 +94,8 @@ public class KMerCoordinates {
         int sequenceIndexInFileIncludingAmbiguous = Integer.parseInt(parts[3]);
         int sequenceIndexInRecordIncludingAmbiguous = Integer.parseInt(parts[4]);
         String kmer = parts[5].strip();
-        return new KMerCoordinates(
+        long hash = Long.parseLong(parts[6].strip());
+        KMerCoordinates result = new KMerCoordinates(
             recordIndexInFile, 
             sequenceIndexInFile, 
             sequenceIndexInRecord, 
@@ -92,5 +103,7 @@ public class KMerCoordinates {
             sequenceIndexInRecordIncludingAmbiguous, 
             kmer.getBytes()
         );
+        result.setHash(hash);
+        return result;
     }
 }

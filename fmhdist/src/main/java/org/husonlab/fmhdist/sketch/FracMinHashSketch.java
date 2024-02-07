@@ -16,8 +16,6 @@ import jloda.thirdparty.MurmurHash;
 import jloda.util.ByteInputBuffer;
 import jloda.util.ByteOutputBuffer;
 import jloda.util.CanceledException;
-import jloda.util.Pair;
-import jloda.util.Triplet;
 import jloda.util.progress.ProgressListener;
 
 public class FracMinHashSketch {
@@ -123,8 +121,10 @@ public class FracMinHashSketch {
                 final long hash = MurmurHash.hash64(kMerUse, 0, sketch.kSize, seed);
 
                 if (hash < threshold) {
+                    KMerCoordinates coords = kmers.getCoordinates();
+                    coords.setHash(hash);
                     sortedSet.add(hash);
-                    sketch.coordinates.add(kmers.getCoordinates());
+                    sketch.coordinates.add(coords);
                     if (hash2kmer != null) {
                         hash2kmer.put(hash, kMerUse.clone());
                     }
