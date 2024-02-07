@@ -92,7 +92,7 @@ for w in densest_windows_unique:
 print()
 print("results")
 print(f"there are {len(gaps)} gaps that are longer than {gap_threshold}:")
-print([size for size, _, _ in gaps])
+print([(pos, size) for size, _, pos in gaps])
 print()
 print(f"there are {len(densest_windows_unique)} windows of size {window_size} with more than {density_threshold} unique k-mers in it")
 print("-see window content above-")
