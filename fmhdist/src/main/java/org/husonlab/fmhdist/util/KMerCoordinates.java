@@ -8,6 +8,7 @@ public class KMerCoordinates {
     private int sequenceIndexInFileIncludingAmbiguous;
     private byte[] kmer;
     private long hash;
+    private long byteIndex; 
 
     /**
      * Creates a new instance of a kmer.
@@ -31,8 +32,9 @@ public class KMerCoordinates {
         int sequenceIndexInFile, 
         int sequenceIndexInRecord, 
         int sequenceIndexInFileIncludingAmbiguous, 
-        int sequenceIndexInRecordIncludingAmbiguous, 
-        byte[] kmer
+        int sequenceIndexInRecordIncludingAmbiguous,
+        byte[] kmer,
+        long byteIndex
     ) {
         this.recordIndexInFile = recordIndexInFile;
         this.sequenceIndexInFile = sequenceIndexInFile;
@@ -40,6 +42,7 @@ public class KMerCoordinates {
         this.sequenceIndexInFileIncludingAmbiguous = sequenceIndexInFileIncludingAmbiguous;
         this.sequenceIndexInRecordIncludingAmbiguous = sequenceIndexInRecordIncludingAmbiguous;
         this.kmer = kmer.clone();
+        this.byteIndex = byteIndex;
     } 
 
     public int getRecordIndexInFile() {
@@ -74,16 +77,21 @@ public class KMerCoordinates {
         this.hash = hash;
     }
 
+    public long getByteIndex() {
+        return this.byteIndex;
+    }
+
     public String toString() {
         return String.format(
-            "%d,%d,%d,%d,%d,%s,%d",
+            "%d,%d,%d,%d,%d,%s,%d,%d",
             this.recordIndexInFile, 
             this.sequenceIndexInFile,
             this.sequenceIndexInRecord,
             this.sequenceIndexInFileIncludingAmbiguous,
             this.sequenceIndexInRecordIncludingAmbiguous,
             new String(this.kmer),
-            this.hash);
+            this.hash,
+            this.byteIndex);
     }
 
     public static KMerCoordinates fromString(String input) {
@@ -95,13 +103,15 @@ public class KMerCoordinates {
         int sequenceIndexInRecordIncludingAmbiguous = Integer.parseInt(parts[4]);
         String kmer = parts[5].strip();
         long hash = Long.parseLong(parts[6].strip());
+        long byteIndex = Long.parseLong(parts[7].strip());
         KMerCoordinates result = new KMerCoordinates(
             recordIndexInFile, 
             sequenceIndexInFile, 
             sequenceIndexInRecord, 
             sequenceIndexInFileIncludingAmbiguous, 
             sequenceIndexInRecordIncludingAmbiguous, 
-            kmer.getBytes()
+            kmer.getBytes(),
+            byteIndex
         );
         result.setHash(hash);
         return result;

@@ -9,7 +9,7 @@ import org.junit.Test;
 public class KMerCoordinatesTest {
     @Test
     public void itShouldParseCoordinates() {
-        String input = "2901,203233312,1374,203233312,1374,ACCATTACAATGACTTTGGAT,17";
+        String input = "2901,203233312,1374,203233312,1374,ACCATTACAATGACTTTGGAT,17,0";
         KMerCoordinates coords = KMerCoordinates.fromString(input);
         assertThat(coords.getRecordIndexInFile(), equalTo(2901));
         assertThat(coords.getSequenceIndexInFile(), equalTo(203233312));

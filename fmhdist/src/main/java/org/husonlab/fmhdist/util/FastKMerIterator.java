@@ -69,12 +69,14 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
     private int skippedKmersInRecord = 0;
     private int sequenceIndexInRecord = 0;
     private int sequenceIndexInFile = 0;
+    private int byteCounter = 0;
 
     private int preloadedRecordIndexInFile = 0;
     private int preloadedSkippedKmersInFile = 0;
     private int preloadedSkippedKmersInRecord = 0;
     private int preloadedSequenceIndexInRecord = 0;
     private int preloadedSequenceIndexInFile = 0;
+    private int preloadedByteCounter = 0;
  
     /**
      * Create a new Iterator to extract the kmers from the given file.
@@ -110,6 +112,7 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
 
         this.reader = reader;
         this.nextByte = (byte) reader.read();
+        this.preloadedByteCounter++;
         this.preloadedRecordIndexInFile = -1;
         this.preload();
     }
@@ -139,9 +142,11 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
     private void skipToNextLine() throws IOException {
         while (this.hasNext() && this.nextByte != '\n') {
             this.nextByte = (byte) this.reader.read();
+            this.preloadedByteCounter++;
         }
         if (this.hasNext())
             this.nextByte = (byte) this.reader.read();
+            this.preloadedByteCounter++;
     }
 
     private void handleSequenceStart() throws IOException {
@@ -176,11 +181,13 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
                     this.preloadedSkippedKmersInRecord += i + 1;
                     i = 0;
                     this.nextByte = (byte) this.reader.read();
+                    this.preloadedByteCounter++;
                     continue;
                 }
                 this.preloaded_kmer[i] = toUpperTable[this.nextByte];
                 this.preloaded_complement[this.k - i - 1] = toUpperTable[complementTable[this.nextByte]];
                 this.nextByte = (byte) this.reader.read();
+                this.preloadedByteCounter++;
                 i++;
             } else {
                 if (isHeaderStart()) {
@@ -199,6 +206,7 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         this.sequenceIndexInRecord = this.preloadedSequenceIndexInRecord;
         this.skippedKmersInFile = this.preloadedSkippedKmersInFile;
         this.skippedKmersInRecord = this.preloadedSkippedKmersInRecord;
+        this.byteCounter = this.preloadedByteCounter;
     }
 
     @Override
@@ -212,7 +220,6 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
             System.arraycopy(this.kmer, 1, this.kmer, 0, this.k - 1);
             System.arraycopy(this.complement, 0, this.complement, 1, this.k - 1);
         }
-
         this.copyIndices();
         this.kmer[this.k-1] = toUpperTable[this.nextByte];
         this.complement[0] = toUpperTable[complementTable[this.nextByte]];
@@ -220,6 +227,7 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         // Now, k-mer is finished. Time to prepare the next one!
         try {
             this.nextByte = (byte) reader.read();
+            this.preloadedByteCounter++;
             this.preloadedSequenceIndexInFile++;
             this.preloadedSequenceIndexInRecord++;
 
@@ -239,6 +247,7 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
                         this.preloadedSkippedKmersInFile += this.k;
                         this.preloadedSkippedKmersInRecord += this.k;
                         this.nextByte = (byte) reader.read();
+                        this.preloadedByteCounter++;
                         needsPreload = true;
                     } 
                 } else {
@@ -288,6 +297,7 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
             this.sequenceIndexInRecord,
             this.sequenceIndexInFile + this.skippedKmersInFile,
             this.sequenceIndexInRecord + this.skippedKmersInRecord, 
-            this.kmer);
+            this.kmer,
+            this.byteCounter);
     }    
 }
