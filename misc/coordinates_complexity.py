@@ -1,6 +1,7 @@
 import argparse
 import miniFasta as mf
 import matplotlib.pyplot as plt
+import numpy as np
 
 def create_parser():
     p = argparse.ArgumentParser(description=__doc__,
@@ -8,7 +9,7 @@ def create_parser():
 
     p.add_argument("-w", "--window-size", help="The window size for density analysis", type=int, default=1000, required=False)
     p.add_argument("-k", "--window-interval", help="The window interval for density analysis", type=int, default=100, required=False)
-    p.add_argument("-c", "--coordinates", help="The coordinates file to analyze", required=True)
+    p.add_argument("-c", "--coordinates", help="The coordinates file to analyze", required=True, nargs="+")
     p.add_argument("-s", "--sequence", help="The underlying sequence file in FASTA format", required=True)
     p.add_argument("-m", "--macle", help="The path to the macle file", required=True)
     p.add_argument("-o", "--output", help="The path where the plots should be saved", required=False, default=".")
@@ -54,34 +55,23 @@ def read_macle_complexity(filename, midpoint_offset):
 
 """
 meta_window_size: The _number_ of consecutive windows that must be "interesting".
+assumption: window start positions are offset by 1
 """
 def has_interesting_density(densities, meta_window_size):
-    for i in range(len(densities)):
-        if densities[i][1] == 0:
-            aborted = False
-            for j in range(meta_window_size):
-                if i+j+1 >= len(densities) or densities[j+i+1][1] != 0:
-                    aborted = True
-                    break
-            if not aborted:
-                return True
+    np_densities = densities
+    zero_windows = np.where(np_densities == 0)[0]
+    for i in range(len(zero_windows)-meta_window_size):
+        if zero_windows[i] + meta_window_size == zero_windows[i+meta_window_size]:
+            return True 
     return False
 
-
-
-def calculate_densities_in_windows(window_size, window_interval, sequence_length, relevant_coords):
-    densities = []
-    smallest_coords_index = 0
-    for window_start in range(0, sequence_length-window_size):
-        window_density = 0
-        for current_coords_index in range(smallest_coords_index, len(relevant_coords)):
-            if relevant_coords[current_coords_index].sequence_index_in_record < window_start:
-                smallest_coords_index += 1
-                continue
-            if relevant_coords[current_coords_index].sequence_index_in_record > window_start + window_size:
-                break
-            window_density += 1
-        densities.append((window_start, window_density))
+def calculate_densities_in_windows(window_size, sequence_length, relevant_coords):
+    densities = np.zeros(sequence_length-window_size+1, dtype=int)
+    for c in relevant_coords:
+        pos = c.sequence_index_in_record
+        current_offset = np.zeros(len(densities), dtype=int)
+        current_offset[np.arange(np.max([0, pos - window_size + 1]), np.min([len(densities), pos + window_size]))] = 1
+        densities += current_offset
     return densities
 
 def main():
@@ -89,40 +79,54 @@ def main():
     midpoint_offset = args.window_size // 2
     seq = mf.read(args.sequence)
     complexities = read_macle_complexity(args.macle, midpoint_offset)
-    coords = read_coords(args.coordinates)
+    coords = [(c, read_coords(c)) for c in args.coordinates]
 
     record_index = 0
-    current_coords_pointer = 0
-    for s in seq:
-        no_coords = False
-        coords_start = 0
-        coords_end = 0
-        while current_coords_pointer < len(coords) and coords[current_coords_pointer].record_index_in_file < record_index:
-            current_coords_pointer += 1
-        
+    current_coords_pointer = [0 for _ in coords]
+    for s in seq:                
+  
         macle_header = s.getHead().split()[0].strip().replace(">", "")
         if len(macle_header) > 32:
             macle_header = macle_header[:32]
+        
+        densities = []
+        for i in range(len(coords)):
+            path, c = coords[i]
+            coords_start = 0
+            coords_end = 0
+            while current_coords_pointer[i] < len(c) and c[current_coords_pointer[i]].record_index_in_file < record_index:
+                current_coords_pointer[i] += 1
 
-        if coords[current_coords_pointer].record_index_in_file > record_index:
-            print(f"warning: no coordinates for {macle_header} found")
-            no_coords = True
-        else:
-            coords_start = current_coords_pointer
-            while current_coords_pointer < len(coords) and coords[current_coords_pointer].record_index_in_file == record_index:
-                current_coords_pointer += 1
-            coords_end = current_coords_pointer #end is always exclusive, so this works
+            if c[current_coords_pointer[i]].record_index_in_file > record_index:
+                print(f"warning: no coordinates for {macle_header} found in {path}")
+            else:
+                coords_start = current_coords_pointer[i]
+                while current_coords_pointer[i] < len(c) and c[current_coords_pointer[i]].record_index_in_file == record_index:
+                    current_coords_pointer[i] += 1
+                coords_end = current_coords_pointer[i] #end is always exclusive, so this works
+             
+            if len(s) - args.window_size + 1 < 0:
+                print(f"warning: {macle_header} is rather short for density calculations")
+            else:
+                densities.append(calculate_densities_in_windows(args.window_size, len(s), c[coords_start: coords_end]))
      
         record_index += 1
+        is_interesting = False
+        for d in densities:
+            if has_interesting_density(d, args.meta_window_size):
+                is_interesting = True
+                break
       
-        densities = calculate_densities_in_windows(args.window_size, args.window_interval, len(s), coords[coords_start: coords_end])
-        if has_interesting_density(densities, args.meta_window_size):
+        if is_interesting:
+            print(f"at least one of the {len(densities)} densities for {macle_header} is interesting")
             fig, ax1 = plt.subplots()
             ax1.set_title(macle_header)
 
             ax1.set_xlabel(f"window start in genome with $w={args.window_size}$")
             ax1.set_ylabel("number of hashes in the sketch in the window", color="forestgreen")
-            ax1.plot([pos for pos, _ in densities], [dens for _, dens in densities], color="forestgreen")
+            for i in range(len(densities)):
+                d = densities[i]
+                ax1.plot(d)
             ax1.tick_params(axis="y", color="forestgreen")
             ax1.set_ylim([0, 20])
             ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
