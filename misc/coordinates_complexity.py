@@ -122,25 +122,35 @@ def main():
                 break
       
         if is_interesting:
+            max_densities = np.max(densities, axis=0)
+            min_densities = np.min(densities, axis=0)
+            mean_densities = np.mean(densities, axis=0)
+            median_densities = np.median(densities, axis=0)
+
             fig, ax1 = plt.subplots()
             ax1.set_title(macle_header)
 
+            ax1.plot(mean_densities, label="mean densities", color="darkgray")
+            ax1.plot(median_densities, label="median densities", color="black")
+            ax1.fill_between(np.arange(0, len(max_densities)), min_densities, max_densities, facecolor="lightgray", label="density range")
+
+            ax1.legend()
+
             ax1.set_xlabel(f"window start in genome with $w={args.window_size}$")
-            ax1.set_ylabel("number of hashes in the sketch in the window", color="forestgreen")
-            for i in range(len(densities)):
-                d = densities[i]
-                ax1.plot(d)
-            ax1.tick_params(axis="y", color="forestgreen")
+            ax1.set_ylabel("number of hashes in the sketch in the window")
+            
+
+            ax1.tick_params(axis="y")
             ax1.set_ylim([0, 20])
             ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 
-            ax2.set_ylabel("$C_m$ value of window", color="salmon")  # we already handled the x-label with ax1
+            ax2.set_ylabel("$C_m$ value of window", color="forestgreen")  # we already handled the x-label with ax1
             if (macle_header not in complexities):
                 print(f"warning: no complexities for {macle_header} found")
             else:
-                ax2.plot([pos for pos, _ in complexities[macle_header]], [c for _, c in complexities[macle_header]], color="salmon")
+                ax2.plot([pos for pos, _ in complexities[macle_header]], [c for _, c in complexities[macle_header]], color="forestgreen")
             
-            ax2.tick_params(axis="y", color="salmon")
+            ax2.tick_params(axis="y", color="forestgreen")
             ax2.set_ylim([0, 1])
 
             fig.tight_layout()  # otherwise the right y-label is slightly clipped
