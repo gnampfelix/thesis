@@ -66,13 +66,16 @@ def has_interesting_density(densities, meta_window_size):
     return False
 
 def calculate_densities_in_windows(window_size, sequence_length, relevant_coords):
-    densities = np.zeros(sequence_length-window_size+1, dtype=int)
+    densities = np.zeros(calculate_number_of_windows(window_size, sequence_length), dtype=int)
     for c in relevant_coords:
         pos = c.sequence_index_in_record
         current_offset = np.zeros(len(densities), dtype=int)
         current_offset[np.arange(np.max([0, pos - window_size + 1]), np.min([len(densities), pos + window_size]))] = 1
         densities += current_offset
     return densities
+
+def calculate_number_of_windows(window_size, sequence_length):
+    return sequence_length - window_size + 1
 
 def main():
     args = create_parser()
@@ -84,7 +87,11 @@ def main():
     record_index = 0
     current_coords_pointer = [0 for _ in coords]
     for s in seq:                
-  
+        if calculate_number_of_windows(args.window_size, len(s)) <= 0:
+            print(f"warning: {macle_header} is too short for density calculations with window size {args.window_size}")
+            record_index += 1
+            continue
+
         macle_header = s.getHead().split()[0].strip().replace(">", "")
         if len(macle_header) > 32:
             macle_header = macle_header[:32]
@@ -97,18 +104,15 @@ def main():
             while current_coords_pointer[i] < len(c) and c[current_coords_pointer[i]].record_index_in_file < record_index:
                 current_coords_pointer[i] += 1
 
-            if c[current_coords_pointer[i]].record_index_in_file > record_index:
+            if current_coords_pointer[i] >= len(c) or c[current_coords_pointer[i]].record_index_in_file > record_index:
                 print(f"warning: no coordinates for {macle_header} found in {path}")
             else:
                 coords_start = current_coords_pointer[i]
                 while current_coords_pointer[i] < len(c) and c[current_coords_pointer[i]].record_index_in_file == record_index:
                     current_coords_pointer[i] += 1
                 coords_end = current_coords_pointer[i] #end is always exclusive, so this works
-             
-            if len(s) - args.window_size + 1 < 0:
-                print(f"warning: {macle_header} is rather short for density calculations")
-            else:
-                densities.append(calculate_densities_in_windows(args.window_size, len(s), c[coords_start: coords_end]))
+            
+            densities.append(calculate_densities_in_windows(args.window_size, len(s), c[coords_start: coords_end]))
      
         record_index += 1
         is_interesting = False
@@ -118,7 +122,6 @@ def main():
                 break
       
         if is_interesting:
-            print(f"at least one of the {len(densities)} densities for {macle_header} is interesting")
             fig, ax1 = plt.subplots()
             ax1.set_title(macle_header)
 
