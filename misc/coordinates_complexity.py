@@ -15,6 +15,7 @@ def create_parser():
     p.add_argument("-rm", "--repeat-masker", help="The path to the RepeatMasker .out file", required=True)
     p.add_argument("-o", "--output", help="The path where the plots should be saved", required=False, default=".")
     p.add_argument("-mw", "--meta-window-size", help="Number of consecutive windows with high or 0 density to trigger the image save for a sequence", type=int, required=False, default=200)
+    p.add_argument("-i", "--ignore", help="List of header names to ignore in the analysis (e.g. because those sequences contain amb. nucleotides)", required=False, default="")
     return (p.parse_args())
 
 class Coordinates:
@@ -31,7 +32,7 @@ class Coordinates:
         self.sequence_index_in_file = sequence_index_in_file
         self.sequence_index_in_record = sequence_index_in_record
         self.sequence_index_in_file_including_ambiguous = sequence_index_in_file_including_ambiguous
-        self.sequence_index_in_refcord_including_ambiguous = sequence_index_in_record_including_ambiguous
+        self.sequence_index_in_record_including_ambiguous = sequence_index_in_record_including_ambiguous
         self.kmer = kmer
 
 def read_coords(filename):
@@ -93,10 +94,13 @@ def has_interesting_density(densities, meta_window_size):
             return True 
     return False
 
-def calculate_densities_in_windows(window_size, sequence_length, relevant_coords):
+def calculate_densities_in_windows(window_size, sequence_length, relevant_coords, use_ambig):
     densities = np.zeros(calculate_number_of_windows(window_size, sequence_length), dtype=int)
     for c in relevant_coords:
-        pos = c.sequence_index_in_record
+        if use_ambig:
+            pos = c.sequence_index_in_record_including_ambiguous
+        else:
+            pos = c.sequence_index_in_record
         current_offset = np.zeros(len(densities), dtype=int)
         # All window_size windows starting before pos include the k-mer, and the window starting with pos itself!
         current_offset[np.arange(np.max([0, pos - window_size + 1]), np.min([len(densities), pos+1]))] = 1
@@ -106,6 +110,13 @@ def calculate_densities_in_windows(window_size, sequence_length, relevant_coords
 def calculate_number_of_windows(window_size, sequence_length):
     return sequence_length - window_size + 1
 
+def read_ignore_list(filename):
+    if filename == "":
+        return []
+    print(f"using ignore list {filename}")
+    with open(filename, "r") as f:
+        return f.readlines()
+
 def main():
     args = create_parser()
     midpoint_offset = args.window_size // 2
@@ -114,19 +125,32 @@ def main():
     repeat_masker_intervals = read_repeat_masker_output(args.repeat_masker)
     coords = [(c, read_coords(c)) for c in args.coordinates]
 
+    ignore_list = [i.strip() for i in read_ignore_list(args.ignore)]
+
     record_index = 0
     current_coords_pointer = [0 for _ in coords]
-    for s in seq:                
-        if calculate_number_of_windows(args.window_size, len(s)) <= 0:
-            print(f"warning: {macle_header} is too short for density calculations with window size {args.window_size}")
-            record_index += 1
-            continue
+    for s in seq:
 
         macle_header = s.getHead().split()[0].strip().replace(">", "")
+
         if len(macle_header) > 32:
             macle_header = macle_header[:32]
+
+        if macle_header in ignore_list:
+            print(f"ignoring {macle_header}...")
+            continue
         
+        length = len(s.body)
+        length_without_ambig = length - (s.body.count("N") + s.body.count("n"))
+        
+        if calculate_number_of_windows(args.window_size, length_without_ambig) <= 0:
+            print(f"warning: {macle_header} is too short for density calculations with window size {args.window_size}")
+            record_index += 1
+            continue      
+        
+        print(f"analyzing {macle_header}...")
         densities = []
+        plot_densities = []
         for i in range(len(coords)):
             path, c = coords[i]
             coords_start = 0
@@ -142,7 +166,10 @@ def main():
                     current_coords_pointer[i] += 1
                 coords_end = current_coords_pointer[i] #end is always exclusive, so this works
             
-            densities.append(calculate_densities_in_windows(args.window_size, len(s), c[coords_start: coords_end]))
+            # Ignore all amb. k-mers to determine "what is interesting", but
+            # include them for plotting
+            densities.append(calculate_densities_in_windows(args.window_size, length_without_ambig, c[coords_start: coords_end], False))
+            plot_densities.append(calculate_densities_in_windows(args.window_size, length, c[coords_start: coords_end], True))
      
         record_index += 1
         is_interesting = False
@@ -152,10 +179,10 @@ def main():
                 break
       
         if is_interesting:
-            max_densities = np.max(densities, axis=0)
-            min_densities = np.min(densities, axis=0)
-            mean_densities = np.mean(densities, axis=0)
-            median_densities = np.median(densities, axis=0)
+            max_densities = np.max(plot_densities, axis=0)
+            min_densities = np.min(plot_densities, axis=0)
+            mean_densities = np.mean(plot_densities, axis=0)
+            median_densities = np.median(plot_densities, axis=0)
 
             fig, ax1 = plt.subplots()
             ax1.set_title(macle_header)
