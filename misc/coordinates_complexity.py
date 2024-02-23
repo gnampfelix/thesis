@@ -15,7 +15,7 @@ def create_parser():
     p.add_argument("-rm", "--repeat-masker", help="The path to the RepeatMasker .out file", required=True)
     p.add_argument("-o", "--output", help="The path where the plots should be saved", required=False, default=".")
     p.add_argument("-mw", "--meta-window-size", help="Number of consecutive windows with high or 0 density to trigger the image save for a sequence", type=int, required=False, default=200)
-    p.add_argument("-i", "--ignore", help="List of header names to ignore in the analysis (e.g. because those sequences contain amb. nucleotides)", required=False, default="")
+    p.add_argument("-i", "--interactive", help="display pyplot interactive plot viewer", required=False, action="store_true")
     return (p.parse_args())
 
 class Coordinates:
@@ -77,10 +77,8 @@ def calculate_masked_nucleotide_ratio(window_size, sequence_length, relevant_rm_
         # We _could_ calculate things here using closed form. However, I am not
         # able to enumerate all possible cases here, so I will just iterate the
         # nucleotides in each window.
-        masked_nucleotides_in_window = np.zeros(len(windows), dtype=int)
         for i in range(start, end + 1):
-            masked_nucleotides_in_window[np.arange(np.max([0, i-window_size]), np.min([i+1, len(masked_nucleotides_in_window)]))] += 1
-        windows += masked_nucleotides_in_window
+            windows[np.arange(np.max([0, i-window_size]), np.min([i+1, len(windows)]))] += 1
     return windows/window_size
 """
 meta_window_size: The _number_ of consecutive windows that must be "interesting".
@@ -94,28 +92,21 @@ def has_interesting_density(densities, meta_window_size):
             return True 
     return False
 
-def calculate_densities_in_windows(window_size, sequence_length, relevant_coords, use_ambig):
+def calculate_densities_in_windows(window_size, lengths, relevant_coords):
+    sequence_length, sequence_length_without_ambig = lengths
+
     densities = np.zeros(calculate_number_of_windows(window_size, sequence_length), dtype=int)
+    densities_without_ambig = np.zeros(calculate_number_of_windows(window_size, sequence_length_without_ambig), dtype=int)
     for c in relevant_coords:
-        if use_ambig:
-            pos = c.sequence_index_in_record_including_ambiguous
-        else:
-            pos = c.sequence_index_in_record
-        current_offset = np.zeros(len(densities), dtype=int)
-        # All window_size windows starting before pos include the k-mer, and the window starting with pos itself!
-        current_offset[np.arange(np.max([0, pos - window_size + 1]), np.min([len(densities), pos+1]))] = 1
-        densities += current_offset
-    return densities
+        pos = c.sequence_index_in_record_including_ambiguous
+        densities[np.arange(np.max([0, pos - window_size + 1]), np.min([len(densities), pos+1]))] += 1
+        
+        pos = c.sequence_index_in_record
+        densities_without_ambig[np.arange(np.max([0, pos - window_size + 1]), np.min([len(densities_without_ambig), pos+1]))] += 1
+    return (densities, densities_without_ambig)
 
 def calculate_number_of_windows(window_size, sequence_length):
     return sequence_length - window_size + 1
-
-def read_ignore_list(filename):
-    if filename == "":
-        return []
-    print(f"using ignore list {filename}")
-    with open(filename, "r") as f:
-        return f.readlines()
 
 def main():
     args = create_parser()
@@ -125,8 +116,6 @@ def main():
     repeat_masker_intervals = read_repeat_masker_output(args.repeat_masker)
     coords = [(c, read_coords(c)) for c in args.coordinates]
 
-    ignore_list = [i.strip() for i in read_ignore_list(args.ignore)]
-
     record_index = 0
     current_coords_pointer = [0 for _ in coords]
     for s in seq:
@@ -135,10 +124,6 @@ def main():
 
         if len(macle_header) > 32:
             macle_header = macle_header[:32]
-
-        if macle_header in ignore_list:
-            print(f"ignoring {macle_header}...")
-            continue
         
         length = len(s.body)
         length_without_ambig = length - (s.body.count("N") + s.body.count("n"))
@@ -168,8 +153,9 @@ def main():
             
             # Ignore all amb. k-mers to determine "what is interesting", but
             # include them for plotting
-            densities.append(calculate_densities_in_windows(args.window_size, length_without_ambig, c[coords_start: coords_end], False))
-            plot_densities.append(calculate_densities_in_windows(args.window_size, length, c[coords_start: coords_end], True))
+            p, d = calculate_densities_in_windows(args.window_size, (length, length_without_ambig), c[coords_start: coords_end])
+            densities.append(d)
+            plot_densities.append(p)
      
         record_index += 1
         is_interesting = False
@@ -225,5 +211,7 @@ def main():
             ax2.legend(handles=all_plots, labels=labels, loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol= 2)
             fig.tight_layout()  # otherwise the right y-label is slightly clipped
             fig.savefig(f"{args.output}/{macle_header}.png")
+            if args.interactive:
+                plt.show()
             plt.close(fig)
 main()
