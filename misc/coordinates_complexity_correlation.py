@@ -39,17 +39,24 @@ def read_coords(filename):
             coords.append(Coordinates(int(parts[0]), int(parts[1]), int(parts[2]), int(parts[3]), int(parts[4]), parts[5].strip()))
     return coords
 
-def read_macle_complexity(filename, midpoint_offset):
+def read_macle_complexity(filename):
     complexities = {}
+    first_line_read = False
+    midpoint_offset = 0
     with open(filename, "r") as f:
         for line in f.readlines():
             parts = line.split()
+            if not first_line_read:
+                if parts[0] == "<file>":
+                    continue
+                midpoint_offset = (int(parts[1]))
+                first_line_read = True
             new_complexity = (int(parts[1]) - midpoint_offset, float(parts[2]))
             if parts[0] in complexities:
                 complexities[parts[0]].append(new_complexity)
             else:
                 complexities[parts[0]] = [new_complexity]
-    return complexities
+    return (complexities, 2*midpoint_offset)
 
 
 def calculate_densities_in_windows(window_size, lengths, relevant_coords):
@@ -70,9 +77,12 @@ def calculate_number_of_windows(window_size, sequence_length):
 
 def main():
     args = create_parser()
-    midpoint_offset = args.window_size // 2
     seq = mf.read(args.sequence)
-    complexities = read_macle_complexity(args.macle, midpoint_offset)
+    complexities, macle_window_size = read_macle_complexity(args.macle)
+    if macle_window_size != args.window_size:
+        print("window size of macle computation does not equal the input window size")
+        return
+    
     coords = [(c, read_coords(c)) for c in args.coordinates]
 
     record_index = 0
@@ -119,12 +129,15 @@ def main():
                 continue
         else:
             for pos, c_m in complexities[macle_header]:
-                # only include windows with non-negative macle complexity 
-                if c_m >= 0:    
+                # only include windows with non-negative macle complexity and
+                # only those macle complexities that can be mapped to a density
+                # window (with smaller macle window sizes, some windows at the
+                # end cannot be mapped)
+                if c_m >= 0 and len(window_density) > pos:    
                     densities.append((window_density[pos], c_m))
 
     plt.scatter([x for x, _ in densities], [y for _, y in densities], s=0.1)
     plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
-    plt.ylabel(f"$C_m$ in window with size $w={args.window_size}$")          
+    plt.ylabel(f"$C_m$ in window with size $w={macle_window_size}$")          
     plt.show()
 main()
