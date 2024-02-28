@@ -1,4 +1,5 @@
 import argparse
+import sys
 import miniFasta as mf
 import matplotlib.pyplot as plt
 import numpy as np
@@ -60,17 +61,13 @@ def read_macle_complexity(filename):
 
 
 def calculate_densities_in_windows(window_size, lengths, relevant_coords):
-    sequence_length, sequence_length_without_ambig = lengths
-
+    sequence_length = lengths
     densities = np.zeros(calculate_number_of_windows(window_size, sequence_length), dtype=int)
-    densities_without_ambig = np.zeros(calculate_number_of_windows(window_size, sequence_length_without_ambig), dtype=int)
     for c in relevant_coords:
         pos = c.sequence_index_in_record_including_ambiguous
         densities[np.arange(np.max([0, pos - window_size + 1]), np.min([len(densities), pos+1]))] += 1
-        
-        pos = c.sequence_index_in_record
-        densities_without_ambig[np.arange(np.max([0, pos - window_size + 1]), np.min([len(densities_without_ambig), pos+1]))] += 1
-    return (densities, densities_without_ambig)
+
+    return densities
 
 def calculate_number_of_windows(window_size, sequence_length):
     return sequence_length - window_size + 1
@@ -80,7 +77,7 @@ def main():
     seq = mf.read(args.sequence)
     complexities, macle_window_size = read_macle_complexity(args.macle)
     if macle_window_size != args.window_size:
-        print("window size of macle computation does not equal the input window size")
+        print("error: window size of macle computation does not equal the input window size")
         return
     
     coords = [(c, read_coords(c)) for c in args.coordinates]
@@ -101,31 +98,34 @@ def main():
         length_without_ambig = length - (s.body.count("N") + s.body.count("n"))
         
         if calculate_number_of_windows(args.window_size, length_without_ambig) <= 0:
-            print(f"warning: {macle_header} is too short for density calculations with window size {args.window_size}")
+            print(f"warning: {macle_header} is too short for density calculations with window size {args.window_size}", file=sys.stderr)
             record_index += 1
             continue      
         
-        print(f"analyzing {macle_header}...")
-        # TODO: handle all coordinate files
-        i = 0
-        path, c = coords[i]
-        coords_start = 0
-        coords_end = 0
-        while current_coords_pointer[i] < len(c) and c[current_coords_pointer[i]].record_index_in_file < record_index:
-            current_coords_pointer[i] += 1
-
-        if current_coords_pointer[i] >= len(c) or c[current_coords_pointer[i]].record_index_in_file > record_index:
-            print(f"warning: no coordinates for {macle_header} found in {path}")
-        else:
-            coords_start = current_coords_pointer[i]
-            while current_coords_pointer[i] < len(c) and c[current_coords_pointer[i]].record_index_in_file == record_index:
+        current_densities = []
+        for i in range(len(coords)):
+            path, c = coords[i]
+            coords_start = 0
+            coords_end = 0
+            while current_coords_pointer[i] < len(c) and c[current_coords_pointer[i]].record_index_in_file < record_index:
                 current_coords_pointer[i] += 1
-            coords_end = current_coords_pointer[i] #end is always exclusive, so this works
-        
+
+            if current_coords_pointer[i] >= len(c) or c[current_coords_pointer[i]].record_index_in_file > record_index:
+                print(f"warning: no coordinates for {macle_header} found in {path}", file=sys.stderr)
+            else:
+                coords_start = current_coords_pointer[i]
+                while current_coords_pointer[i] < len(c) and c[current_coords_pointer[i]].record_index_in_file == record_index:
+                    current_coords_pointer[i] += 1
+                coords_end = current_coords_pointer[i] #end is always exclusive, so this works
+            
+            window_density = calculate_densities_in_windows(args.window_size, length, c[coords_start: coords_end])  
+            current_densities.append(window_density)
+
         record_index += 1
-        window_density, d = calculate_densities_in_windows(args.window_size, (length, length_without_ambig), c[coords_start: coords_end])   
+        median_density = np.median(current_densities, axis=0)
+
         if (macle_header not in complexities):
-                print(f"warning: no complexities for {macle_header} found")
+                print(f"warning: no complexities for {macle_header} found", file=sys.stderr)
                 continue
         else:
             for pos, c_m in complexities[macle_header]:
@@ -133,10 +133,15 @@ def main():
                 # only those macle complexities that can be mapped to a density
                 # window (with smaller macle window sizes, some windows at the
                 # end cannot be mapped)
-                if c_m >= 0 and len(window_density) > pos:    
-                    densities.append((window_density[pos], c_m))
+                if c_m >= 0 and len(median_density) > pos:    
+                    densities.append((median_density[pos], c_m))
 
-    plt.scatter([x for x, _ in densities], [y for _, y in densities], s=0.1)
+    x = [x_i for x_i, _ in densities]
+    y = [y_i for _, y_i in densities]
+    r=np.corrcoef(x, y, rowvar=True)
+    print(f"correlation of window density vs complexity r={r[0][1]}")
+
+    plt.scatter(x, y, s=0.1)
     plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
     plt.ylabel(f"$C_m$ in window with size $w={macle_window_size}$")          
     plt.show()
