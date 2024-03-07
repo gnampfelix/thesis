@@ -12,7 +12,6 @@ def create_parser():
     p.add_argument("-c", "--coordinates", help="The coordinates file to analyze", required=True, nargs="+")
     p.add_argument("-s", "--sequence", help="The underlying sequence file in FASTA format", required=True)
     p.add_argument("-m", "--macle", help="The path to the macle file", required=True)
-    p.add_argument("-rm", "--repeat-masker", help="The path to the RepeatMasker .out file", required=True)
     p.add_argument("-o", "--output", help="The path where the plots should be saved", required=False, default=".")
     p.add_argument("-mw", "--meta-window-size", help="Number of consecutive windows with high or 0 density to trigger the image save for a sequence", type=int, required=False, default=200)
     p.add_argument("-i", "--interactive", help="display pyplot interactive plot viewer", required=False, action="store_true")
@@ -55,31 +54,6 @@ def read_macle_complexity(filename, midpoint_offset):
                 complexities[parts[0]] = [new_complexity]
     return complexities
 
-def read_repeat_masker_output(filename):
-    intervals = {}
-    with open(filename, "r") as f:
-        # skip the first three lines as headers
-        for line in f.readlines()[3:]:
-            parts = line.split()
-            new_interval = (int(parts[5]), int(parts[6]))
-            if parts[4] in intervals:
-                intervals[parts[4]].append(new_interval)
-            else:
-                intervals[parts[4]] = [new_interval]
-    return intervals
-
-"""
-Calculate the number of masked positions in a given window
-"""
-def calculate_masked_nucleotide_ratio(window_size, sequence_length, relevant_rm_data):
-    windows = np.zeros(calculate_number_of_windows(window_size, sequence_length), dtype=int)
-    for start, end in relevant_rm_data:
-        # We _could_ calculate things here using closed form. However, I am not
-        # able to enumerate all possible cases here, so I will just iterate the
-        # nucleotides in each window.
-        for i in range(start, end + 1):
-            windows[np.arange(np.max([0, i-window_size]), np.min([i+1, len(windows)]))] += 1
-    return windows/window_size
 """
 meta_window_size: The _number_ of consecutive windows that must be "interesting".
 assumption: window start positions are offset by 1
@@ -113,7 +87,6 @@ def main():
     midpoint_offset = args.window_size // 2
     seq = mf.read(args.sequence)
     complexities = read_macle_complexity(args.macle, midpoint_offset)
-    repeat_masker_intervals = read_repeat_masker_output(args.repeat_masker)
     coords = [(c, read_coords(c)) for c in args.coordinates]
 
     record_index = 0
@@ -185,11 +158,6 @@ def main():
             else:
                 p4 = ax2.plot([pos for pos, _ in complexities[macle_header]], [c for _, c in complexities[macle_header]], color="forestgreen", label="$C_m$ complexity")
 
-            if macle_header in repeat_masker_intervals:
-                rm_windows = calculate_masked_nucleotide_ratio(args.window_size, len(s), repeat_masker_intervals[macle_header])
-                p5 = ax2.plot(np.arange(0, len(rm_windows)), rm_windows, color="salmon", label="masked nucleotide ratio")
-            
-
             ax1.set_ylabel("#hashes in window")
             ax1.set_xlabel(f"window start position in genome with $w={args.window_size}$")
             
@@ -204,8 +172,6 @@ def main():
             all_plots.append(p3) # this is not a list, append
             if p4:
                 all_plots += p4
-            if p5:
-                all_plots += p5
             labels = [l.get_label() for l in all_plots]            
 
             ax2.legend(handles=all_plots, labels=labels, loc="upper center", bbox_to_anchor=(0.5, -0.2), ncol= 2)
