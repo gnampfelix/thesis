@@ -3,16 +3,19 @@ import sys
 import miniFasta as mf
 import matplotlib.pyplot as plt
 import numpy as np
+import scipy as sc
 
 def create_parser():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
     p.add_argument("-w", "--window-size", help="The window size for density analysis", type=int, default=1000, required=False)
+    p.add_argument("-sc", "--scaling", help="The scaling parameter s that was used to generate the sketch on which the coordinates are based", type=int, default=2000)
     p.add_argument("-c", "--coordinates", help="The coordinates file to analyze", required=True, nargs="+")
     p.add_argument("-s", "--sequence", help="The underlying sequence file in FASTA format", required=True)
     p.add_argument("-m", "--macle", help="The path to the macle file", required=True)
     p.add_argument("-o", "--output", help="The path where the plots should be saved", required=False, default=".")
+    p.add_argument("-dr", "--density-range", help="The range in which the density in a window is considered 'expected' is given by w/s +/- w/s * dr.", required=False, type=float, default=0.95)
     return (p.parse_args())
 
 class Coordinates:
@@ -71,6 +74,48 @@ def calculate_densities_in_windows(window_size, lengths, relevant_coords):
 
 def calculate_number_of_windows(window_size, sequence_length):
     return sequence_length - window_size + 1
+
+""""
+    Create the contingency table. Assume data is a list of (density,
+    complexity). Output 2x2 table: high complexity (> 0.5) vs low complexity (<
+    0.5) and usual density (w/s +/- epsilon) and unusual density (remaining
+    density).
+    Assume all negative complexity windows are already filtered out.
+    
+    w is the window size
+    s is the scaling parameter
+"""
+def create_observations(data, w, s, dr):
+    result = np.zeros(shape=(2, 2), dtype=int)
+    
+    complexity_threshold = 0.5
+    e = w/s
+    expected_range = ((e - e * dr), (e + e * dr))
+
+    for d, c in data:
+        if c < complexity_threshold:
+            if d < expected_range[0] or d > expected_range[1]:
+                #unexpected density, low complexity
+                result[0][0] += 1
+            else:
+                result[0][1] += 1
+        else:
+            if d < expected_range[0] or d > expected_range[1]:
+                result[1][0] += 1
+            else:
+                result[1][1] += 1
+    
+    # row 0 is low complexity, row 1 is high complexity
+    # col 0 is unexpected density, col 1 is expected density
+    return result
+
+def split(data, w, s, dr):
+    e = w/s
+    expected_range = ((e - e * dr), (e + e * dr))
+    unexpeceted_density_complexities = np.array([c for d, c in data if d < expected_range[0] or d > expected_range[1]])
+    expected_density_complexities = np.array([c for d, c in data if not (d < expected_range[0] or d > expected_range[1])])
+    return (unexpeceted_density_complexities, expected_density_complexities)
+
 
 def main():
     args = create_parser()
@@ -139,7 +184,18 @@ def main():
     x = [x_i for x_i, _ in densities]
     y = [y_i for _, y_i in densities]
     r=np.corrcoef(x, y, rowvar=True)
+
+    observations = create_observations(densities, args.window_size, args.scaling, args.density_range)
+    chi2_result = sc.stats.chi2_contingency(observations)
+
+    unexpected_density_complexities, expected_density_complexities = split(densities, args.window_size, args.scaling, args.density_range)
+    mannwhitneyu_results = sc.stats.mannwhitneyu(unexpected_density_complexities, expected_density_complexities)
+    
+    print()
+    print("Statistics")
     print(f"correlation of window density vs complexity r={r[0][1]}")
+    print(f"χ2({chi2_result.dof}, N={np.sum(observations)})={chi2_result.statistic}, p={chi2_result.pvalue}")
+    print(f"Mann-Whitney-Test: z={mannwhitneyu_results.statistic}, p={mannwhitneyu_results.pvalue}")
 
     plt.scatter(x, y, s=0.1)
     plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
