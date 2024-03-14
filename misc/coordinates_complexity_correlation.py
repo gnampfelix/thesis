@@ -14,7 +14,7 @@ def create_parser():
     p.add_argument("-c", "--coordinates", help="The coordinates file to analyze", required=True, nargs="+")
     p.add_argument("-s", "--sequence", help="The underlying sequence file in FASTA format", required=True)
     p.add_argument("-m", "--macle", help="The path to the macle file", required=True)
-    p.add_argument("-o", "--output", help="The path where the plots should be saved", required=False, default=".")
+    p.add_argument("-o", "--overlap", help="Indicates if the window offset should be 1, otherwise <window-size>", action="store_true")
     p.add_argument("-dr", "--density-range", help="The range in which the density in a window is considered 'expected' is given by w/s +/- w/s * dr.", required=False, type=float, default=0.95)
     return (p.parse_args())
 
@@ -63,17 +63,42 @@ def read_macle_complexity(filename):
     return (complexities, 2*midpoint_offset)
 
 
-def calculate_densities_in_windows(window_size, lengths, relevant_coords):
+"""
+    If overlap=True, then the each index in the result array is the start position
+    of the window.
+    If overlap=False, then the start position of the window is index*window_size
+"""
+def calculate_densities_in_windows(window_size, lengths, relevant_coords, overlap):
     sequence_length = lengths
-    densities = np.zeros(calculate_number_of_windows(window_size, sequence_length), dtype=int)
+    densities = np.zeros(calculate_number_of_windows(window_size, sequence_length, overlap), dtype=int)
     for c in relevant_coords:
-        pos = c.sequence_index_in_record_including_ambiguous
-        densities[np.arange(np.max([0, pos - window_size + 1]), np.min([len(densities), pos+1]))] += 1
+        if overlap:
+            pos = c.sequence_index_in_record_including_ambiguous
+            index = np.arange(np.max([0, pos - window_size + 1]), np.min([len(densities), pos+1]))
+        else:
+            index = c.sequence_index_in_record_including_ambiguous // window_size
+            if index >= len(densities):
+                continue
+        densities[index] += 1
 
     return densities
 
-def calculate_number_of_windows(window_size, sequence_length):
-    return sequence_length - window_size + 1
+"""
+    Returns index and the info if the position is identical to the start
+    position of a window.
+"""
+def calculate_index(position, window_size, overlap):
+    if overlap:
+        return (position, True)
+    return (position // window_size, position % window_size == 0)
+
+"""
+    overlap only separates between offset = 1 and offset = window_size  
+"""
+def calculate_number_of_windows(window_size, sequence_length, overlap):
+    if overlap:
+        return sequence_length - window_size + 1
+    return sequence_length // window_size
 
 """"
     Create the contingency table. Assume data is a list of (density,
@@ -142,7 +167,7 @@ def main():
         length = len(s.body)
         length_without_ambig = length - (s.body.count("N") + s.body.count("n"))
         
-        if calculate_number_of_windows(args.window_size, length_without_ambig) <= 0:
+        if calculate_number_of_windows(args.window_size, length_without_ambig, args.overlap) <= 0:
             print(f"warning: {macle_header} is too short for density calculations with window size {args.window_size}", file=sys.stderr)
             record_index += 1
             continue      
@@ -163,12 +188,12 @@ def main():
                     current_coords_pointer[i] += 1
                 coords_end = current_coords_pointer[i] #end is always exclusive, so this works
             
-            window_density = calculate_densities_in_windows(args.window_size, length, c[coords_start: coords_end])  
+            window_density = calculate_densities_in_windows(args.window_size, length, c[coords_start: coords_end], args.overlap)  
             current_densities.append(window_density)
 
         record_index += 1
         median_density = np.median(current_densities, axis=0)
-
+        
         if (macle_header not in complexities):
                 print(f"warning: no complexities for {macle_header} found", file=sys.stderr)
                 continue
@@ -178,8 +203,9 @@ def main():
                 # only those macle complexities that can be mapped to a density
                 # window (with smaller macle window sizes, some windows at the
                 # end cannot be mapped)
-                if c_m >= 0 and len(median_density) > pos:    
-                    densities.append((median_density[pos], c_m))
+                index, is_at_window_start = calculate_index(pos, args.window_size, args.overlap)
+                if c_m >= 0 and len(median_density) > index and is_at_window_start:    
+                    densities.append((median_density[index], c_m))
 
     x = [x_i for x_i, _ in densities]
     y = [y_i for _, y_i in densities]
@@ -193,6 +219,13 @@ def main():
     
     print()
     print("Statistics")
+    print(f"Number of windows analyzed: {len(densities)}")
+    def overlapping_string():
+        if not args.overlap:
+            return "not "
+        return ""
+    
+    print(f"windows are {overlapping_string()}overlapping")
     print(f"correlation of window density vs complexity r={r[0][1]}")
     print(f"χ2({chi2_result.dof}, N={np.sum(observations)})={chi2_result.statistic}, p={chi2_result.pvalue}")
     print(f"Mann-Whitney-Test: z={mannwhitneyu_results.statistic}, p={mannwhitneyu_results.pvalue}")
