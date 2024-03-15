@@ -4,12 +4,25 @@ import miniFasta as mf
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sc
+import gtfparse as gtf
+
+gene_search_terms = [
+    "Crinkler","CRN","PTHR33129","PTHR24362",
+    "Cutinase","PF01083","IPR000675",
+    "Elicitin","IPR002200","IPR036470","PF00964",
+    "NLP","IPR008701","PF05630","Necrosis inducing","NPP1",
+    "Phytotoxin","PF09461","IPR018570","PcF",
+    "Cystatin","IPR000010","IPR027214","IPR018073","IPR020381","IPR002350","Kazal","PF00050","PF07648","Cathepsin","IPR013201","EPIC","protease inhibitor",
+    "RXLR","IPR031825","PF16810",
+    "Avirulence","Effector","Av"
+]
 
 def create_parser():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
     p.add_argument("-w", "--window-size", help="The window size for density analysis", type=int, default=1000, required=False)
+    p.add_argument("-a", "--annotations", help="The path to the annotations file in GTF format", type=str, required=False)
     p.add_argument("-sc", "--scaling", help="The scaling parameter s that was used to generate the sketch on which the coordinates are based", type=int, default=2000)
     p.add_argument("-c", "--coordinates", help="The coordinates file to analyze", required=True, nargs="+")
     p.add_argument("-s", "--sequence", help="The underlying sequence file in FASTA format", required=True)
@@ -62,6 +75,32 @@ def read_macle_complexity(filename):
                 complexities[parts[0]] = [new_complexity]
     return (complexities, 2*midpoint_offset)
 
+def read_gtf(filename, gene_search_terms):
+    df = gtf.read_gtf(filename).to_pandas()
+    relevant_cds = df[
+        (df["product"].str.contains("|".join(gene_search_terms), False)) & 
+        (df["feature"] == "CDS")
+    ]
+    relevant_genes = df[
+        (df["feature"] == "gene") &
+        (df["gene_id"].isin(relevant_cds.gene_id))
+    ]
+    return dict(
+	    relevant_genes.groupby("seqname", observed=True)["start"].agg(list)
+    )
+
+
+def calculate_gene_count_in_windows(window_size, sequence_length, gene_positions, overlap):
+    result = np.zeros(calculate_number_of_windows(window_size, sequence_length, overlap), dtype=int)
+    for p in gene_positions:
+        if overlap:
+            index = np.arange(np.max([0, p - window_size + 1]), np.min([len(result), p+1]))
+        else:
+            index = p // window_size
+            if index >= len(result):
+                continue
+        result[index] += 1
+    return result
 
 """
     If overlap=True, then the each index in the result array is the start position
@@ -110,7 +149,7 @@ def calculate_number_of_windows(window_size, sequence_length, overlap):
     w is the window size
     s is the scaling parameter
 """
-def create_observations(data, w, s, dr):
+def create_hash2comp_observations(data, w, s, dr):
     result = np.zeros(shape=(2, 2), dtype=int)
     
     complexity_threshold = 0.5
@@ -134,12 +173,52 @@ def create_observations(data, w, s, dr):
     # col 0 is unexpected density, col 1 is expected density
     return result
 
+"""
+    Create the contingency table. Assume data is a list of (density, effecotr
+    count). Output 2x2 table: effector absent vs effector present
+    and usual density (w/s +/- epsilon) and unusual density (remaining density).
+    Assume all negative complexity windows are already filtered out.
+    
+    w is the window size 
+    s is the scaling parameter
+"""
+def create_hash2effector_observations(data, w, s, dr):
+    result = np.zeros(shape=(2, 2), dtype=int)
+    
+    expected_density = w/s
+    expected_range = ((expected_density - expected_density * dr), (expected_density + expected_density * dr))
+
+    for d, e in data:
+        if e == 0:
+            if d < expected_range[0] or d > expected_range[1]:
+                #unexpected density, absent effectors
+                result[0][0] += 1
+            else:
+                result[0][1] += 1
+        else:
+            if d < expected_range[0] or d > expected_range[1]:
+                result[1][0] += 1
+            else:
+                result[1][1] += 1
+    
+    # row 0 is absent effectors, row 1 is present effectors
+    # col 0 is unexpected density, col 1 is expected density
+    return result
+
+"""
+    Splits a list of tuples of (hash_density, other_value) into a tuple of lists
+    where the first list is other_value for all hash_density in the unexpected
+    range and the second list is other_value for all hash_density in the
+    expected range.
+    Expected range is calculated by (w/s) +/- (w/s*dr)
+"""
 def split(data, w, s, dr):
     e = w/s
     expected_range = ((e - e * dr), (e + e * dr))
     unexpeceted_density_complexities = np.array([c for d, c in data if d < expected_range[0] or d > expected_range[1]])
     expected_density_complexities = np.array([c for d, c in data if not (d < expected_range[0] or d > expected_range[1])])
     return (unexpeceted_density_complexities, expected_density_complexities)
+
 
 
 def main():
@@ -150,12 +229,17 @@ def main():
         print("error: window size of macle computation does not equal the input window size")
         return
     
+
+    if (args.annotations != None):
+        annotations = read_gtf(args.annotations, gene_search_terms)
+
     coords = [(c, read_coords(c)) for c in args.coordinates]
 
     record_index = 0
     current_coords_pointer = [0 for _ in coords]
 
-    densities = []
+    hash_density_complexity_list = []
+    hash_density_effector_density_list = []
     
     for s in seq:
 
@@ -193,6 +277,12 @@ def main():
 
         record_index += 1
         median_density = np.median(current_densities, axis=0)
+
+        # likely that a sequence does not contain an annotation, so no warning
+        # here
+        effector_densities = []
+        if args.annotations != None and macle_header in annotations:
+            effector_densities = calculate_gene_count_in_windows(args.window_size, length, annotations[macle_header], args.overlap)            
         
         if (macle_header not in complexities):
                 print(f"warning: no complexities for {macle_header} found", file=sys.stderr)
@@ -205,21 +295,24 @@ def main():
                 # end cannot be mapped)
                 index, is_at_window_start = calculate_index(pos, args.window_size, args.overlap)
                 if c_m >= 0 and len(median_density) > index and is_at_window_start:    
-                    densities.append((median_density[index], c_m))
+                    hash_density_complexity_list.append((median_density[index], c_m))
+                    if len(effector_densities) > index:
+                        hash_density_effector_density_list.append((median_density[index], effector_densities[index]))
 
-    x = [x_i for x_i, _ in densities]
-    y = [y_i for _, y_i in densities]
+    # Hash Density to Complexity analysis
+    x = [x_i for x_i, _ in hash_density_complexity_list]
+    y = [y_i for _, y_i in hash_density_complexity_list]
     r=np.corrcoef(x, y, rowvar=True)
 
-    observations = create_observations(densities, args.window_size, args.scaling, args.density_range)
+    observations = create_hash2comp_observations(hash_density_complexity_list, args.window_size, args.scaling, args.density_range)
     chi2_result = sc.stats.chi2_contingency(observations)
 
-    unexpected_density_complexities, expected_density_complexities = split(densities, args.window_size, args.scaling, args.density_range)
+    unexpected_density_complexities, expected_density_complexities = split(hash_density_complexity_list, args.window_size, args.scaling, args.density_range)
     mannwhitneyu_results = sc.stats.mannwhitneyu(unexpected_density_complexities, expected_density_complexities)
     
     print()
-    print("Statistics")
-    print(f"Number of windows analyzed: {len(densities)}")
+    print("Statistics for hash count vs complexity of window")
+    print(f"Number of windows analyzed: {len(hash_density_complexity_list)}")
     def overlapping_string():
         if not args.overlap:
             return "not "
@@ -233,5 +326,35 @@ def main():
     plt.scatter(x, y, s=0.1)
     plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
     plt.ylabel(f"$C_m$ in window with size $w={macle_window_size}$")          
+    plt.show()
+
+    # Hash Density to Effector density analysis
+
+    x = [x_i for x_i, _ in hash_density_effector_density_list]
+    y = [y_i for _, y_i in hash_density_effector_density_list]
+    r=np.corrcoef(x, y, rowvar=True)
+
+    observations = create_hash2effector_observations(hash_density_effector_density_list, args.window_size, args.scaling, args.density_range)
+    chi2_result = sc.stats.chi2_contingency(observations)
+
+    unexpected_density_effectors, expected_density_effectors = split(hash_density_effector_density_list, args.window_size, args.scaling, args.density_range)
+    mannwhitneyu_results = sc.stats.mannwhitneyu(unexpected_density_effectors, expected_density_effectors)
+    
+    print()
+    print("Statistics for hash count vs effector gene count")
+    print(f"Number of windows analyzed: {len(hash_density_complexity_list)}")
+    def overlapping_string():
+        if not args.overlap:
+            return "not "
+        return ""
+    
+    print(f"windows are {overlapping_string()}overlapping")
+    print(f"correlation of window density vs effector count r={r[0][1]}")
+    print(f"χ2({chi2_result.dof}, N={np.sum(observations)})={chi2_result.statistic}, p={chi2_result.pvalue}")
+    print(f"Mann-Whitney-Test: z={mannwhitneyu_results.statistic}, p={mannwhitneyu_results.pvalue}")
+
+    plt.scatter(x, y, s=0.1)
+    plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
+    plt.ylabel(f"effector genes in window with size $w={macle_window_size}$")          
     plt.show()
 main()
