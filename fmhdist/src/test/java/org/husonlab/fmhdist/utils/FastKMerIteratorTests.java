@@ -496,7 +496,7 @@ public class FastKMerIteratorTests {
     @Test
     public void testFullFunctionalit() throws IOException {
         String fasta = ">header1\nACTG\nNACT\n>header2\nANNT\nGCCA\n";
-        FastKMerIterator km = new FastKMerIterator(3, new InputStreamReader(new ByteArrayInputStream(fasta.getBytes())), true);
+        FastKMerIterator km = new FastKMerIterator(3, new ByteArrayInputStream(fasta.getBytes()), true);
         assertThat(km.hasNext(), equalTo(true));
         assertThat(new String(km.next()), equalTo("ACT"));
         assertThat(new String(km.getReverseComplement()), equalTo("AGT"));

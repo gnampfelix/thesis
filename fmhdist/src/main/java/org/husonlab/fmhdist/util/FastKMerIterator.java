@@ -1,7 +1,9 @@
 package org.husonlab.fmhdist.util;
 
+import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 
@@ -58,7 +60,7 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
     private final byte[] complement;
     private final byte[] preloaded_kmer;
     private final byte[] preloaded_complement;
-    private final InputStreamReader reader;
+    private final InputStream reader;
     private final int k;
     
     private byte nextByte;
@@ -88,19 +90,19 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
      * @throws IOException
      */
     public FastKMerIterator(int k, String fileName, boolean skipN) throws IOException {
-        this(k, new InputStreamReader(FileUtils.getInputStreamPossiblyZIPorGZIP(fileName)), skipN);        
+        this(k, new BufferedInputStream(FileUtils.getInputStreamPossiblyZIPorGZIP(fileName)), skipN);        
     }
 
     /**
      * Create a new Iterator to extract the kmers from the given file.
-     * @param k the size of the k-mer
+     * @param k the size of the k-mer input strea
      * @param reader the InputStreamReader to read the sequence from.
      * @param skipN indicate if k-mers containing the letter "N" or "n" should
      * be skipped. This is typically the case if the base is ambiguous for
      * genomic sequences.
      * @throws IOException
      */
-    public FastKMerIterator(int k, InputStreamReader reader, boolean skipN) throws IOException {
+    public FastKMerIterator(int k, InputStream reader, boolean skipN) throws IOException {
         this.k = k;
         this.kmer = new byte[k];
         this.preloaded_kmer = new byte[k];
