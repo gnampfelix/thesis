@@ -19,7 +19,6 @@ import org.husonlab.fmhdist.sketch.GenomeSketch;
 import jloda.fx.util.ProgramExecutorService;
 import jloda.util.FileLineIterator;
 import jloda.util.Single;
-import jloda.util.progress.ProgressSilent;
 
 public class DatabaseCreator {
     private static NcbiApi api = new NcbiApi("https://api.ncbi.nlm.nih.gov/datasets/v2alpha");
@@ -57,8 +56,7 @@ public class DatabaseCreator {
                         // Sometimes, the connection to NCBI breaks - this is a quick workaround
                         while (retries-- > 0) {
                             try {
-                                GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed,
-                                        true, false, new ProgressSilent());
+                                GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed);
                                 sketches.add(sketch);
                                 break;
                             } catch (Exception ex) {

@@ -75,15 +75,13 @@ public class DistanceTests {
         for (String url : downloadUrls) {
             try (FastKMerIterator kmers = new FastKMerIterator(k, url, true)) {
                 sketches.add(FracMinHashSketch.compute(
-                        url,
-                        kmers,
-                        200000000,
-                        true,
-                        s,
-                        42,
-                        true,
-                        false,
-                        new ProgressSilent()));
+                    url,
+                    kmers,
+                    200000000,
+                    true,
+                    s,
+                    42
+                ));
             }
             System.out.println(String.format("%d seconds", (System.currentTimeMillis() - start) / 1000));
         }

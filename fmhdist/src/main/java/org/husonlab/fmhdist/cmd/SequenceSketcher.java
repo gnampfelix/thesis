@@ -18,9 +18,7 @@ import org.husonlab.fmhdist.util.KMerCoordinates;
 import jloda.fx.util.ProgramExecutorService;
 import jloda.thirdparty.HexUtils;
 import jloda.util.FileLineIterator;
-import jloda.util.Pair;
 import jloda.util.Single;
-import jloda.util.progress.ProgressSilent;
 
 public class SequenceSketcher {
 
@@ -59,8 +57,7 @@ public class SequenceSketcher {
                 sequencePaths.forEach(genome -> executor.submit(() -> {
                     if (exception.isNull()) {
                         try {
-                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed, false,
-                                    false, new ProgressSilent());
+                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed);
                             sketches.add(sketch);
                         } catch (Exception ex) {
                             logger.warning(ex.getMessage());

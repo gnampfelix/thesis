@@ -2,21 +2,16 @@ package org.husonlab.fmhdist.sketch;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeSet;
 
 import org.husonlab.fmhdist.util.FastKMerIterator;
 import org.husonlab.fmhdist.util.KMerCoordinates;
 
-import jloda.kmers.bloomfilter.BloomFilter;
 import jloda.seq.SequenceUtils;
 import jloda.thirdparty.MurmurHash;
 import jloda.util.ByteInputBuffer;
 import jloda.util.ByteOutputBuffer;
-import jloda.util.CanceledException;
-import jloda.util.progress.ProgressListener;
 
 public class FracMinHashSketch {
     public static final int MAGIC_INT = 1213415759; // for starters, I've just increased the number
@@ -38,7 +33,6 @@ public class FracMinHashSketch {
     private final int lastKmerIndex;
 
     private long[] hashValues;
-    private byte[][] kmers;
 
     private String name;
     private int seed;
@@ -73,90 +67,54 @@ public class FracMinHashSketch {
         long genomeSize, 
         boolean isNucleotides, 
         int sParam, 
-        int seed, 
-        boolean filterUniqueKMers, 
-        boolean saveKMers, 
-        ProgressListener progress
+        int seed
     ) {
         final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, isNucleotides, seed);
         final TreeSet<Long> sortedSet = new TreeSet<>();
-
-        final Map<Long, byte[]> hash2kmer = saveKMers ? new HashMap<>() : null;
 
         // Irber et al define the hash function as h: o -> [0, H]. However, in
         // the case of our Java Long hashes, the range is h: o -> [-H, H-1].
         // Thus, we need to shift the threshold accordingly.
         final double fraction = Long.MAX_VALUE * (1/(double)sParam) * 2; //the complete range is 2H, thus a fraction is 2Hs
         final double threshold = Long.MIN_VALUE + fraction;
-
-        final BloomFilter bloomFilter;
-        if (filterUniqueKMers) {
-            bloomFilter = new BloomFilter((int)genomeSize, 500000000);
-        } else {
-            bloomFilter = null;
-        }
-
-        try {
-            final byte[] kMer = new byte[kmers.getK()];
-            final byte[] kMerReverseComplement = new byte[kmers.getK()];
-            while (kmers.hasNext()) {
-                byte[] next = kmers.next();
-                System.arraycopy(next, 0, kMer, 0, sketch.kSize);
-                final byte[] kMerUse;
-                if (isNucleotides) {
-                    System.arraycopy(kmers.getReverseComplement(), 0, kMerReverseComplement, 0, kmers.getK());
-                    if (SequenceUtils.compare(kMer, kMerReverseComplement) <= 0) {
-                        kMerUse = kMer;
-                    } else {
-                        kMerUse = kMerReverseComplement;
-                    }
-                } else {
+        
+        final byte[] kMer = new byte[kmers.getK()];
+        final byte[] kMerReverseComplement = new byte[kmers.getK()];
+        while (kmers.hasNext()) {
+            byte[] next = kmers.next();
+            System.arraycopy(next, 0, kMer, 0, sketch.kSize);
+            final byte[] kMerUse;
+            if (isNucleotides) {
+                System.arraycopy(kmers.getReverseComplement(), 0, kMerReverseComplement, 0, kmers.getK());
+                if (SequenceUtils.compare(kMer, kMerReverseComplement) <= 0) {
                     kMerUse = kMer;
+                } else {
+                    kMerUse = kMerReverseComplement;
                 }
-
-                if (bloomFilter != null && bloomFilter.add(kMerUse)) {
-                    continue; // we have just seen this k-mer for the first time
-                }
-
-                final long hash = MurmurHash.hash64(kMerUse, 0, sketch.kSize, seed);
-
-                if (hash < threshold) {
-                    KMerCoordinates coords = kmers.getCoordinates();
-                    coords.setHash(hash);
-                    sortedSet.add(hash);
-                    sketch.coordinates.add(coords);
-                    if (hash2kmer != null) {
-                        hash2kmer.put(hash, kMerUse.clone());
-                    }
-                }
-
-                progress.checkForCancel();
+            } else {
+                kMerUse = kMer;
             }
-            sketch.hashValues = new long[sortedSet.size()];
-            int pos = 0;
-            for (Long value : sortedSet) {
-                sketch.hashValues[pos++] = value;
-            }
-            progress.incrementProgress();
-        } catch (CanceledException ignored) {}
 
-        if (saveKMers && hash2kmer != null) {
-            sketch.kmers = new byte[hash2kmer.size()][];
-            int i = 0;
-            for (byte[] kmer : hash2kmer.values()) {
-                sketch.kmers[i++] = kmer;
+            final long hash = MurmurHash.hash64(kMerUse, 0, sketch.kSize, seed);
+
+            if (hash < threshold) {
+                KMerCoordinates coords = kmers.getCoordinates();
+                coords.setHash(hash);
+                sortedSet.add(hash);
+                sketch.coordinates.add(coords);
             }
         }
-        progress.reportTaskCompleted();
+        sketch.hashValues = new long[sortedSet.size()];
+        int pos = 0;
+        for (Long value : sortedSet) {
+            sketch.hashValues[pos++] = value;
+        }
+        
         return sketch;        
     }
 
     public long[] getValues() {
         return this.hashValues;
-    }
-
-    public byte[][] getKmers() {
-        return this.kmers;
     }
 
     public int getKSize() {

@@ -12,7 +12,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import jloda.thirdparty.MurmurHash;
-import jloda.util.progress.ProgressSilent;
 
 public class FracMinHashSketchTests {
     /**
@@ -21,7 +20,7 @@ public class FracMinHashSketchTests {
     @Test
     public void shouldCalculateFracMinSketch() throws IOException {
         try (FastKMerIterator kmers = new FastKMerIterator(21, "src/test/resources/virus1.fasta", true)) {
-			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, 420, true, 21, 42, true, true, new ProgressSilent());
+			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, 420, true, 21, 42);
             
             // the test file contains the kmer "TTGGATGAAACGCACCCGCTAT". For
             // this, the reverse complement is "ATAGCGGGTGCGTTTCATCCA", which
@@ -59,10 +58,7 @@ public class FracMinHashSketchTests {
                 246895792,
                 true,
                 s,
-                42,
-                true,
-                false,
-                new ProgressSilent()
+                42
             );
             long finalHeap = Runtime.getRuntime().totalMemory();
             long end = System.currentTimeMillis();
@@ -78,7 +74,7 @@ public class FracMinHashSketchTests {
         long initialHeap = Runtime.getRuntime().totalMemory();
         long start = System.currentTimeMillis();
         try (FastKMerIterator kmers = new FastKMerIterator(21, url, true)) {
-			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, 246895792, true, 1000, 42, false, false, new ProgressSilent());
+			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, 246895792, true, 1000, 42);
             long finalHeap = Runtime.getRuntime().totalMemory();
             long end = System.currentTimeMillis();
             System.out.println(String.format("sketch size: %d", sketch.getValues().length));
