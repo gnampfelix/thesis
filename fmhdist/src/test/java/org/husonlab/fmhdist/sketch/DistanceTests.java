@@ -77,7 +77,6 @@ public class DistanceTests {
                 sketches.add(FracMinHashSketch.compute(
                     url,
                     kmers,
-                    200000000,
                     true,
                     s,
                     42

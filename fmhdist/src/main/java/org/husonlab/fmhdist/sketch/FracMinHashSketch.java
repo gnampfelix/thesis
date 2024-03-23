@@ -13,6 +13,14 @@ import jloda.thirdparty.MurmurHash;
 import jloda.util.ByteInputBuffer;
 import jloda.util.ByteOutputBuffer;
 
+
+/**
+ * Class to store the FracMinHash sketch as defined by Irber et al.. The size of
+ * the sketch depends on the scaling parameter s and the underlying sequences.
+ * To get an insight into the composition of the sketch, users may wish to
+ * obtain the set of KMerCoordinates with getCoordinates() which describes the
+ * sketch in more detail (what KMers are included, where are they coming from?)
+ */
 public class FracMinHashSketch {
     public static final int MAGIC_INT = 1213415759; // for starters, I've just increased the number
 
@@ -30,7 +38,6 @@ public class FracMinHashSketch {
 
     private final int sParam;
     private final int kSize;
-    private final int lastKmerIndex;
 
     private long[] hashValues;
 
@@ -42,29 +49,37 @@ public class FracMinHashSketch {
     private FracMinHashSketch(int sParam, int kSize, String name, boolean isNucleotides, int seed) {
         this.sParam = sParam;
         this.kSize = kSize;
-        this.lastKmerIndex = kSize-1;
         this.name = name;
         this.seed = seed;
         this.coordinates = new ArrayList<>();
     }
 
     /**
-     * 
-     * @param name
-     * @param sequences
-     * @param isNucleotides
-     * @param sParam scaling factor, 0 <= 1/s <= 1; 1/s*H defines the threshold
-     * @param kSize
-     * @param seed
-     * @param filterUniqueKMers
-     * @param saveKMers
-     * @param progress
-     * @return
+     * Creates a new FracMinHash sketch of the given k-mers according to Irber
+     * et al.
+     *
+     * For this, the method calculates the canonical k-mer by selecting the
+     * lexicographically smaller of the k-mer and its reverse complement. This
+     * canonical k-mer is then hashed using the MurMur64 hash function and the
+     * given random seed. If the sequence is not a nucleotide sequence, the
+     * original k-mer is automatically the canonical k-mer.
+     *
+     * If the hash is below the threshold that is given by H/s where H is the
+     * maximum output of the HashFunction, then it is part of the sketch.
+     * @param name A name to describe the sketch, this has no impact on the
+     * algorithm
+     * @param kmers An instance of the FastKMerIterator that provides all k-mers
+     * that should be considered for the sketch
+     * @param isNucleotides flag to indicate if the sequence consists of
+     * nucleotides. If so, a canonical k-mer is chosen by selecting the
+     * lexicographically smaller of the k-mer and its reverse complement.
+     * @param sParam The scaling param s of the algorithm
+     * @param seed A random seed that should be used for hashing
+     * @return A new FracMinHashSketch
      */
     public static FracMinHashSketch compute(
         String name, 
         FastKMerIterator kmers,
-        long genomeSize, 
         boolean isNucleotides, 
         int sParam, 
         int seed
@@ -113,28 +128,51 @@ public class FracMinHashSketch {
         return sketch;        
     }
 
+    /**
+     * Returns all hash values that are part of the sketch.
+     * @return
+     */
     public long[] getValues() {
         return this.hashValues;
     }
 
+    /**
+     * Returns the k-mers size k that the FastKmerIterator used for the k-mer
+     * decomposition.
+     * @return
+     */
     public int getKSize() {
         return this.kSize;
     }
 
+    /**
+     * Returns the scaling param s of the algorithm.
+     * @return
+     */
     public int getSParam() {
         return this.sParam;
     }
 
+    /**
+     * Returns the random seed that was used for hashing.
+     * @return
+     */
     public int getSeed() {
         return this.seed;
     }
 
-    public void fastReverseComplement(byte[]kmer, byte[]result) {
-        for (int i = 0; i < this.kSize; i++) {
-            result[i] = complementTable[kmer[this.lastKmerIndex - i]];
-        }
-    }
-
+    /**
+     * Converts the sketch into a byte sequence. All values are encoded in
+     * little endian in the following order:
+     * 
+     * 1. Magic Number (4B)
+     * 2. S Param (4B)
+     * 3. K Size (4B)
+     * 4. Random seed (4B)
+     * 5. Sketch size (4B)
+     * 6. Hash values (sketch size x 8B)
+     * @return
+     */
     public byte[] getBytes() {
         ByteOutputBuffer bytes = new ByteOutputBuffer();
         bytes.writeIntLittleEndian(MAGIC_INT);
@@ -148,14 +186,30 @@ public class FracMinHashSketch {
         return bytes.copyBytes();
     }
 
+    /**
+     * Returns the descriptive name of the sketch that was given during
+     * computation.
+     * @return
+     */
     public String getName() {
         return this.name;
     }
 
+    /**
+     * Sets a descriptive name for the sketch.
+     * @param name
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Parses a byte sequence as a FracMinHashSketch. The byte sequence is
+     * described in the getBytes() documentation.
+     * @param bytes
+     * @return
+     * @throws IOException
+     */
     public static FracMinHashSketch parse(byte[] bytes) throws IOException {
         final ByteInputBuffer buffer = new ByteInputBuffer(bytes);
 
@@ -174,6 +228,12 @@ public class FracMinHashSketch {
         return sketch;
     }
 
+    /**
+     * Returns the coordinates of a freshly computed sketch. This is not
+     * applicable if the sketch was reconstructed using the parse() method, i.e.
+     * the returned list will be empty.
+     * @return
+     */
     public List<KMerCoordinates> getCoordinates() {
         return new ArrayList<>(this.coordinates);
     }

@@ -15,7 +15,7 @@ public class GenomeSketch {
         logger.fine("Calculating sketch for " + genome.getAccession());
         final GenomeSketch result = new GenomeSketch(genome);
         try (FastKMerIterator kmers = new FastKMerIterator(kSize, genome.getFastaUrl(), true)) {
-            result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, genome.getGenomeSize(), true, sParam, seed);
+            result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, true, sParam, seed);
         }
         return result;
     }

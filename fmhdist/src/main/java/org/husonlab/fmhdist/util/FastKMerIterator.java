@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Iterator;
 
 import jloda.util.FileUtils;
@@ -66,6 +65,12 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
     private byte nextByte;
     private boolean hasPreloaded;
 
+    // Indices to keep track of the origin of the _current_ k-mer. The values
+    // will always be copied from the preloaded variants (see below). The values
+    // will be fed into the KMerCoordinates if the corresponding method
+    // getCoordinates() is called. The separation enables to prepare the next
+    // k-mer during a call to "next()" while still be able to load details of
+    // the current kmer that is returned by the same call to next().
     private int recordIndexInFile = 0;
     private int skippedKmersInFile = 0;
     private int skippedKmersInRecord = 0;
@@ -73,6 +78,9 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
     private int sequenceIndexInFile = 0;
     private int byteCounter = 0;
 
+    // Indices to keep track of the origin of the _next_ k-mer. Those values
+    // will actually be incremented as the stream is processed.Those will be
+    // written to the current indices during the next call to next().
     private int preloadedRecordIndexInFile = 0;
     private int preloadedSkippedKmersInFile = 0;
     private int preloadedSkippedKmersInRecord = 0;
@@ -119,6 +127,10 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         this.preload();
     }
 
+    /**
+     * Returns the k Parameter of the Iterator.
+     * @return
+     */
     public int getK() {
         return this.k;
     }
@@ -133,14 +145,29 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         return this.nextByte != -1;
     }
 
+    /**
+     * Returns true if the byte at this.nextByte is a character that is not
+     * known to be a Non-Sequence character.
+     * @return
+     */
     private boolean isSequenceChar() {
         return !isLineContainingSkippableChar[this.nextByte];
     }
 
+    /**
+     * Returns true if the byte at this.nextByte is ">" which indicates the
+     * start of a new header (but only if this is also preceeded by "\n")
+     * @return
+     */
     private boolean isHeaderStart() {
         return this.nextByte == '>';
     }
 
+    /**
+     * Proceeds to read bytes from the input stream until the start of the new
+     * line is reached. Only the preloadedByteCounter is incremented here.
+     * @throws IOException
+     */
     private void skipToNextLine() throws IOException {
         while (this.hasNext() && this.nextByte != '\n') {
             this.nextByte = (byte) this.reader.read();
@@ -151,6 +178,16 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
             this.preloadedByteCounter++;
     }
 
+    /**
+     * Whenever a new seqeunce header is reached in a FASTA file, we perform
+     * three steps:
+     * 1. Incremend the record counter (i.e. we are in the next sequence in the
+     *    file)
+     * 2. Reset all Record-related counter to 0 (i.e. the next k-mer is the
+     *    first in the record)
+     * 3. Skip to the next line.
+     * @throws IOException
+     */
     private void handleSequenceStart() throws IOException {
         this.preloadedRecordIndexInFile++;
         this.preloadedSequenceIndexInRecord = 0;
@@ -202,6 +239,9 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         }
     }
 
+    /**
+     * This updates all indices such that they equal the preloaded ones.
+     */
     private void copyIndices() {
         this.recordIndexInFile = this.preloadedRecordIndexInFile;
         this.sequenceIndexInFile = this.preloadedSequenceIndexInFile;
@@ -211,6 +251,14 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
         this.byteCounter = this.preloadedByteCounter;
     }
 
+    /**
+     * Returns the next k-mer and prepares a new one, if applicable. Only call
+     * this if "hasNext()" returns true.
+     *
+     * After next() is called, calls to getReverseComplement() and
+     * getCoordinates() will return objects that belong to the k-mer that next()
+     * returned.
+     */
     @Override
     public byte[] next() {
         // First, finalize current k-mer
@@ -280,7 +328,11 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
 
     /**
      * Returns the reverse complement to the kmer returned by next(). Only
-     * correct if called after next()!
+     * correct if called after next()! Using this is generally cheaper than
+     * calculating the reverse complement by yourself as the reverse complement
+     * is updated byte by byte (i.e. a new byte is read with next(), thus a
+     * single byte of the previous reverse complement needs to be updated) to
+     * avoid duplicate handling of the same byres.
      * @return
      */
     public byte[] getReverseComplement() {
