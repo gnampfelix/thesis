@@ -79,13 +79,15 @@ public class SequenceSketcher {
                 writer.write(HexUtils.encodeHexString(sketch.getSketch().getBytes()));
                 writer.close();
 
-                writer = new FileWriter(Paths.get(output, String.format("%s.sketch.coordinates", sketch.getGenome().getOrganismName())).toFile());
-                List<KMerCoordinates> coordinates = sketch.getSketch().getCoordinates();
-                for (KMerCoordinates coord : coordinates) {
-                    writer.write(coord.toString());
-                    writer.write("\n");
+                if (saveCoordinates) {
+                    writer = new FileWriter(Paths.get(output, String.format("%s.sketch.coordinates", sketch.getGenome().getOrganismName())).toFile());
+                    List<KMerCoordinates> coordinates = sketch.getSketch().getCoordinates();
+                    for (KMerCoordinates coord : coordinates) {
+                        writer.write(coord.toString());
+                        writer.write("\n");
+                    }
+                    writer.close();
                 }
-                writer.close();
             } 
         } catch (Exception e) {
             System.out.println("well, f****");

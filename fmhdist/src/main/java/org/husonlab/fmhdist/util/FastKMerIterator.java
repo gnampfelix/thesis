@@ -173,9 +173,10 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
             this.nextByte = (byte) this.reader.read();
             this.preloadedByteCounter++;
         }
-        if (this.hasNext())
+        if (this.hasNext()) {
             this.nextByte = (byte) this.reader.read();
             this.preloadedByteCounter++;
+        }
     }
 
     /**
@@ -289,7 +290,7 @@ public class FastKMerIterator implements Closeable, Iterator<byte[]> {
             // 2. The next character is a ambiguous sequence character
             // 3. The next character is the start of a new header
             // 4. The next character is a \n
-            while(hasNext() & forceNextIteration){
+            while(hasNext() && forceNextIteration){
                 forceNextIteration = false;
                 if (isSequenceChar()) {
                     if (isAmbiguousChar[this.nextByte]){
