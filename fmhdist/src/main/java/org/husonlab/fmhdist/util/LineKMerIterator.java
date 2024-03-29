@@ -58,6 +58,29 @@ public class LineKMerIterator implements KMerIterator {
     private boolean isPreloaded;
     private BufferedReader reader;
 
+        // Indices to keep track of the origin of the _current_ k-mer. The values
+    // will always be copied from the preloaded variants (see below). The values
+    // will be fed into the KMerCoordinates if the corresponding method
+    // getCoordinates() is called. The separation enables to prepare the next
+    // k-mer during a call to "next()" while still be able to load details of
+    // the current kmer that is returned by the same call to next().
+    private int recordIndexInFile = 0;
+    private int skippedKmersInFile = 0;
+    private int skippedKmersInRecord = 0;
+    private int sequenceIndexInRecord = 0;
+    private int sequenceIndexInFile = 0;
+    private int byteCounter = 0;
+
+    // Indices to keep track of the origin of the _next_ k-mer. Those values
+    // will actually be incremented as the stream is processed.Those will be
+    // written to the current indices during the next call to next().
+    private int preloadedRecordIndexInFile = -1;
+    private int preloadedSkippedKmersInFile = 0;
+    private int preloadedSkippedKmersInRecord = 0;
+    private int preloadedSequenceIndexInRecord = 0;
+    private int preloadedSequenceIndexInFile = 0;
+    private int preloadedByteCounter = 0;
+
     public LineKMerIterator(int k, BufferedReader reader, boolean skipN) throws IOException {
         this.k = k;
         this.kmer = new byte[k];
@@ -89,6 +112,24 @@ public class LineKMerIterator implements KMerIterator {
        this(k, new BufferedReader(new InputStreamReader(FileUtils.getInputStreamPossiblyZIPorGZIP(fileName))), skipN);
     }
 
+    private void handleSequenceStart() {
+        this.preloadedRecordIndexInFile++;
+        this.preloadedSequenceIndexInRecord = 0;
+        this.preloadedSkippedKmersInRecord = 0;
+    }
+
+    /**
+     * This updates all indices such that they equal the preloaded ones.
+     */
+    private void copyIndices() {
+        this.recordIndexInFile = this.preloadedRecordIndexInFile;
+        this.sequenceIndexInFile = this.preloadedSequenceIndexInFile;
+        this.sequenceIndexInRecord = this.preloadedSequenceIndexInRecord;
+        this.skippedKmersInFile = this.preloadedSkippedKmersInFile;
+        this.skippedKmersInRecord = this.preloadedSkippedKmersInRecord;
+        this.byteCounter = this.preloadedByteCounter;
+    }
+
     private boolean isSequenceChar() {
         return !isLineContainingSkippableChar[this.currentLine[linePointer]];
     }
@@ -97,6 +138,10 @@ public class LineKMerIterator implements KMerIterator {
         if (this.isEOF) {
             return;
         }
+
+        // We might have skipped some bytes (length - currentIndex - 1)
+        // we definitely skipped the "\n", so don't subtract 1
+        this.preloadedByteCounter += this.currentLine.length - this.linePointer;
         this.currentLine = this.nextLine;
         this.linePointer = 0;
         String next = reader.readLine();
@@ -108,6 +153,7 @@ public class LineKMerIterator implements KMerIterator {
     }
 
     private void moveCursor() throws IOException {
+        this.preloadedByteCounter++;
         if (++this.linePointer >= this.currentLine.length) {
             this.feedLine();
         }
@@ -118,6 +164,8 @@ public class LineKMerIterator implements KMerIterator {
         while(this.hasNext() && i < this.k - 1) {
             if(isSequenceChar()) {
                 if (isAmbiguousChar[this.currentLine[linePointer]]) {
+                    this.preloadedSkippedKmersInFile += i + 1;
+                    this.preloadedSkippedKmersInRecord += i + 1;
                     i = 0;
                     this.moveCursor();
                     continue;
@@ -128,6 +176,7 @@ public class LineKMerIterator implements KMerIterator {
                 i++;
             } else {
                 // no need to check header start explicitely - if NOT a valid sequence character, will skip the current line.
+                this.handleSequenceStart();
                 this.feedLine();
                 i = 0;
             }
@@ -152,14 +201,21 @@ public class LineKMerIterator implements KMerIterator {
         }
         this.kmer[this.k-1] = toUpperTable[this.currentLine[linePointer]];
         this.kmerReverseComplement[0] = toUpperTable[complementTable[this.currentLine[linePointer]]];
+        this.copyIndices();
 
         try {
+            this.preloadedSequenceIndexInFile++;
+            this.preloadedSequenceIndexInRecord++;
             this.moveCursor();
             if (this.hasNext()) {
                 if (this.isSequenceChar() && isAmbiguousChar[this.currentLine[this.linePointer]]) {
+                    this.preloadedSkippedKmersInFile += this.k;
+                    this.preloadedSkippedKmersInRecord += this.k;
                     this.moveCursor();
                     this.preload();
                 } else if (!this.isSequenceChar()) {
+                    // This means that we are in a header line
+                    this.handleSequenceStart();
                     this.feedLine();
                     this.preload();
                 }
@@ -188,13 +244,12 @@ public class LineKMerIterator implements KMerIterator {
 
     @Override
     public KMerCoordinates getCoordinates() {
-        //TODO: actually count the values
         return new KMerCoordinates(
-            0,
-            0,
-            0,
-            0,
-            0,
+            this.recordIndexInFile, 
+            this.sequenceIndexInFile, 
+            this.sequenceIndexInRecord,
+            this.sequenceIndexInFile + this.skippedKmersInFile,
+            this.sequenceIndexInRecord + this.skippedKmersInRecord, 
             this.kmer,
             0
         );

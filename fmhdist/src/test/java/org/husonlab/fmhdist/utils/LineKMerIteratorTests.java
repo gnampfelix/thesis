@@ -471,9 +471,7 @@ public class LineKMerIteratorTests {
         }
     }
 
-    //TODO: implement!
     @Test
-    @Ignore
     public void checkCoordinates() throws IOException {
         try(KMerIterator km = new LineKMerIterator(8, "src/test/resources/fastaWithMultipleAmbSeq.fasta", true)) {
             int i = 0;
@@ -500,7 +498,6 @@ public class LineKMerIteratorTests {
     // In this test, I will explicitey and without any loops test the functionality of the reader. 
     // The reader must work soundly!
     @Test
-    @Ignore
     public void testFullFunctionalit() throws IOException {
         String fasta = ">header1\nACTG\nNACT\n>header2\nANNT\nGCCA\n";
         KMerIterator km = new LineKMerIterator(3, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fasta.getBytes()))), true);

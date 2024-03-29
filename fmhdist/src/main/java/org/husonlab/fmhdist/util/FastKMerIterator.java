@@ -351,6 +351,6 @@ public class FastKMerIterator implements KMerIterator {
             this.sequenceIndexInFile + this.skippedKmersInFile,
             this.sequenceIndexInRecord + this.skippedKmersInRecord, 
             this.kmer,
-            this.byteCounter);
+            0);
     }    
 }
