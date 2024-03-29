@@ -1,10 +1,8 @@
 package org.husonlab.fmhdist.util;
 
 import java.io.BufferedInputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
 
 import jloda.util.FileUtils;
 
@@ -18,7 +16,7 @@ import jloda.util.FileUtils;
  * With each new record in the file, a new k-mer is created, i.e. this iterator
  * won't return k-mers spanning multiple records.
  */
-public class FastKMerIterator implements Closeable, Iterator<byte[]> {
+public class FastKMerIterator implements KMerIterator {
     private static boolean[] isLineContainingSkippableChar = new boolean[128];
     static {
         isLineContainingSkippableChar['\t'] = true;

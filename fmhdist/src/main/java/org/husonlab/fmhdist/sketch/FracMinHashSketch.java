@@ -7,6 +7,7 @@ import java.util.TreeSet;
 
 import org.husonlab.fmhdist.util.FastKMerIterator;
 import org.husonlab.fmhdist.util.KMerCoordinates;
+import org.husonlab.fmhdist.util.KMerIterator;
 
 import jloda.seq.SequenceUtils;
 import jloda.thirdparty.MurmurHash;
@@ -79,7 +80,7 @@ public class FracMinHashSketch {
      */
     public static FracMinHashSketch compute(
         String name, 
-        FastKMerIterator kmers,
+        KMerIterator kmers,
         boolean isNucleotides, 
         int sParam, 
         int seed

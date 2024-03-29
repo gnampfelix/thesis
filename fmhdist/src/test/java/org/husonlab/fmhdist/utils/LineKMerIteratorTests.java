@@ -3,25 +3,31 @@ package org.husonlab.fmhdist.utils;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.husonlab.fmhdist.util.KMerIterator;
+import org.husonlab.fmhdist.util.LineKMerIterator;
+import org.junit.Ignore;
 import org.junit.Test;
 
-import jloda.util.FileLineBytesIterator;
 
-public class KMerIteratorTests {
+public class LineKMerIteratorTests {
     @Test
     public void shouldIterateKmers() throws IOException {
-        try(FileLineBytesIterator it = new FileLineBytesIterator("src/test/resources/fastaWith1Seq.fasta")) {
-            KMerIterator km = new KMerIterator(it, 21);
+        try(KMerIterator km = new LineKMerIterator(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
+
             List<String>kmers = new ArrayList<>();
             while(km.hasNext()) {
-                kmers.add(new String(km.next()));
+                byte[] next = km.next();
+                kmers.add(new String(next));
             }
             assertThat(kmers, contains("ACTCGTATGAACTTTGACTGG",
             "CTCGTATGAACTTTGACTGGT",
@@ -428,8 +434,7 @@ public class KMerIteratorTests {
 
     @Test
     public void shouldIterateKmersInMultipleSequences() throws IOException {
-        try(FileLineBytesIterator it = new FileLineBytesIterator("src/test/resources/fastaWith2Seq.fasta")) {
-            KMerIterator km = new KMerIterator(it, 21);
+        try(KMerIterator km = new LineKMerIterator(21, "src/test/resources/fastaWith2Seq.fasta", true)) {
             List<String>kmers = new ArrayList<>();
             while(km.hasNext()) {
                 kmers.add(new String(km.next()));
@@ -437,4 +442,125 @@ public class KMerIteratorTests {
             assertThat(kmers, hasSize(800)); //both sequences are iterated independently, there is no k-mer spanning seq1 and seq2
         }
     }
+
+    @Test
+    public void shouldNotCreateKmers() throws IOException {
+        try(KMerIterator km = new LineKMerIterator(21, "src/test/resources/fastaWithTwoShortSeq.fasta", true)) {
+            assertThat(km.hasNext(), equalTo(false));
+        }
+    }
+
+    @Test
+    public void checkComplement() throws IOException {
+        try(KMerIterator km = new LineKMerIterator(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
+            assertThat(km.hasNext(), equalTo(true));
+            assertThat(new String(km.next()), equalTo("ACTCGTATGAACTTTGACTGG"));
+            assertThat(new String(km.getReverseComplement()), equalTo("CCAGTCAAAGTTCATACGAGT"));
+        }
+    }
+
+    @Test
+    public void checkDiscardAmbiguousChars() throws IOException {
+        try(KMerIterator km = new LineKMerIterator(21, "src/test/resources/fastaWithAmbSeq.fasta", true)) {
+            int i = 0;
+            while(km.hasNext()) {
+                km.next();
+                i++;
+            }
+            assertThat(i, equalTo((70*6) - 21 + 1 - 21));
+        }
+    }
+
+    //TODO: implement!
+    @Test
+    @Ignore
+    public void checkCoordinates() throws IOException {
+        try(KMerIterator km = new LineKMerIterator(8, "src/test/resources/fastaWithMultipleAmbSeq.fasta", true)) {
+            int i = 0;
+            int[] ambigPos = new int[]{0, 1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+            while(km.hasNext()) {
+                km.next();
+                var c = km.getCoordinates();
+                if (i < 13) {
+                    assertThat(c.getRecordIndexInFile(), equalTo(0));
+                    assertThat(c.getSequenceIndexInRecord(), equalTo(i));
+                    assertThat(c.getSequenceIndexInRecordIncludingAmbiguous(), equalTo(ambigPos[i]));
+                    
+                } else {
+                    assertThat(c.getRecordIndexInFile(), equalTo(1));
+                    assertThat(c.getSequenceIndexInRecord(), equalTo(i-13));
+                    assertThat(c.getSequenceIndexInRecordIncludingAmbiguous(), equalTo(ambigPos[i-13]));
+                }                
+                i++;
+            }
+            
+        }
+    }
+
+    // In this test, I will explicitey and without any loops test the functionality of the reader. 
+    // The reader must work soundly!
+    @Test
+    @Ignore
+    public void testFullFunctionalit() throws IOException {
+        String fasta = ">header1\nACTG\nNACT\n>header2\nANNT\nGCCA\n";
+        KMerIterator km = new LineKMerIterator(3, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fasta.getBytes()))), true);
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("ACT"));
+        assertThat(new String(km.getReverseComplement()), equalTo("AGT"));
+        assertThat(km.getCoordinates().getRecordIndexInFile(), equalTo(0));
+        assertThat(km.getCoordinates().getSequenceIndexInFile(), equalTo(0));
+        assertThat(km.getCoordinates().getSequenceIndexInRecord(), equalTo(0));
+        assertThat(km.getCoordinates().getSequenceIndexInFileIncludingAmbiguous(), equalTo(0));
+        assertThat(km.getCoordinates().getSequenceIndexInRecordIncludingAmbiguous(), equalTo(0));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("CTG"));
+        assertThat(new String(km.getReverseComplement()), equalTo("CAG"));
+        assertThat(km.getCoordinates().getRecordIndexInFile(), equalTo(0));
+        assertThat(km.getCoordinates().getSequenceIndexInFile(), equalTo(1));
+        assertThat(km.getCoordinates().getSequenceIndexInRecord(), equalTo(1));
+        assertThat(km.getCoordinates().getSequenceIndexInFileIncludingAmbiguous(), equalTo(1));
+        assertThat(km.getCoordinates().getSequenceIndexInRecordIncludingAmbiguous(), equalTo(1));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("ACT"));
+        assertThat(new String(km.getReverseComplement()), equalTo("AGT"));
+        assertThat(km.getCoordinates().getRecordIndexInFile(), equalTo(0));
+        assertThat(km.getCoordinates().getSequenceIndexInFile(), equalTo(2));
+        assertThat(km.getCoordinates().getSequenceIndexInRecord(), equalTo(2));
+        assertThat(km.getCoordinates().getSequenceIndexInFileIncludingAmbiguous(), equalTo(5));
+        assertThat(km.getCoordinates().getSequenceIndexInRecordIncludingAmbiguous(), equalTo(5));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("TGC"));
+        assertThat(new String(km.getReverseComplement()), equalTo("GCA"));
+        assertThat(km.getCoordinates().getRecordIndexInFile(), equalTo(1));
+        assertThat(km.getCoordinates().getSequenceIndexInFile(), equalTo(3));
+        assertThat(km.getCoordinates().getSequenceIndexInRecord(), equalTo(0));
+        assertThat(km.getCoordinates().getSequenceIndexInFileIncludingAmbiguous(), equalTo(9));
+        assertThat(km.getCoordinates().getSequenceIndexInRecordIncludingAmbiguous(), equalTo(3));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("GCC"));
+        assertThat(new String(km.getReverseComplement()), equalTo("GGC"));
+        assertThat(km.getCoordinates().getRecordIndexInFile(), equalTo(1));
+        assertThat(km.getCoordinates().getSequenceIndexInFile(), equalTo(4));
+        assertThat(km.getCoordinates().getSequenceIndexInRecord(), equalTo(1));
+        assertThat(km.getCoordinates().getSequenceIndexInFileIncludingAmbiguous(), equalTo(10));
+        assertThat(km.getCoordinates().getSequenceIndexInRecordIncludingAmbiguous(), equalTo(4));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("CCA"));
+        assertThat(new String(km.getReverseComplement()), equalTo("TGG"));
+        assertThat(km.getCoordinates().getRecordIndexInFile(), equalTo(1));
+        assertThat(km.getCoordinates().getSequenceIndexInFile(), equalTo(5));
+        assertThat(km.getCoordinates().getSequenceIndexInRecord(), equalTo(2));
+        assertThat(km.getCoordinates().getSequenceIndexInFileIncludingAmbiguous(), equalTo(11));
+        assertThat(km.getCoordinates().getSequenceIndexInRecordIncludingAmbiguous(), equalTo(5));
+
+        km.close();
+    }
+
+
+
 }
