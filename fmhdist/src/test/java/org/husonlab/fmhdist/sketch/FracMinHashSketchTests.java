@@ -20,7 +20,7 @@ public class FracMinHashSketchTests {
     @Test
     public void shouldCalculateFracMinSketch() throws IOException {
         try (FastKMerIterator kmers = new FastKMerIterator(21, "src/test/resources/virus1.fasta", true)) {
-			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, true, 21, 42);
+			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, true, 10, 42);
             
             // the test file contains the kmer "TTGGATGAAACGCACCCGCTAT". For
             // this, the reverse complement is "ATAGCGGGTGCGTTTCATCCA", which

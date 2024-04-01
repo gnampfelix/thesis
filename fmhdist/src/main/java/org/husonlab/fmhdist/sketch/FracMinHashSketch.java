@@ -94,21 +94,18 @@ public class FracMinHashSketch {
         final double fraction = Long.MAX_VALUE * (1/(double)sParam) * 2; //the complete range is 2H, thus a fraction is 2Hs
         final double threshold = Long.MIN_VALUE + fraction;
         
-        final byte[] kMer = new byte[kmers.getK()];
-        final byte[] kMerReverseComplement = new byte[kmers.getK()];
+        // no need to reserve memory for this - this all ensured in the coordinates.
+        byte[] kMerUse;
         while (kmers.hasNext()) {
             byte[] next = kmers.next();
-            System.arraycopy(next, 0, kMer, 0, sketch.kSize);
-            final byte[] kMerUse;
             if (isNucleotides) {
-                System.arraycopy(kmers.getReverseComplement(), 0, kMerReverseComplement, 0, kmers.getK());
-                if (SequenceUtils.compare(kMer, kMerReverseComplement) <= 0) {
-                    kMerUse = kMer;
+                if (SequenceUtils.compare(next, kmers.getReverseComplement()) > 0) {
+                    kMerUse = kmers.getReverseComplement();
                 } else {
-                    kMerUse = kMerReverseComplement;
+                    kMerUse = next;
                 }
             } else {
-                kMerUse = kMer;
+                kMerUse = next;
             }
 
             final long hash = MurmurHash.hash64(kMerUse, 0, sketch.kSize, seed);
