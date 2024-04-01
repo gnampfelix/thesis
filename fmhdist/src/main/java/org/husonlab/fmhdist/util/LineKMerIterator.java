@@ -69,7 +69,6 @@ public class LineKMerIterator implements KMerIterator {
     private int skippedKmersInRecord = 0;
     private int sequenceIndexInRecord = 0;
     private int sequenceIndexInFile = 0;
-    private int byteCounter = 0;
 
     // Indices to keep track of the origin of the _next_ k-mer. Those values
     // will actually be incremented as the stream is processed.Those will be
@@ -79,7 +78,6 @@ public class LineKMerIterator implements KMerIterator {
     private int preloadedSkippedKmersInRecord = 0;
     private int preloadedSequenceIndexInRecord = 0;
     private int preloadedSequenceIndexInFile = 0;
-    private int preloadedByteCounter = 0;
 
     public LineKMerIterator(int k, BufferedReader reader, boolean skipN) throws IOException {
         this.k = k;
@@ -127,7 +125,6 @@ public class LineKMerIterator implements KMerIterator {
         this.sequenceIndexInRecord = this.preloadedSequenceIndexInRecord;
         this.skippedKmersInFile = this.preloadedSkippedKmersInFile;
         this.skippedKmersInRecord = this.preloadedSkippedKmersInRecord;
-        this.byteCounter = this.preloadedByteCounter;
     }
 
     private boolean isSequenceChar() {
@@ -141,7 +138,6 @@ public class LineKMerIterator implements KMerIterator {
 
         // We might have skipped some bytes (length - currentIndex - 1)
         // we definitely skipped the "\n", so don't subtract 1
-        this.preloadedByteCounter += this.currentLine.length - this.linePointer;
         this.currentLine = this.nextLine;
         this.linePointer = 0;
         String next = reader.readLine();
@@ -153,35 +149,53 @@ public class LineKMerIterator implements KMerIterator {
     }
 
     private void moveCursor() throws IOException {
-        this.preloadedByteCounter++;
         if (++this.linePointer >= this.currentLine.length) {
             this.feedLine();
         }
     }
 
     private void preload() throws IOException{
+        this.isPreloaded = true;
         int i = 0;
-        while(this.hasNext() && i < this.k - 1) {
-            if(isSequenceChar()) {
-                if (isAmbiguousChar[this.currentLine[linePointer]]) {
-                    this.preloadedSkippedKmersInFile += i + 1;
-                    this.preloadedSkippedKmersInRecord += i + 1;
-                    i = 0;
+        while(this.hasNext()) {
+            while(i < this.k - 1 && this.hasNext()) {
+                if(isSequenceChar()) {
+                    if (isAmbiguousChar[this.currentLine[linePointer]]) {
+                        this.preloadedSkippedKmersInFile += i + 1;
+                        this.preloadedSkippedKmersInRecord += i + 1;
+                        i = 0;
+                        this.moveCursor();
+                        continue;
+                    }
+                    this.preloadedKmer[i] = toUpperTable[this.currentLine[linePointer]];
+                    this.preloadedKmerReverseComplement[this.k - i - 1] = toUpperTable[complementTable[this.currentLine[linePointer]]];
                     this.moveCursor();
-                    continue;
+                    i++;
+                } else {
+                    // no need to check header start explicitely - if NOT a valid sequence character, will skip the current line.
+                    this.handleSequenceStart();
+                    this.feedLine();
+                    i = 0;
                 }
-                this.preloadedKmer[i] = toUpperTable[this.currentLine[linePointer]];
-                this.preloadedKmerReverseComplement[this.k - i - 1] = toUpperTable[complementTable[this.currentLine[linePointer]]];
-                this.moveCursor();
-                i++;
-            } else {
-                // no need to check header start explicitely - if NOT a valid sequence character, will skip the current line.
-                this.handleSequenceStart();
-                this.feedLine();
-                i = 0;
+            }
+            // Now, let's check if the next byte is correct
+            if(this.hasNext()) {
+                if (this.isSequenceChar()) {
+                    if (!isAmbiguousChar[this.currentLine[linePointer]]) {
+                        return;
+                    } else {
+                        this.preloadedSkippedKmersInFile += i + 1;
+                        this.preloadedSkippedKmersInRecord += i + 1;
+                        this.moveCursor();
+                        i = 0;
+                    }
+                } else {
+                    this.handleSequenceStart();
+                    this.feedLine();
+                    i = 0;
+                }
             }
         }
-        this.isPreloaded = true;
     }
 
     @Override

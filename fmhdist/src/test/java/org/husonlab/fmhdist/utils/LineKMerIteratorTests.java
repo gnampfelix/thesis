@@ -582,5 +582,18 @@ public class LineKMerIteratorTests {
         km.close();
     }
 
+    @Test
+    public void checkAmbAfterPreload() throws IOException {
+        // using k=4, the first preload should prepare ACT and check that
+        // nextByte is N and thus a new k-mer needs to be preloaded
+        String fasta = ">header1\nACTN\nNACT\nA\n";
+        KMerIterator km = new LineKMerIterator(4, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fasta.getBytes()))), true);
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo(("ACTA")));
+
+        assertThat(km.hasNext(), equalTo(false));
+        km.close();
+    }
+
 
 }
