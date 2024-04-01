@@ -31,18 +31,17 @@
 
 package org.husonlab;
 
-import org.openjdk.jmh.annotations.Benchmark;
-
 import java.io.IOException;
 
-import org.husonlab.fmhdist.cmd.SequenceSketcher;
-import org.husonlab.fmhdist.util.FastKMerIterator;
+import org.husonlab.fmhdist.util.KMerIterator;
+import org.husonlab.fmhdist.util.LineKMerIterator;
+import org.openjdk.jmh.annotations.Benchmark;
 
 public class MyBenchmark {
 
     @Benchmark
     public void testMethod() throws IOException {
-        FastKMerIterator k = new FastKMerIterator(21, "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/PhyInf11.fna", true);
+        KMerIterator k = new LineKMerIterator(21, "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/PhyInf11.fna", true);
         while (k.hasNext()) {
             k.next();
             k.getCoordinates();
