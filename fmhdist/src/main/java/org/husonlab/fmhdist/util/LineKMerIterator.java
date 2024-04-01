@@ -65,19 +65,22 @@ public class LineKMerIterator implements KMerIterator {
     // k-mer during a call to "next()" while still be able to load details of
     // the current kmer that is returned by the same call to next().
     private int recordIndexInFile = 0;
-    private int skippedKmersInFile = 0;
     private int skippedKmersInRecord = 0;
     private int sequenceIndexInRecord = 0;
-    private int sequenceIndexInFile = 0;
+    // Assumption: we call "getCoordinates()" usually less often than "next()",
+    // so we save some time
+    private int sequencesBeforeRecord = 0;
+    private int skippedBeforeRecord = 0;
 
     // Indices to keep track of the origin of the _next_ k-mer. Those values
     // will actually be incremented as the stream is processed.Those will be
     // written to the current indices during the next call to next().
     private int preloadedRecordIndexInFile = -1;
-    private int preloadedSkippedKmersInFile = 0;
     private int preloadedSkippedKmersInRecord = 0;
     private int preloadedSequenceIndexInRecord = 0;
-    private int preloadedSequenceIndexInFile = 0;
+
+    private int preloadedSequencesBeforeRecord = 0;
+    private int preloadedSkippedBeforeRecord = 0;
 
     public LineKMerIterator(int k, BufferedReader reader, boolean skipN) throws IOException {
         this.k = k;
@@ -111,6 +114,9 @@ public class LineKMerIterator implements KMerIterator {
     }
 
     private void handleSequenceStart() {
+        this.preloadedSkippedBeforeRecord += this.preloadedSkippedKmersInRecord;
+        this.preloadedSequencesBeforeRecord += this.preloadedSequenceIndexInRecord;
+
         this.preloadedRecordIndexInFile++;
         this.preloadedSequenceIndexInRecord = 0;
         this.preloadedSkippedKmersInRecord = 0;
@@ -120,11 +126,14 @@ public class LineKMerIterator implements KMerIterator {
      * This updates all indices such that they equal the preloaded ones.
      */
     private void copyIndices() {
-        this.recordIndexInFile = this.preloadedRecordIndexInFile;
-        this.sequenceIndexInFile = this.preloadedSequenceIndexInFile;
         this.sequenceIndexInRecord = this.preloadedSequenceIndexInRecord;
-        this.skippedKmersInFile = this.preloadedSkippedKmersInFile;
         this.skippedKmersInRecord = this.preloadedSkippedKmersInRecord;
+        // TODO: maybe only do when recordIndexInFile changes?
+        if (this.recordIndexInFile != this.preloadedRecordIndexInFile) {
+            this.skippedBeforeRecord = this.preloadedSkippedBeforeRecord;
+            this.sequencesBeforeRecord = this.preloadedSequencesBeforeRecord;
+            this.recordIndexInFile = this.preloadedRecordIndexInFile;
+        }
     }
 
     private boolean isSequenceChar() {
@@ -136,15 +145,32 @@ public class LineKMerIterator implements KMerIterator {
             return;
         }
 
-        // We might have skipped some bytes (length - currentIndex - 1)
-        // we definitely skipped the "\n", so don't subtract 1
-        this.currentLine = this.nextLine;
         this.linePointer = 0;
+        this.currentLine = this.nextLine;
         String next = reader.readLine();
         if (next == null) {
             this.isEOF = true;
-        } else {
+            return;
+        } 
+        this.nextLine = next.getBytes();
+
+        // Peek at the first byte - do we start a new sequence?
+        // Assumption: New sequences only occur at the beginning of a new line
+        // We can remove the checks for all calls to next()!    
+        // Only do this if we are not currently preloading    
+        if (this.currentLine[0] == '>' && !this.isPreloaded) {
+            this.currentLine = this.nextLine;
+            next = reader.readLine();
+            if (next == null) {
+                throw new IOException("fasta file contains header without body");
+            } 
             this.nextLine = next.getBytes();
+            if (this.currentLine[0] == '>') {
+                throw new IOException("fasta file contains header without body");
+            }
+
+            this.handleSequenceStart();
+            this.preload();            
         }
     }
 
@@ -161,7 +187,6 @@ public class LineKMerIterator implements KMerIterator {
             while(i < this.k - 1 && this.hasNext()) {
                 if(isSequenceChar()) {
                     if (isAmbiguousChar[this.currentLine[linePointer]]) {
-                        this.preloadedSkippedKmersInFile += i + 1;
                         this.preloadedSkippedKmersInRecord += i + 1;
                         i = 0;
                         this.moveCursor();
@@ -184,7 +209,6 @@ public class LineKMerIterator implements KMerIterator {
                     if (!isAmbiguousChar[this.currentLine[linePointer]]) {
                         return;
                     } else {
-                        this.preloadedSkippedKmersInFile += i + 1;
                         this.preloadedSkippedKmersInRecord += i + 1;
                         this.moveCursor();
                         i = 0;
@@ -216,21 +240,18 @@ public class LineKMerIterator implements KMerIterator {
         this.kmer[this.k-1] = toUpperTable[this.currentLine[linePointer]];
         this.kmerReverseComplement[0] = toUpperTable[complementTable[this.currentLine[linePointer]]];
         this.copyIndices();
-
         try {
-            this.preloadedSequenceIndexInFile++;
             this.preloadedSequenceIndexInRecord++;
             this.moveCursor();
             if (this.hasNext()) {
-                if (this.isSequenceChar() && isAmbiguousChar[this.currentLine[this.linePointer]]) {
-                    this.preloadedSkippedKmersInFile += this.k;
+                // We only need to check if the next character is ambiguous: if
+                // we have a line break and start a new sequence, this is
+                // already handled implicitely in the this.moveCursor() -->
+                // this.feedLine() chain.
+                if (isAmbiguousChar[this.currentLine[this.linePointer]]) {
                     this.preloadedSkippedKmersInRecord += this.k;
                     this.moveCursor();
-                    this.preload();
-                } else if (!this.isSequenceChar()) {
-                    // This means that we are in a header line
-                    this.handleSequenceStart();
-                    this.feedLine();
+                    this.isPreloaded = true; // avoid preload in feedLine
                     this.preload();
                 }
             }
@@ -260,9 +281,9 @@ public class LineKMerIterator implements KMerIterator {
     public KMerCoordinates getCoordinates() {
         return new KMerCoordinates(
             this.recordIndexInFile, 
-            this.sequenceIndexInFile, 
+            this.sequenceIndexInRecord + this.sequencesBeforeRecord, 
             this.sequenceIndexInRecord,
-            this.sequenceIndexInFile + this.skippedKmersInFile,
+            this.sequenceIndexInRecord + this.sequencesBeforeRecord + this.skippedKmersInRecord + this.skippedBeforeRecord,
             this.sequenceIndexInRecord + this.skippedKmersInRecord, 
             this.kmer,
             0
