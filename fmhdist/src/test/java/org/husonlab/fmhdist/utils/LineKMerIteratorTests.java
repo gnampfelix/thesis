@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.husonlab.fmhdist.util.FastKMerIterator;
 import org.husonlab.fmhdist.util.KMerIterator;
 import org.husonlab.fmhdist.util.LineKMerIterator;
 import org.junit.Ignore;
@@ -558,6 +559,28 @@ public class LineKMerIteratorTests {
         km.close();
     }
 
+    @Test
+    public void checkNewlineAfterPreload() throws IOException {
+        // using k=4, in the second line, the preload should load precisely the
+        // ACT and handle the new-line, so that next() will return the complete
+        // kmer ACTC.
+        String fasta = ">header1\nACTG\nNACT\nCTG\n";
+        KMerIterator km = new LineKMerIterator(4, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fasta.getBytes()))), true);
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo(("ACTG")));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("ACTC"));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("CTCT"));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("TCTG"));
+
+        assertThat(km.hasNext(), equalTo(false));
+        km.close();
+    }
 
 
 }

@@ -210,32 +210,61 @@ public class FastKMerIterator implements KMerIterator {
     private void preload() throws IOException {
         this.hasPreloaded = true;
         int i = 0;
-        while(this.hasNext() && i < this.k - 1) {
-            if(isSequenceChar()) {
-                if (isAmbiguousChar[this.nextByte]) {
-                    // we need to discard the previous i k-mers (0-based, thus
-                    // +1)
-                    this.preloadedSkippedKmersInFile += i + 1;
-                    this.preloadedSkippedKmersInRecord += i + 1;
-                    i = 0;
+        while(this.hasNext()) {
+            while(i < this.k - 1 && this.hasNext()) {
+                if(isSequenceChar()) {
+                    if (isAmbiguousChar[this.nextByte]) {
+                        // we need to discard the previous i k-mers (0-based, thus
+                        // +1)
+                        this.preloadedSkippedKmersInFile += i + 1;
+                        this.preloadedSkippedKmersInRecord += i + 1;
+                        i = 0;
+                        this.nextByte = (byte) this.reader.read();
+                        this.preloadedByteCounter++;
+                        break;
+                    }
+                    this.preloaded_kmer[i] = toUpperTable[this.nextByte];
+                    this.preloaded_complement[this.k - i - 1] = toUpperTable[complementTable[this.nextByte]];
                     this.nextByte = (byte) this.reader.read();
                     this.preloadedByteCounter++;
-                    continue;
-                }
-                this.preloaded_kmer[i] = toUpperTable[this.nextByte];
-                this.preloaded_complement[this.k - i - 1] = toUpperTable[complementTable[this.nextByte]];
-                this.nextByte = (byte) this.reader.read();
-                this.preloadedByteCounter++;
-                i++;
-            } else {
-                if (isHeaderStart()) {
-                    handleSequenceStart();
-                    i = 0;
+                    i++;
                 } else {
-                    skipToNextLine();
+                    if (isHeaderStart()) {
+                        handleSequenceStart();
+                        i = 0;
+                    } else {
+                        skipToNextLine();
+                    }
                 }
             }
-        }
+        
+            // Now, we need only to ensure that the last character is valid  
+            // If it is, return.
+            // If it is a line break, read new character.
+            if (i >= this.k - 1 && this.hasNext()) {
+                if (this.isSequenceChar()) {
+                    if (!isAmbiguousChar[this.nextByte]) {
+                        return;
+                    } else {
+                        // Start all over again :(
+                        this.preloadedSkippedKmersInFile += i + 1;
+                        this.preloadedSkippedKmersInRecord += i + 1;
+                        i = 0;
+                        this.nextByte = (byte) this.reader.read();
+                        this.preloadedByteCounter++;
+                        continue;
+                    }
+                } else {
+                    if (this.isHeaderStart()) {
+                        this.handleSequenceStart();
+                        i = 0;
+                        continue;
+                    } else {
+                        this.skipToNextLine();
+                    }
+                }
+            }
+        } 
     }
 
     /**

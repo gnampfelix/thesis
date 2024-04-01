@@ -468,6 +468,29 @@ public class FastKMerIteratorTests {
     }
 
     @Test
+    public void checkNewlineAfterPreload() throws IOException {
+        // using k=4, in the second line, the preload should load precisely the
+        // ACT and handle the new-line, so that next() will return the complete
+        // kmer ACTC.
+        String fasta = ">header1\nACTG\nNACT\nCTG\n";
+        FastKMerIterator km = new FastKMerIterator(4, new ByteArrayInputStream(fasta.getBytes()), true);
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo(("ACTG")));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("ACTC"));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("CTCT"));
+
+        assertThat(km.hasNext(), equalTo(true));
+        assertThat(new String(km.next()), equalTo("TCTG"));
+
+        assertThat(km.hasNext(), equalTo(false));
+        km.close();
+    }
+
+    @Test
     public void checkCoordinates() throws IOException {
         try(FastKMerIterator km = new FastKMerIterator(8, "src/test/resources/fastaWithMultipleAmbSeq.fasta", true)) {
             int i = 0;
