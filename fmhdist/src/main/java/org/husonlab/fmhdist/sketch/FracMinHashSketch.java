@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-import org.husonlab.fmhdist.util.FastKMerIterator;
 import org.husonlab.fmhdist.util.KMerCoordinates;
 import org.husonlab.fmhdist.util.KMerIterator;
 
@@ -76,9 +75,74 @@ public class FracMinHashSketch {
      * lexicographically smaller of the k-mer and its reverse complement.
      * @param sParam The scaling param s of the algorithm
      * @param seed A random seed that should be used for hashing
+     * @param prepareCoordinates flag to indicate if the coordinates of k-mers
+     * that are part of the sketch should be prepared. This slows down the
+     * process and should be disabled when not needed. To use this feature in a
+     * meaningful way, the passed KMerIterator needs to provide the coordinates.
      * @return A new FracMinHashSketch
      */
     public static FracMinHashSketch compute(
+        String name, 
+        KMerIterator kmers,
+        boolean isNucleotides, 
+        int sParam, 
+        int seed,
+        boolean prepareCoordinates
+    ) {
+        // Use swith on that level instead of inside the computation to remove
+        // unnecessary runtime comparisons
+        if (prepareCoordinates) {
+            return computeWithCoordinates(name, kmers, isNucleotides, sParam, seed);
+        }
+        return computeWithoutCoordinates(name, kmers, isNucleotides, sParam, seed);
+    }
+
+    private static FracMinHashSketch computeWithoutCoordinates(
+        String name, 
+        KMerIterator kmers,
+        boolean isNucleotides, 
+        int sParam, 
+        int seed
+    ) {
+        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, isNucleotides, seed);
+        final TreeSet<Long> sortedSet = new TreeSet<>();
+
+        // Irber et al define the hash function as h: o -> [0, H]. However, in
+        // the case of our Java Long hashes, the range is h: o -> [-H, H-1].
+        // Thus, we need to shift the threshold accordingly.
+        final double fraction = Long.MAX_VALUE * (1/(double)sParam) * 2; //the complete range is 2H, thus a fraction is 2Hs
+        final double threshold = Long.MIN_VALUE + fraction;
+        
+        // no need to reserve memory for this - this all ensured in the coordinates.
+        byte[] kMerUse;
+        while (kmers.hasNext()) {
+            byte[] next = kmers.next();
+            if (isNucleotides) {
+                if (SequenceUtils.compare(next, kmers.getReverseComplement()) > 0) {
+                    kMerUse = kmers.getReverseComplement();
+                } else {
+                    kMerUse = next;
+                }
+            } else {
+                kMerUse = next;
+            }
+
+            final long hash = MurmurHash.hash64(kMerUse, 0, sketch.kSize, seed);
+
+            if (hash < threshold) {
+                sortedSet.add(hash);
+            }
+        }
+        sketch.hashValues = new long[sortedSet.size()];
+        int pos = 0;
+        for (Long value : sortedSet) {
+            sketch.hashValues[pos++] = value;
+        }
+        
+        return sketch;        
+    }
+
+    private static FracMinHashSketch computeWithCoordinates(
         String name, 
         KMerIterator kmers,
         boolean isNucleotides, 

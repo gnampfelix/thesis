@@ -20,7 +20,7 @@ public class FracMinHashSketchTests {
     @Test
     public void shouldCalculateFracMinSketch() throws IOException {
         try (FastKMerIterator kmers = new FastKMerIterator(21, "src/test/resources/virus1.fasta", true)) {
-			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, true, 10, 42);
+			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, true, 10, 42, true);
             
             // the test file contains the kmer "TTGGATGAAACGCACCCGCTAT". For
             // this, the reverse complement is "ATAGCGGGTGCGTTTCATCCA", which
@@ -57,7 +57,8 @@ public class FracMinHashSketchTests {
                 kmers,
                 true,
                 s,
-                42
+                42,
+                true
             );
             long finalHeap = Runtime.getRuntime().totalMemory();
             long end = System.currentTimeMillis();
@@ -73,7 +74,7 @@ public class FracMinHashSketchTests {
         long initialHeap = Runtime.getRuntime().totalMemory();
         long start = System.currentTimeMillis();
         try (FastKMerIterator kmers = new FastKMerIterator(21, url, true)) {
-			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, true, 1000, 42);
+			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, true, 1000, 42, true);
             long finalHeap = Runtime.getRuntime().totalMemory();
             long end = System.currentTimeMillis();
             System.out.println(String.format("sketch size: %d", sketch.getValues().length));

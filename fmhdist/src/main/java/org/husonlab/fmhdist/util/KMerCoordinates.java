@@ -27,6 +27,7 @@ public class KMerCoordinates {
      * when counting
      * @param kmer A reference to the k-mer content. Will be clonedm on initialization.
      */
+    @Deprecated
     public KMerCoordinates(
         int recordIndexInFile, 
         int sequenceIndexInFile, 
@@ -43,6 +44,22 @@ public class KMerCoordinates {
         this.sequenceIndexInRecordIncludingAmbiguous = sequenceIndexInRecordIncludingAmbiguous;
         this.kmer = kmer.clone();
         this.byteIndex = byteIndex;
+    } 
+
+    public KMerCoordinates(
+        int recordIndexInFile, 
+        int sequenceIndexInFile, 
+        int sequenceIndexInRecord, 
+        int sequenceIndexInFileIncludingAmbiguous, 
+        int sequenceIndexInRecordIncludingAmbiguous,
+        byte[] kmer
+    ) {
+        this.recordIndexInFile = recordIndexInFile;
+        this.sequenceIndexInFile = sequenceIndexInFile;
+        this.sequenceIndexInRecord = sequenceIndexInRecord;
+        this.sequenceIndexInFileIncludingAmbiguous = sequenceIndexInFileIncludingAmbiguous;
+        this.sequenceIndexInRecordIncludingAmbiguous = sequenceIndexInRecordIncludingAmbiguous;
+        this.kmer = kmer.clone();
     } 
 
     public int getRecordIndexInFile() {
@@ -77,6 +94,7 @@ public class KMerCoordinates {
         this.hash = hash;
     }
 
+    @Deprecated
     public long getByteIndex() {
         return this.byteIndex;
     }

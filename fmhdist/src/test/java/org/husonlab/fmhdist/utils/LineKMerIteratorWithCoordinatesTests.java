@@ -15,15 +15,15 @@ import java.util.List;
 
 import org.husonlab.fmhdist.util.FastKMerIterator;
 import org.husonlab.fmhdist.util.KMerIterator;
-import org.husonlab.fmhdist.util.LineKMerIterator;
+import org.husonlab.fmhdist.util.LineKMerIteratorWithCoordinates;
 import org.junit.Ignore;
 import org.junit.Test;
 
 
-public class LineKMerIteratorTests {
+public class LineKMerIteratorWithCoordinatesTests {
     @Test
     public void shouldIterateKmers() throws IOException {
-        try(KMerIterator km = new LineKMerIterator(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
+        try(KMerIterator km = new LineKMerIteratorWithCoordinates(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
 
             List<String>kmers = new ArrayList<>();
             while(km.hasNext()) {
@@ -435,7 +435,7 @@ public class LineKMerIteratorTests {
 
     @Test
     public void shouldIterateKmersInMultipleSequences() throws IOException {
-        try(KMerIterator km = new LineKMerIterator(21, "src/test/resources/fastaWith2Seq.fasta", true)) {
+        try(KMerIterator km = new LineKMerIteratorWithCoordinates(21, "src/test/resources/fastaWith2Seq.fasta", true)) {
             List<String>kmers = new ArrayList<>();
             while(km.hasNext()) {
                 kmers.add(new String(km.next()));
@@ -446,14 +446,14 @@ public class LineKMerIteratorTests {
 
     @Test
     public void shouldNotCreateKmers() throws IOException {
-        try(KMerIterator km = new LineKMerIterator(21, "src/test/resources/fastaWithTwoShortSeq.fasta", true)) {
+        try(KMerIterator km = new LineKMerIteratorWithCoordinates(21, "src/test/resources/fastaWithTwoShortSeq.fasta", true)) {
             assertThat(km.hasNext(), equalTo(false));
         }
     }
 
     @Test
     public void checkComplement() throws IOException {
-        try(KMerIterator km = new LineKMerIterator(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
+        try(KMerIterator km = new LineKMerIteratorWithCoordinates(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
             assertThat(km.hasNext(), equalTo(true));
             assertThat(new String(km.next()), equalTo("ACTCGTATGAACTTTGACTGG"));
             assertThat(new String(km.getReverseComplement()), equalTo("CCAGTCAAAGTTCATACGAGT"));
@@ -462,7 +462,7 @@ public class LineKMerIteratorTests {
 
     @Test
     public void checkDiscardAmbiguousChars() throws IOException {
-        try(KMerIterator km = new LineKMerIterator(21, "src/test/resources/fastaWithAmbSeq.fasta", true)) {
+        try(KMerIterator km = new LineKMerIteratorWithCoordinates(21, "src/test/resources/fastaWithAmbSeq.fasta", true)) {
             int i = 0;
             while(km.hasNext()) {
                 km.next();
@@ -474,7 +474,7 @@ public class LineKMerIteratorTests {
 
     @Test
     public void checkCoordinates() throws IOException {
-        try(KMerIterator km = new LineKMerIterator(8, "src/test/resources/fastaWithMultipleAmbSeq.fasta", true)) {
+        try(KMerIterator km = new LineKMerIteratorWithCoordinates(8, "src/test/resources/fastaWithMultipleAmbSeq.fasta", true)) {
             int i = 0;
             int[] ambigPos = new int[]{0, 1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
             while(km.hasNext()) {
@@ -501,7 +501,7 @@ public class LineKMerIteratorTests {
     @Test
     public void testFullFunctionalit() throws IOException {
         String fasta = ">header1\nACTG\nNACT\n>header2\nANNT\nGCCA\n";
-        KMerIterator km = new LineKMerIterator(3, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fasta.getBytes()))), true);
+        KMerIterator km = new LineKMerIteratorWithCoordinates(3, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fasta.getBytes()))), true);
         assertThat(km.hasNext(), equalTo(true));
         assertThat(new String(km.next()), equalTo("ACT"));
         assertThat(new String(km.getReverseComplement()), equalTo("AGT"));
@@ -565,7 +565,7 @@ public class LineKMerIteratorTests {
         // ACT and handle the new-line, so that next() will return the complete
         // kmer ACTC.
         String fasta = ">header1\nACTG\nNACT\nCTG\n";
-        KMerIterator km = new LineKMerIterator(4, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fasta.getBytes()))), true);
+        KMerIterator km = new LineKMerIteratorWithCoordinates(4, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fasta.getBytes()))), true);
         assertThat(km.hasNext(), equalTo(true));
         assertThat(new String(km.next()), equalTo(("ACTG")));
 
@@ -587,7 +587,7 @@ public class LineKMerIteratorTests {
         // using k=4, the first preload should prepare ACT and check that
         // nextByte is N and thus a new k-mer needs to be preloaded
         String fasta = ">header1\nACTN\nNACT\nA\n";
-        KMerIterator km = new LineKMerIterator(4, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fasta.getBytes()))), true);
+        KMerIterator km = new LineKMerIteratorWithCoordinates(4, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(fasta.getBytes()))), true);
         assertThat(km.hasNext(), equalTo(true));
         assertThat(new String(km.next()), equalTo(("ACTA")));
 

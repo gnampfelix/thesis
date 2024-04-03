@@ -57,7 +57,7 @@ public class SequenceSketcher {
                 sequencePaths.forEach(genome -> executor.submit(() -> {
                     if (exception.isNull()) {
                         try {
-                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed);
+                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed, saveCoordinates);
                             sketches.add(sketch);
                         } catch (Exception ex) {
                             logger.warning(ex.getMessage());

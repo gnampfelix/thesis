@@ -56,7 +56,7 @@ public class DatabaseCreator {
                         // Sometimes, the connection to NCBI breaks - this is a quick workaround
                         while (retries-- > 0) {
                             try {
-                                GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed);
+                                GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed, false);
                                 sketches.add(sketch);
                                 break;
                             } catch (Exception ex) {

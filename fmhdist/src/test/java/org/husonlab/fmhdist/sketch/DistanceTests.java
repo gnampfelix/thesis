@@ -79,7 +79,8 @@ public class DistanceTests {
                     kmers,
                     true,
                     s,
-                    42
+                    42,
+                    true
                 ));
             }
             System.out.println(String.format("%d seconds", (System.currentTimeMillis() - start) / 1000));
