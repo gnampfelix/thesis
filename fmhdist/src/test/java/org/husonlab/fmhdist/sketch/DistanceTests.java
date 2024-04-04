@@ -12,6 +12,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import jloda.util.progress.ProgressSilent;
+import net.openhft.hashing.LongHashFunction;
 
 public class DistanceTests {
     @Test
@@ -79,6 +80,7 @@ public class DistanceTests {
                     kmers,
                     true,
                     s,
+                    LongHashFunction.farmUo(42),
                     42,
                     true
                 ));

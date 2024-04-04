@@ -74,6 +74,12 @@
             <version>5.2.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>zero-allocation-hashing</artifactId>
+            <version>0.16</version>
+        </dependency>
+
 
         <!-- START OPENAPI -->
         <dependency>

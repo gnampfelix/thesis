@@ -19,6 +19,7 @@ import org.husonlab.fmhdist.sketch.GenomeSketch;
 import jloda.fx.util.ProgramExecutorService;
 import jloda.util.FileLineIterator;
 import jloda.util.Single;
+import net.openhft.hashing.LongHashFunction;
 
 public class DatabaseCreator {
     private static NcbiApi api = new NcbiApi("https://api.ncbi.nlm.nih.gov/datasets/v2alpha");
@@ -56,7 +57,7 @@ public class DatabaseCreator {
                         // Sometimes, the connection to NCBI breaks - this is a quick workaround
                         while (retries-- > 0) {
                             try {
-                                GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed, false);
+                                GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, LongHashFunction.farmUo(randomSeed), randomSeed, false);
                                 sketches.add(sketch);
                                 break;
                             } catch (Exception ex) {

@@ -15,10 +15,13 @@ import org.husonlab.fmhdist.ncbi.Genome;
 import org.husonlab.fmhdist.sketch.GenomeSketch;
 import org.husonlab.fmhdist.util.KMerCoordinates;
 
+import com.google.common.hash.HashFunction;
+
 import jloda.fx.util.ProgramExecutorService;
 import jloda.thirdparty.HexUtils;
 import jloda.util.FileLineIterator;
 import jloda.util.Single;
+import net.openhft.hashing.LongHashFunction;
 
 public class SequenceSketcher {
 
@@ -57,7 +60,7 @@ public class SequenceSketcher {
                 sequencePaths.forEach(genome -> executor.submit(() -> {
                     if (exception.isNull()) {
                         try {
-                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, randomSeed, saveCoordinates);
+                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, LongHashFunction.farmUo(randomSeed), randomSeed, saveCoordinates);
                             sketches.add(sketch);
                         } catch (Exception ex) {
                             logger.warning(ex.getMessage());

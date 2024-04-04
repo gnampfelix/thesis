@@ -9,9 +9,9 @@ import org.husonlab.fmhdist.util.KMerCoordinates;
 import org.husonlab.fmhdist.util.KMerIterator;
 
 import jloda.seq.SequenceUtils;
-import jloda.thirdparty.MurmurHash;
 import jloda.util.ByteInputBuffer;
 import jloda.util.ByteOutputBuffer;
+import net.openhft.hashing.LongHashFunction;
 
 
 /**
@@ -42,6 +42,7 @@ public class FracMinHashSketch {
     private long[] hashValues;
 
     private String name;
+    private long hashedMagicNumber;
     private int seed;
 
     private List<KMerCoordinates> coordinates;
@@ -86,27 +87,29 @@ public class FracMinHashSketch {
         KMerIterator kmers,
         boolean isNucleotides, 
         int sParam, 
+        LongHashFunction hashFunction,
         int seed,
         boolean prepareCoordinates
     ) {
         // Use swith on that level instead of inside the computation to remove
         // unnecessary runtime comparisons
         if (prepareCoordinates) {
-            return computeWithCoordinates(name, kmers, isNucleotides, sParam, seed);
+            return computeWithCoordinates(name, kmers, isNucleotides, sParam, hashFunction, seed);
         }
-        return computeWithoutCoordinates(name, kmers, isNucleotides, sParam, seed);
+        return computeWithoutCoordinates(name, kmers, isNucleotides, sParam, hashFunction, seed);
     }
 
     private static FracMinHashSketch computeWithoutCoordinates(
         String name, 
         KMerIterator kmers,
         boolean isNucleotides, 
-        int sParam, 
+        int sParam,
+        LongHashFunction hashFunction,
         int seed
     ) {
         final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, isNucleotides, seed);
         final TreeSet<Long> sortedSet = new TreeSet<>();
-
+        
         // Irber et al define the hash function as h: o -> [0, H]. However, in
         // the case of our Java Long hashes, the range is h: o -> [-H, H-1].
         // Thus, we need to shift the threshold accordingly.
@@ -126,9 +129,9 @@ public class FracMinHashSketch {
             } else {
                 kMerUse = next;
             }
-
-            final long hash = MurmurHash.hash64(kMerUse, 0, sketch.kSize, seed);
-
+            
+            final long hash = hashFunction.hashBytes(kMerUse);
+            
             if (hash < threshold) {
                 sortedSet.add(hash);
             }
@@ -139,17 +142,20 @@ public class FracMinHashSketch {
             sketch.hashValues[pos++] = value;
         }
         
+        sketch.hashedMagicNumber = hashFunction.hashInt(MAGIC_INT);
         return sketch;        
     }
-
+    
     private static FracMinHashSketch computeWithCoordinates(
         String name, 
         KMerIterator kmers,
         boolean isNucleotides, 
-        int sParam, 
+        int sParam,
+        LongHashFunction hashFunction,
         int seed
-    ) {
+        ) {
         final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, isNucleotides, seed);
+            
         final TreeSet<Long> sortedSet = new TreeSet<>();
 
         // Irber et al define the hash function as h: o -> [0, H]. However, in
@@ -172,7 +178,7 @@ public class FracMinHashSketch {
                 kMerUse = next;
             }
 
-            final long hash = MurmurHash.hash64(kMerUse, 0, sketch.kSize, seed);
+            final long hash = hashFunction.hashBytes(kMerUse);
 
             if (hash < threshold) {
                 KMerCoordinates coords = kmers.getCoordinates();
@@ -186,7 +192,7 @@ public class FracMinHashSketch {
         for (Long value : sortedSet) {
             sketch.hashValues[pos++] = value;
         }
-        
+        sketch.hashedMagicNumber = hashFunction.hashInt(MAGIC_INT);
         return sketch;        
     }
 
@@ -228,16 +234,18 @@ public class FracMinHashSketch {
      * little endian in the following order:
      * 
      * 1. Magic Number (4B)
-     * 2. S Param (4B)
-     * 3. K Size (4B)
-     * 4. Random seed (4B)
-     * 5. Sketch size (4B)
-     * 6. Hash values (sketch size x 8B)
+     * 2. Hashed Magic Number (8B)
+     * 3. S Param (4B)
+     * 4. K Size (4B)
+     * 5. Random seed (4B)
+     * 6. Sketch size (4B)
+     * 7. Hash values (sketch size x 8B)
      * @return
      */
     public byte[] getBytes() {
         ByteOutputBuffer bytes = new ByteOutputBuffer();
         bytes.writeIntLittleEndian(MAGIC_INT);
+        bytes.writeLongLittleEndian(this.hashedMagicNumber);
         bytes.writeIntLittleEndian(this.sParam);
         bytes.writeIntLittleEndian(this.kSize);
         bytes.writeIntLittleEndian(this.seed);
@@ -266,6 +274,15 @@ public class FracMinHashSketch {
     }
 
     /**
+     * Returns the hash value of the magic number of the sketch. Comparing this
+     * value of two different sketches can be used to check if they were created
+     * using the same hash function.
+     */
+    public long getHashedMagicNumber() {
+        return this.hashedMagicNumber;
+    }
+
+    /**
      * Parses a byte sequence as a FracMinHashSketch. The byte sequence is
      * described in the getBytes() documentation.
      * @param bytes
@@ -277,6 +294,7 @@ public class FracMinHashSketch {
 
         if (buffer.readIntLittleEndian() != MAGIC_INT)
             throw new IOException("Incorrect magic number");
+        long hashedMagicNumber = buffer.readLongLittleEndian();
         int sParam = buffer.readIntLittleEndian();
         int kMerSize = buffer.readIntLittleEndian();
         int seed = buffer.readIntLittleEndian();
@@ -284,6 +302,7 @@ public class FracMinHashSketch {
 
         final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kMerSize, "", true, seed);
         sketch.hashValues = new long[sketchSize];
+        sketch.hashedMagicNumber = hashedMagicNumber;
         for (int i = 0; i < sketchSize; i++) {
             sketch.hashValues[i] = buffer.readLongLittleEndian();
         }

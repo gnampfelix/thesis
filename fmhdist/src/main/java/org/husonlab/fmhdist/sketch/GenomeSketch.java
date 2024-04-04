@@ -8,12 +8,14 @@ import org.husonlab.fmhdist.util.KMerIterator;
 import org.husonlab.fmhdist.util.LineKMerIterator;
 import org.husonlab.fmhdist.util.LineKMerIteratorWithCoordinates;
 
+import net.openhft.hashing.LongHashFunction;
+
 public class GenomeSketch {
     private Genome genome;
     private FracMinHashSketch sketch;
     private static Logger logger = Logger.getLogger(GenomeSketch.class.getName());
 
-    public static GenomeSketch sketch(Genome genome, int kSize, int sParam, int seed, boolean prepareCoordinates) throws IOException {
+    public static GenomeSketch sketch(Genome genome, int kSize, int sParam, LongHashFunction hashFunction, int seed, boolean prepareCoordinates) throws IOException {
         logger.fine("Calculating sketch for " + genome.getAccession());
         final GenomeSketch result = new GenomeSketch(genome);
         
@@ -23,7 +25,7 @@ public class GenomeSketch {
         } else {
             kmers = new LineKMerIterator(kSize, genome.getFastaUrl(), true);
         }
-        result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, true, sParam, seed, prepareCoordinates);
+        result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, true, sParam, hashFunction, seed, prepareCoordinates);
         kmers.close();
         return result;
     }
