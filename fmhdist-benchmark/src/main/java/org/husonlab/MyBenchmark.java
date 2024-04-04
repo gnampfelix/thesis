@@ -30,23 +30,87 @@
  */
 
 package org.husonlab;
-
-import java.io.IOException;
-
-import org.husonlab.fmhdist.util.KMerIterator;
-import org.husonlab.fmhdist.util.LineKMerIterator;
 import org.openjdk.jmh.annotations.Benchmark;
+
+import com.google.common.hash.Hashing;
+
+import jloda.thirdparty.MurmurHash;
+import net.jpountz.xxhash.XXHashFactory;
+import net.openhft.hashing.LongHashFunction;
 
 public class MyBenchmark {
 
+    
     @Benchmark
-    public void testMethod() throws IOException {
-        KMerIterator k = new LineKMerIterator(21, "/home/gnampfelix/Documents/term5/thesis/data/phytophthora/test_genomes/PhyInf11.fna", true);
-        while (k.hasNext()) {
-            k.next();
-            k.getCoordinates();
-        }
-        k.close();
+    public void testMurmur3() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        LongHashFunction.murmur_3(42).hashBytes(bytes);
+    }
+
+    @Benchmark 
+    public void testJlodaMurmur() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        MurmurHash.hash64(bytes, 0, bytes.length, 42);
+    }
+        
+    @Benchmark
+    public void testXX3Hash() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        LongHashFunction.xx3(42).hashBytes(bytes);
+    }
+
+    @Benchmark 
+    public void testXX64Hash() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        LongHashFunction.xx(42).hashBytes(bytes);
+    }
+
+    @Benchmark 
+    public void testCityHash() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        LongHashFunction.city_1_1(42).hashBytes(bytes);
+    }
+
+    @Benchmark 
+    public void testFarm10Hash() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        LongHashFunction.farmNa(42).hashBytes(bytes);
+    }
+
+    @Benchmark 
+    public void testFarm11Hash() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        LongHashFunction.farmUo(42).hashBytes(bytes);
+    }
+
+    @Benchmark 
+    public void testMetroHash() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        LongHashFunction.metro(42).hashBytes(bytes);
+    }
+
+    @Benchmark 
+    public void testWyHash() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        LongHashFunction.wy_3(42).hashBytes(bytes);
+    }
+
+    @Benchmark
+    public void testXX128() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        LongHashFunction.xx128low(42).hashBytes(bytes);
+    }
+
+    @Benchmark
+    public void testGuavaMurmur128() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        Hashing.murmur3_128(42).hashBytes(bytes);
+    }
+
+    @Benchmark
+    public void testLz4XXHash() {
+        byte[] bytes = "ATAGCGGGTGCGTTTCATCCA".getBytes();
+        XXHashFactory.fastestInstance().hash64().hash(bytes, 0, bytes.length, 42);
     }
 
 }
