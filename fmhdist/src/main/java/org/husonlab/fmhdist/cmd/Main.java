@@ -1,7 +1,5 @@
 package org.husonlab.fmhdist.cmd;
 
-import java.util.Set;
-
 import org.husonlab.fmhdist.util.HashFunctionParser;
 
 import jloda.fx.util.ArgsOptions;
@@ -14,7 +12,6 @@ public class Main {
     private final static String COMPARE_SKETCH_COMMAND = "dist";
     private final static String COMPARE_REF_SKETCH_COMMAND = "ref_dist";
     private final static String SKETCH_COMMAND = "sketch";
-    private final static String ANALYZE_COORDS_COMMAND = "analyze";
 
     public static void main(String[] args) throws UsageException {
         final ArgsOptions options = new ArgsOptions(args, Main.class,
@@ -34,10 +31,7 @@ public class Main {
                                 "and calculate all pairwise distances for those + the query sequences."),
                 new ArgsOptions.Command(
                         SKETCH_COMMAND,
-                        "Calculate the sketch for all given sequences and store them on the file system"),
-                new ArgsOptions.Command(
-                        ANALYZE_COORDS_COMMAND,
-                        "Analyze the coordinates for a given sketch"));
+                        "Calculate the sketch for all given sequences and store them on the file system"));
 
         options.comment("Input/Output options");
         final String input = options.getOptionMandatory("-i", "input",
@@ -60,7 +54,7 @@ public class Main {
                 "Path to the output file (distances, sketches, coordinates, windows)",
                 "");
 
-        final boolean saveCoordinates = options.getOption("-c", "save-coordinates", 
+        final boolean saveCoordinates = options.getOption("-c", "saveCoordinates", 
                 "When running " + SKETCH_COMMAND + ", control if the coordinates of the k-mers that are part of the sketch should be saved." + 
                 "They will be saved using <output>.coordinates.", false);
 
@@ -74,8 +68,7 @@ public class Main {
                 "The maximum distance that a query sequence should have to have to a reference sequence for the reference sequence to be included in the output",
                 0.4);
 
-        final int  windowSize = options.getOption("-w", "windowSize", "The window size that should be used for analyzing the coordinates", 2000);
-
+        
         options.comment("Performance options");
         ProgramExecutorService
                 .setNumberOfCoresToUse(options.getOption("-t", "threads", "Number of threads", 1));
@@ -99,10 +92,6 @@ public class Main {
             case SKETCH_COMMAND:
                 SequenceSketcher sketcher = new SequenceSketcher();
                 sketcher.run(input, output, kParameter, sParameter, hashFunction, randomSeed, saveCoordinates);
-                break;
-            case ANALYZE_COORDS_COMMAND:
-                CoordinatesAnalyzer analyzer = new CoordinatesAnalyzer();
-                analyzer.run(input, output, windowSize);
                 break;
         }
     }
