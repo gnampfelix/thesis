@@ -66,6 +66,7 @@ public class ReferenceDistanceCalculator {
             int kParameter = info.get("sketch_k");
             int sParameter = info.get("sketch_s");
             int randomSeed = info.get("sketch_seed");
+            // TODO: we must check the hash function here as well!
 
             logger.info("Reading queries list...");
             FileLineIterator it = new FileLineIterator(input);

@@ -1,8 +1,13 @@
 package org.husonlab.fmhdist.cmd;
 
+import java.util.Set;
+
+import org.husonlab.fmhdist.util.HashFunctionParser;
+
 import jloda.fx.util.ArgsOptions;
 import jloda.fx.util.ProgramExecutorService;
 import jloda.util.UsageException;
+import net.openhft.hashing.LongHashFunction;
 
 public class Main {
     private final static String CREATE_DB_COMMAND = "db";
@@ -64,6 +69,7 @@ public class Main {
         final int sParameter = options.getOption("-s", "scalingFactor",
                 "Scaling factor s. Hash values h are only part of the sketch if h <= H/s", 2000);
         final int randomSeed = options.getOption("-rs", "randomSeed", "Hashing random seed", 42);
+        final String hashFunctionName = options.getOption("-hf", "hashFunction", "The hash function to use to calculate the 64-bit hash for each k-mer", HashFunctionParser.getSupportedFunctions(), HashFunctionParser.FARM_HASH_NAME);
         final double maxDistance = options.getOption("-md", "maxDistance",
                 "The maximum distance that a query sequence should have to have to a reference sequence for the reference sequence to be included in the output",
                 0.4);
@@ -75,10 +81,12 @@ public class Main {
                 .setNumberOfCoresToUse(options.getOption("-t", "threads", "Number of threads", 1));
 
         options.done();
+
+        LongHashFunction hashFunction = HashFunctionParser.createHashFunction(hashFunctionName, randomSeed);
         switch (command) {
             case CREATE_DB_COMMAND:
                 DatabaseCreator dbCreator = new DatabaseCreator();
-                dbCreator.run(input, database, kParameter, sParameter, randomSeed);
+                dbCreator.run(input, database, kParameter, sParameter, hashFunction, randomSeed);
                 break;
             case COMPARE_SKETCH_COMMAND:
                 DistanceCalculator distanceCalculator = new DistanceCalculator();
@@ -90,7 +98,7 @@ public class Main {
                 break;
             case SKETCH_COMMAND:
                 SequenceSketcher sketcher = new SequenceSketcher();
-                sketcher.run(input, output, kParameter, sParameter, randomSeed, saveCoordinates);
+                sketcher.run(input, output, kParameter, sParameter, hashFunction, randomSeed, saveCoordinates);
                 break;
             case ANALYZE_COORDS_COMMAND:
                 CoordinatesAnalyzer analyzer = new CoordinatesAnalyzer();

@@ -30,6 +30,7 @@ public class SequenceSketcher {
         String output,
         int kParameter,
         int sParameter,
+        LongHashFunction hashFunction,
         int randomSeed,
         boolean saveCoordinates
     ) {
@@ -60,7 +61,7 @@ public class SequenceSketcher {
                 sequencePaths.forEach(genome -> executor.submit(() -> {
                     if (exception.isNull()) {
                         try {
-                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, LongHashFunction.farmUo(randomSeed), randomSeed, saveCoordinates);
+                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, hashFunction, randomSeed, saveCoordinates);
                             sketches.add(sketch);
                         } catch (Exception ex) {
                             logger.warning(ex.getMessage());

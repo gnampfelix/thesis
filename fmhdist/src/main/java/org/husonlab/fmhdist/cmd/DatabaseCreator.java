@@ -29,6 +29,7 @@ public class DatabaseCreator {
             String database,
             int kParameter,
             int sParameter,
+            LongHashFunction hashFunction,
             int randomSeed) {
         Logger logger = Logger.getLogger(DatabaseCreator.class.getName());
 
@@ -57,7 +58,7 @@ public class DatabaseCreator {
                         // Sometimes, the connection to NCBI breaks - this is a quick workaround
                         while (retries-- > 0) {
                             try {
-                                GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, LongHashFunction.farmUo(randomSeed), randomSeed, false);
+                                GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, hashFunction, randomSeed, false);
                                 sketches.add(sketch);
                                 break;
                             } catch (Exception ex) {

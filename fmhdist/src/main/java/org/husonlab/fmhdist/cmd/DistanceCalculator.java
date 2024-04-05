@@ -62,9 +62,10 @@ public class DistanceCalculator {
             int sParameter = 0;
             int kParameter = 0;
             int randomSeed = 0;
+            long hashedMagicNumber = 0;
             for (int i = 0; i < sketches.size(); i++) {
-                if (sParameter != 0 || kParameter != 0 || randomSeed != 0) {
-                    if (sParameter != sketches.get(i).getSParam() || kParameter != sketches.get(i).getKSize() || randomSeed != sketches.get(i).getSeed()) {
+                if (sParameter != 0 || kParameter != 0 || randomSeed != 0 || hashedMagicNumber != 0) {
+                    if (sParameter != sketches.get(i).getSParam() || kParameter != sketches.get(i).getKSize() || randomSeed != sketches.get(i).getSeed() || hashedMagicNumber != sketches.get(i).getHashedMagicNumber()) {
                         logger.severe("sketches have incompatible sketching parameters");
                         return;
                     }
@@ -72,6 +73,7 @@ public class DistanceCalculator {
                     sParameter = sketches.get(i).getSParam();
                     kParameter = sketches.get(i).getKSize();
                     randomSeed = sketches.get(i).getSeed();
+                    hashedMagicNumber = sketches.get(i).getHashedMagicNumber();
                 }
 
                 taxa.addTaxonByName(sketches.get(i).getName());
