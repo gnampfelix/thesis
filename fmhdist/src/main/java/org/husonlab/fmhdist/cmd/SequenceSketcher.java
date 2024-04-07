@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import org.husonlab.fmhdist.ncbi.Genome;
 import org.husonlab.fmhdist.sketch.GenomeSketch;
+import org.husonlab.fmhdist.util.FileProducer;
 import org.husonlab.fmhdist.util.KMerCoordinates;
 
 import com.google.common.hash.HashFunction;
@@ -56,12 +57,16 @@ public class SequenceSketcher {
             final ExecutorService executor = Executors
                     .newFixedThreadPool(ProgramExecutorService.getNumberOfCoresToUse());
 
+            FileProducer producer = new FileProducer();
+            final ExecutorService ioExecutor = Executors.newFixedThreadPool(1);
+            ioExecutor.submit(() -> {producer.run();});
+
             logger.info("Sketching sequences...");
             try {
                 sequencePaths.forEach(genome -> executor.submit(() -> {
                     if (exception.isNull()) {
                         try {
-                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, hashFunction, randomSeed, saveCoordinates);
+                            GenomeSketch sketch = GenomeSketch.sketch(producer, genome, kParameter, sParameter, hashFunction, randomSeed, saveCoordinates);
                             sketches.add(sketch);
                         } catch (Exception ex) {
                             logger.warning(ex.getMessage());
@@ -77,6 +82,7 @@ public class SequenceSketcher {
                 executor.awaitTermination(1000, TimeUnit.DAYS);
             }
 
+            producer.close();
             logger.info("Saving sketches...");
             for(GenomeSketch sketch : sketches) {
                 FileWriter writer = new FileWriter(Paths.get(output, String.format("%s.sketch", sketch.getGenome().getOrganismName())).toFile());
