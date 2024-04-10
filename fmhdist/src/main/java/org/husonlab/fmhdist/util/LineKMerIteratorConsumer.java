@@ -57,10 +57,12 @@ public class LineKMerIteratorConsumer implements KMerIterator {
     private boolean isEOF;
     private boolean isPreloaded;
 
+    private BufferedReader reader;
+
     private FileProducer producer;
     private FileConsumer consumer;
 
-    public LineKMerIteratorConsumer(int k, String fileName, FileProducer producer, boolean skipN) throws IOException {
+    public LineKMerIteratorConsumer(int k, String fileName, FileProducer producer, int threadIndex, boolean skipN) throws IOException {
         this.k = k;
         this.kmer = new byte[k];
         this.kmerReverseComplement = new byte[k];
@@ -76,10 +78,10 @@ public class LineKMerIteratorConsumer implements KMerIterator {
         this.linePointer = 0;
         this.producer = producer;
         
-        producer.registerFile(fileName);
-        do {
-            this.consumer = producer.getFileConsumer(fileName);
-        } while (this.consumer == null);
+        this.reader = new BufferedReader(new InputStreamReader(FileUtils.getInputStreamPossiblyZIPorGZIP(fileName)));
+        this.consumer = producer.getFileConsumer(threadIndex);
+        this.consumer.setReader(this.reader);
+        this.consumer.setReady(false);        
 
         String current;
         String next;
@@ -89,6 +91,7 @@ public class LineKMerIteratorConsumer implements KMerIterator {
         while(true) {
             if (this.consumer.isReady()) {
                 current = this.consumer.getLine();
+                this.consumer.setReady(false);  
                 break;
             }
         }
@@ -96,6 +99,7 @@ public class LineKMerIteratorConsumer implements KMerIterator {
         while(true) {
             if (this.consumer.isReady()) {
                 next = this.consumer.getLine();
+                this.consumer.setReady(false);  
                 break;
             }
         }
@@ -109,6 +113,8 @@ public class LineKMerIteratorConsumer implements KMerIterator {
 
         this.preload();
     }
+
+
 
     private boolean isSequenceChar() {
         return !isLineContainingSkippableChar[this.currentLine[linePointer]];
@@ -126,17 +132,16 @@ public class LineKMerIteratorConsumer implements KMerIterator {
         while (true) {
             if (this.consumer.isReady()) {
                 next = this.consumer.getLine();
+                if (next == null) {
+                    this.isEOF = true;
+                    // don't un-ready the reader now - we want to stay in control
+                    return;
+                } 
                 break;
-            }
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ignored){}
+            }     
         }
-
-        if (next == null) {
-            this.isEOF = true;
-            return;
-        } 
+                        
+        this.consumer.setReady(false);  
         this.nextLine = next.getBytes();
 
         // Peek at the first byte - do we start a new sequence?
@@ -148,19 +153,18 @@ public class LineKMerIteratorConsumer implements KMerIterator {
             while (true) {
                 if (this.consumer.isReady()) {
                     next = this.consumer.getLine();
+                    // only ready the consumer if we are sure that we want to read afterwards
+                    if (next == null) {
+                        throw new IOException("fasta file contains header without body");
+                    }
+                    if (this.currentLine[0] == '>') {
+                        throw new IOException("fasta file contains header without body");
+                    }
+                    this.consumer.setReady(false);  
                     break;
                 }
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException ignored){}
-            }
-            if (next == null) {
-                throw new IOException("fasta file contains header without body");
-            } 
-            this.nextLine = next.getBytes();
-            if (this.currentLine[0] == '>') {
-                throw new IOException("fasta file contains header without body");
-            }
+            }             
+            this.nextLine = next.getBytes();           
 
             this.preload();            
         }
@@ -249,7 +253,13 @@ public class LineKMerIteratorConsumer implements KMerIterator {
 
     @Override
     public void close() throws IOException {
-        this.producer.closeConsumer(this.consumer);
+        while (true) {
+            if (this.consumer.isReady()) {
+                // ensure that the producer is not trying to access the reader
+                this.reader.close();
+                return;
+            }
+        }
     }
 
     @Override

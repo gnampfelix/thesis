@@ -120,12 +120,9 @@ public class FracMinHashSketch {
         byte[] kMerUse;
         while (kmers.hasNext()) {
             byte[] next = kmers.next();
-            if (isNucleotides) {
-                if (SequenceUtils.compare(next, kmers.getReverseComplement()) > 0) {
-                    kMerUse = kmers.getReverseComplement();
-                } else {
-                    kMerUse = next;
-                }
+            
+            if (SequenceUtils.compare(next, kmers.getReverseComplement()) > 0) {
+                kMerUse = kmers.getReverseComplement();
             } else {
                 kMerUse = next;
             }

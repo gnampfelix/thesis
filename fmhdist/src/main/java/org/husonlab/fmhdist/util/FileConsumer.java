@@ -1,8 +1,12 @@
 package org.husonlab.fmhdist.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public interface FileConsumer {
     public boolean isReady();
+    public void setReady(boolean v);
     public String getLine() throws IOException;
+    public void setReader(BufferedReader reader);
 }

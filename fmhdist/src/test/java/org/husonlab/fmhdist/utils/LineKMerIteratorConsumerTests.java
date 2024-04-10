@@ -24,10 +24,10 @@ import org.junit.Test;
 public class LineKMerIteratorConsumerTests {
     @Test
     public void shouldIterateKmers() throws IOException {
-        FileProducer p = new FileProducer();
+        FileProducer p = new FileProducer(1);
         final ExecutorService executor = Executors.newFixedThreadPool(1);
         executor.submit(() -> {p.run();});
-        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWith1Seq.fasta", p, true)) {
+        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWith1Seq.fasta", p, 0, true)) {
 
             List<String>kmers = new ArrayList<>();
             while(km.hasNext()) {
@@ -440,10 +440,10 @@ public class LineKMerIteratorConsumerTests {
 
     @Test
     public void shouldIterateKmersInMultipleSequences() throws IOException {
-        FileProducer p = new FileProducer();
+        FileProducer p = new FileProducer(1);
         final ExecutorService executor = Executors.newFixedThreadPool(1);
         executor.submit(() -> {p.run();});
-        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWith2Seq.fasta", p, true)) {
+        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWith2Seq.fasta", p, 0, true)) {
             List<String>kmers = new ArrayList<>();
             while(km.hasNext()) {
                 kmers.add(new String(km.next()));
@@ -455,10 +455,10 @@ public class LineKMerIteratorConsumerTests {
 
     @Test
     public void shouldNotCreateKmers() throws IOException {
-        FileProducer p = new FileProducer();
+        FileProducer p = new FileProducer(1);
         final ExecutorService executor = Executors.newFixedThreadPool(1);
         executor.submit(() -> {p.run();});
-        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWithTwoShortSeq.fasta", p, true)) {
+        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWithTwoShortSeq.fasta", p, 0, true)) {
             assertThat(km.hasNext(), equalTo(false));
         }
         p.close();
@@ -466,10 +466,10 @@ public class LineKMerIteratorConsumerTests {
 
     @Test
     public void checkComplement() throws IOException {
-        FileProducer p = new FileProducer();
+        FileProducer p = new FileProducer(1);
         final ExecutorService executor = Executors.newFixedThreadPool(1);
         executor.submit(() -> {p.run();});
-        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWith1Seq.fasta", p, true)) {
+        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWith1Seq.fasta", p, 0, true)) {
             assertThat(km.hasNext(), equalTo(true));
             assertThat(new String(km.next()), equalTo("ACTCGTATGAACTTTGACTGG"));
             assertThat(new String(km.getReverseComplement()), equalTo("CCAGTCAAAGTTCATACGAGT"));
@@ -479,10 +479,10 @@ public class LineKMerIteratorConsumerTests {
 
     @Test
     public void checkDiscardAmbiguousChars() throws IOException {
-        FileProducer p = new FileProducer();
+        FileProducer p = new FileProducer(1);
         final ExecutorService executor = Executors.newFixedThreadPool(1);
         executor.submit(() -> {p.run();});
-        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWithAmbSeq.fasta", p, true)) {
+        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWithAmbSeq.fasta", p, 0, true)) {
             int i = 0;
             while(km.hasNext()) {
                 km.next();
