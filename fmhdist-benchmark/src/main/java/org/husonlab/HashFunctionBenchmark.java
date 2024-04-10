@@ -38,8 +38,7 @@ import jloda.thirdparty.MurmurHash;
 import net.jpountz.xxhash.XXHashFactory;
 import net.openhft.hashing.LongHashFunction;
 
-public class MyBenchmark {
-
+public class HashFunctionBenchmark {
     
     @Benchmark
     public void testMurmur3() {
