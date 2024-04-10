@@ -25,22 +25,7 @@ public class GenomeSketch {
         if (prepareCoordinates) {
             kmers = new LineKMerIteratorWithCoordinates(kSize, genome.getFastaUrl(), true);
         } else {
-            kmers = new InMemoryKMerIterator(kSize, genome.getFastaUrl(), true);
-        }
-        result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, true, sParam, hashFunction, seed, prepareCoordinates);
-        kmers.close();
-        return result;
-    }
-
-    public static GenomeSketch sketch(FileProducer producer, int threadIndex, Genome genome, int kSize, int sParam, LongHashFunction hashFunction, int seed, boolean prepareCoordinates) throws IOException {
-        logger.fine("Calculating sketch for " + genome.getAccession());
-        final GenomeSketch result = new GenomeSketch(genome);
-        
-        KMerIterator kmers;
-        if (prepareCoordinates) {
             kmers = new LineKMerIteratorWithCoordinates(kSize, genome.getFastaUrl(), true);
-        } else {
-            kmers = new LineKMerIteratorConsumer(kSize, genome.getFastaUrl(), producer, threadIndex, true);
         }
         result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, true, sParam, hashFunction, seed, prepareCoordinates);
         kmers.close();

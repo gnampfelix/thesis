@@ -57,17 +57,12 @@ public class SequenceSketcher {
             final ExecutorService executor = Executors
                     .newFixedThreadPool(ProgramExecutorService.getNumberOfCoresToUse());
 
-            FileProducer producer = new FileProducer(ProgramExecutorService.getNumberOfCoresToUse());
-            final ExecutorService ioExecutor = Executors.newFixedThreadPool(1);
-            ioExecutor.submit(() -> {producer.run();});
-
             logger.info("Sketching sequences...");
             try {
                 sequencePaths.forEach(genome -> executor.submit(() -> {
-                    int threadIndex = Integer.parseInt(Thread.currentThread().getName().split("-")[3])-1;
                     if (exception.isNull()) {
                         try {
-                            GenomeSketch sketch = GenomeSketch.sketch(producer, threadIndex, genome, kParameter, sParameter, hashFunction, randomSeed, saveCoordinates);
+                            GenomeSketch sketch = GenomeSketch.sketch(genome, kParameter, sParameter, hashFunction, randomSeed, saveCoordinates);
                             sketches.add(sketch);
                         } catch (Exception ex) {
                             logger.warning(ex.getMessage());
@@ -82,10 +77,6 @@ public class SequenceSketcher {
                 executor.shutdown();
                 executor.awaitTermination(1000, TimeUnit.DAYS);
             }
-
-            producer.close();
-            ioExecutor.shutdown();
-            ioExecutor.awaitTermination(10, TimeUnit.SECONDS);
 
             logger.info("Saving sketches...");
             for(GenomeSketch sketch : sketches) {
