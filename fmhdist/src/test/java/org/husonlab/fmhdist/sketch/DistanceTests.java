@@ -78,7 +78,6 @@ public class DistanceTests {
                 sketches.add(FracMinHashSketch.compute(
                     url,
                     kmers,
-                    true,
                     s,
                     LongHashFunction.farmUo(42),
                     42,

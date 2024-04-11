@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.husonlab.fmhdist.ncbi.Genome;
-import org.husonlab.fmhdist.util.FileProducer;
-import org.husonlab.fmhdist.util.InMemoryKMerIterator;
 import org.husonlab.fmhdist.util.KMerIterator;
-import org.husonlab.fmhdist.util.LineKMerIteratorConsumer;
 import org.husonlab.fmhdist.util.LineKMerIteratorWithCoordinates;
 
 import net.openhft.hashing.LongHashFunction;
@@ -27,7 +24,7 @@ public class GenomeSketch {
         } else {
             kmers = new LineKMerIteratorWithCoordinates(kSize, genome.getFastaUrl(), true);
         }
-        result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, true, sParam, hashFunction, seed, prepareCoordinates);
+        result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, sParam, hashFunction, seed, prepareCoordinates);
         kmers.close();
         return result;
     }

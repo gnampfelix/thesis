@@ -47,7 +47,7 @@ public class FracMinHashSketch {
 
     private List<KMerCoordinates> coordinates;
 
-    private FracMinHashSketch(int sParam, int kSize, String name, boolean isNucleotides, int seed) {
+    private FracMinHashSketch(int sParam, int kSize, String name, int seed) {
         this.sParam = sParam;
         this.kSize = kSize;
         this.name = name;
@@ -85,7 +85,6 @@ public class FracMinHashSketch {
     public static FracMinHashSketch compute(
         String name, 
         KMerIterator kmers,
-        boolean isNucleotides, 
         int sParam, 
         LongHashFunction hashFunction,
         int seed,
@@ -94,20 +93,19 @@ public class FracMinHashSketch {
         // Use swith on that level instead of inside the computation to remove
         // unnecessary runtime comparisons
         if (prepareCoordinates) {
-            return computeWithCoordinates(name, kmers, isNucleotides, sParam, hashFunction, seed);
+            return computeWithCoordinates(name, kmers, sParam, hashFunction, seed);
         }
-        return computeWithoutCoordinates(name, kmers, isNucleotides, sParam, hashFunction, seed);
+        return computeWithoutCoordinates(name, kmers, sParam, hashFunction, seed);
     }
 
     private static FracMinHashSketch computeWithoutCoordinates(
         String name, 
         KMerIterator kmers,
-        boolean isNucleotides, 
         int sParam,
         LongHashFunction hashFunction,
         int seed
     ) {
-        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, isNucleotides, seed);
+        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, seed);
         final TreeSet<Long> sortedSet = new TreeSet<>();
         
         // Irber et al define the hash function as h: o -> [0, H]. However, in
@@ -146,12 +144,11 @@ public class FracMinHashSketch {
     private static FracMinHashSketch computeWithCoordinates(
         String name, 
         KMerIterator kmers,
-        boolean isNucleotides, 
         int sParam,
         LongHashFunction hashFunction,
         int seed
         ) {
-        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, isNucleotides, seed);
+        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kmers.getK(), name, seed);
             
         final TreeSet<Long> sortedSet = new TreeSet<>();
 
@@ -165,15 +162,12 @@ public class FracMinHashSketch {
         byte[] kMerUse;
         while (kmers.hasNext()) {
             byte[] next = kmers.next();
-            if (isNucleotides) {
-                if (SequenceUtils.compare(next, kmers.getReverseComplement()) > 0) {
-                    kMerUse = kmers.getReverseComplement();
-                } else {
-                    kMerUse = next;
-                }
+            if (SequenceUtils.compare(next, kmers.getReverseComplement()) > 0) {
+                kMerUse = kmers.getReverseComplement();
             } else {
                 kMerUse = next;
             }
+            
 
             final long hash = hashFunction.hashBytes(kMerUse);
 
@@ -297,7 +291,7 @@ public class FracMinHashSketch {
         int seed = buffer.readIntLittleEndian();
         int sketchSize = buffer.readIntLittleEndian();
 
-        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kMerSize, "", true, seed);
+        final FracMinHashSketch sketch = new FracMinHashSketch(sParam, kMerSize, "", seed);
         sketch.hashValues = new long[sketchSize];
         sketch.hashedMagicNumber = hashedMagicNumber;
         for (int i = 0; i < sketchSize; i++) {

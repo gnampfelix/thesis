@@ -59,7 +59,7 @@ public class FracMinHashSketchTests {
     @Test
     public void shouldCalculateFracMinSketch() throws IOException {
         try (FastKMerIterator kmers = new FastKMerIterator(21, "src/test/resources/virus1.fasta", true)) {
-			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, true, 10, LongHashFunction.murmur_3(42), 42, true);
+			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, 10, LongHashFunction.murmur_3(42), 42, true);
             
             // the test file contains the kmer "GAACTTTGACTGGTTTTTGGG". For
             // this, the reverse complement is "CCCAAAAACCAGTCAAAGTTC", which
@@ -85,8 +85,8 @@ public class FracMinHashSketchTests {
     public void differentHashingFunctionsShouldGenerateIncompatibleSerializations() throws IOException{
         KMerIterator it1 = new TestKMerIterator();
         KMerIterator it2 = new TestKMerIterator();
-        byte[] string1 = FracMinHashSketch.compute("Test", it1, true, 1, LongHashFunction.farmNa(42), 42, false).getBytes();
-        byte[] string2 = FracMinHashSketch.compute("Test", it2, true, 1, LongHashFunction.murmur_3(42), 42, false).getBytes();
+        byte[] string1 = FracMinHashSketch.compute("Test", it1, 1, LongHashFunction.farmNa(42), 42, false).getBytes();
+        byte[] string2 = FracMinHashSketch.compute("Test", it2, 1, LongHashFunction.murmur_3(42), 42, false).getBytes();
 
         FracMinHashSketch sketch1 = FracMinHashSketch.parse(string1);
         FracMinHashSketch sketch2 = FracMinHashSketch.parse(string2);
@@ -98,8 +98,8 @@ public class FracMinHashSketchTests {
     public void sametHashingFunctionsShouldGenerateCompatibleSerializations() throws IOException{
         KMerIterator it1 = new TestKMerIterator();
         KMerIterator it2 = new TestKMerIterator();
-        byte[] string1 = FracMinHashSketch.compute("Test", it1, true, 1, LongHashFunction.farmNa(42), 42, false).getBytes();
-        byte[] string2 = FracMinHashSketch.compute("Test", it2, true, 1, LongHashFunction.farmNa(42), 42, false).getBytes();
+        byte[] string1 = FracMinHashSketch.compute("Test", it1, 1, LongHashFunction.farmNa(42), 42, false).getBytes();
+        byte[] string2 = FracMinHashSketch.compute("Test", it2, 1, LongHashFunction.farmNa(42), 42, false).getBytes();
 
         FracMinHashSketch sketch1 = FracMinHashSketch.parse(string1);
         FracMinHashSketch sketch2 = FracMinHashSketch.parse(string2);
@@ -121,7 +121,6 @@ public class FracMinHashSketchTests {
             FracMinHashSketch.compute(
                 "test",
                 kmers,
-                true,
                 s,
                 LongHashFunction.farmUo(42),
                 42,
@@ -141,7 +140,7 @@ public class FracMinHashSketchTests {
         long initialHeap = Runtime.getRuntime().totalMemory();
         long start = System.currentTimeMillis();
         try (FastKMerIterator kmers = new FastKMerIterator(21, url, true)) {
-			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, true, 1000, LongHashFunction.farmUo(42), 42, true);
+			FracMinHashSketch sketch = FracMinHashSketch.compute("test", kmers, 1000, LongHashFunction.farmUo(42), 42, true);
             long finalHeap = Runtime.getRuntime().totalMemory();
             long end = System.currentTimeMillis();
             System.out.println(String.format("sketch size: %d", sketch.getValues().length));
