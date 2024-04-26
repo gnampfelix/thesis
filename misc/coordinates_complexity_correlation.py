@@ -305,10 +305,15 @@ def main():
     r=np.corrcoef(x, y, rowvar=True)
 
     observations = create_hash2comp_observations(hash_density_complexity_list, args.window_size, args.scaling, args.density_range)
-    chi2_result = sc.stats.chi2_contingency(observations)
-
+    if(len(np.flatnonzero(observations)) == len(observations.flatten())):
+        chi2_result = sc.stats.chi2_contingency(observations)
+    else:
+        chi2_result = None
     unexpected_density_complexities, expected_density_complexities = split(hash_density_complexity_list, args.window_size, args.scaling, args.density_range)
-    mannwhitneyu_results = sc.stats.mannwhitneyu(unexpected_density_complexities, expected_density_complexities)
+    if len(unexpected_density_complexities) > 0 and len(expected_density_complexities) > 0:
+        mannwhitneyu_results = sc.stats.mannwhitneyu(unexpected_density_complexities, expected_density_complexities)
+    else:
+        mannwhitneyu_results = None
     
     print()
     print("Statistics for hash count vs complexity of window")
@@ -320,8 +325,15 @@ def main():
     
     print(f"windows are {overlapping_string()}overlapping")
     print(f"correlation of window density vs complexity r={r[0][1]}")
-    print(f"χ2({chi2_result.dof}, N={np.sum(observations)})={chi2_result.statistic}, p={chi2_result.pvalue}")
-    print(f"Mann-Whitney-Test: z={mannwhitneyu_results.statistic}, p={mannwhitneyu_results.pvalue}")
+    if chi2_result == None:
+        print("at least one observation was empty, no χ2 performed")
+    else:
+        print(f"χ2({chi2_result.dof}, N={np.sum(observations)})={chi2_result.statistic}, p={chi2_result.pvalue}")
+
+    if mannwhitneyu_results == None:
+        print("at least one observation was empty, no Mann-Whitney-Test performed")
+    else:
+        print(f"Mann-Whitney-Test: z={mannwhitneyu_results.statistic}, p={mannwhitneyu_results.pvalue}")
 
     plt.scatter(x, y, s=0.1)
     plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
@@ -329,32 +341,46 @@ def main():
     plt.show()
 
     # Hash Density to Effector density analysis
+    if args.annotations:
+        x = [x_i for x_i, _ in hash_density_effector_density_list]
+        y = [y_i for _, y_i in hash_density_effector_density_list]
+        r=np.corrcoef(x, y, rowvar=True)
 
-    x = [x_i for x_i, _ in hash_density_effector_density_list]
-    y = [y_i for _, y_i in hash_density_effector_density_list]
-    r=np.corrcoef(x, y, rowvar=True)
+        observations = create_hash2effector_observations(hash_density_effector_density_list, args.window_size, args.scaling, args.density_range)
+        if(len(np.flatnonzero(observations)) == len(observations.flatten())):
+            chi2_result = sc.stats.chi2_contingency(observations)
+        else:
+            chi2_result = None
+        
+        chi2_result = sc.stats.chi2_contingency(observations)
 
-    observations = create_hash2effector_observations(hash_density_effector_density_list, args.window_size, args.scaling, args.density_range)
-    chi2_result = sc.stats.chi2_contingency(observations)
+        unexpected_density_effectors, expected_density_effectors = split(hash_density_effector_density_list, args.window_size, args.scaling, args.density_range)
+        if len(unexpected_density_effectors) > 0 and len(expected_density_effectors) > 0: 
+            mannwhitneyu_results = sc.stats.mannwhitneyu(unexpected_density_effectors, expected_density_effectors)
+        else:
+            mannwhitneyu_results = None
+        
+        print()
+        print("Statistics for hash count vs effector gene count")
+        print(f"Number of windows analyzed: {len(hash_density_complexity_list)}")
+        def overlapping_string():
+            if not args.overlap:
+                return "not "
+            return ""
+        
+        print(f"windows are {overlapping_string()}overlapping")
+        print(f"correlation of window density vs effector count r={r[0][1]}")
+        if chi2_result == None:
+            print("at least one observation was empty, no χ2 performed")
+        else:
+            print(f"χ2({chi2_result.dof}, N={np.sum(observations)})={chi2_result.statistic}, p={chi2_result.pvalue}")
+        if mannwhitneyu_results == None:
+            print("at least one observation was empty, no Mann-Whitney-Test performed")
+        else:
+            print(f"Mann-Whitney-Test: z={mannwhitneyu_results.statistic}, p={mannwhitneyu_results.pvalue}")
 
-    unexpected_density_effectors, expected_density_effectors = split(hash_density_effector_density_list, args.window_size, args.scaling, args.density_range)
-    mannwhitneyu_results = sc.stats.mannwhitneyu(unexpected_density_effectors, expected_density_effectors)
-    
-    print()
-    print("Statistics for hash count vs effector gene count")
-    print(f"Number of windows analyzed: {len(hash_density_complexity_list)}")
-    def overlapping_string():
-        if not args.overlap:
-            return "not "
-        return ""
-    
-    print(f"windows are {overlapping_string()}overlapping")
-    print(f"correlation of window density vs effector count r={r[0][1]}")
-    print(f"χ2({chi2_result.dof}, N={np.sum(observations)})={chi2_result.statistic}, p={chi2_result.pvalue}")
-    print(f"Mann-Whitney-Test: z={mannwhitneyu_results.statistic}, p={mannwhitneyu_results.pvalue}")
-
-    plt.scatter(x, y, s=0.1)
-    plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
-    plt.ylabel(f"effector genes in window with size $w={macle_window_size}$")          
-    plt.show()
+        plt.scatter(x, y, s=0.1)
+        plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
+        plt.ylabel(f"effector genes in window with size $w={macle_window_size}$")          
+        plt.show()
 main()
