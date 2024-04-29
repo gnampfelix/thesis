@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.husonlab.fmhdist.util.FastKMerIterator;
+import org.husonlab.fmhdist.util.experimental.FastKMerIterator;
 import org.junit.Ignore;
 import org.junit.Test;
 

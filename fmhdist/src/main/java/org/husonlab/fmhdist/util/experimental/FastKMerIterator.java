@@ -1,8 +1,11 @@
-package org.husonlab.fmhdist.util;
+package org.husonlab.fmhdist.util.experimental;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.husonlab.fmhdist.util.KMerCoordinates;
+import org.husonlab.fmhdist.util.KMerIterator;
 
 import jloda.util.FileUtils;
 

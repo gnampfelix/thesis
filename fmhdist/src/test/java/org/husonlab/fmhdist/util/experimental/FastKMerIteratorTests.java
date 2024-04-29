@@ -1,4 +1,4 @@
-package org.husonlab.fmhdist.utils;
+package org.husonlab.fmhdist.util.experimental;
 
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.husonlab.fmhdist.util.FastKMerIterator;
 import org.junit.Test;
 
 

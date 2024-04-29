@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 
 import org.husonlab.fmhdist.ncbi.Genome;
 import org.husonlab.fmhdist.util.KMerIterator;
-import org.husonlab.fmhdist.util.LineKMerIteratorWithCoordinates;
+import org.husonlab.fmhdist.util.LineKMerIterator;
 
 import net.openhft.hashing.LongHashFunction;
 
@@ -19,7 +19,7 @@ public class GenomeSketch {
         final GenomeSketch result = new GenomeSketch(genome);
         
         KMerIterator kmers;
-        kmers = new LineKMerIteratorWithCoordinates(kSize, genome.getFastaUrl(), true);
+        kmers = new LineKMerIterator(kSize, genome.getFastaUrl(), true);
         result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, sParam, hashFunction, seed, prepareCoordinates);
         kmers.close();
         return result;

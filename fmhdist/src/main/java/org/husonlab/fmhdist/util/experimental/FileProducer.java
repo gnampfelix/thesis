@@ -1,4 +1,4 @@
-package org.husonlab.fmhdist.util;
+package org.husonlab.fmhdist.util.experimental;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -72,7 +72,7 @@ public class FileProducer {
         }
 	}
 
-	FileConsumer getFileConsumer(int threadIndex) throws IOException {
+	public FileConsumer getFileConsumer(int threadIndex) throws IOException {
 		return this.consumers[threadIndex];
 	}
 

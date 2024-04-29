@@ -58,6 +58,30 @@ public class LineKMerIterator implements KMerIterator {
     private boolean isPreloaded;
     private BufferedReader reader;
 
+        // Indices to keep track of the origin of the _current_ k-mer. The values
+    // will always be copied from the preloaded variants (see below). The values
+    // will be fed into the KMerCoordinates if the corresponding method
+    // getCoordinates() is called. The separation enables to prepare the next
+    // k-mer during a call to "next()" while still be able to load details of
+    // the current kmer that is returned by the same call to next().
+    private int recordIndexInFile = 0;
+    private int skippedKmersInRecord = 0;
+    private int sequenceIndexInRecord = 0;
+    // Assumption: we call "getCoordinates()" usually less often than "next()",
+    // so we save some time
+    private int sequencesBeforeRecord = 0;
+    private int skippedBeforeRecord = 0;
+
+    // Indices to keep track of the origin of the _next_ k-mer. Those values
+    // will actually be incremented as the stream is processed.Those will be
+    // written to the current indices during the next call to next().
+    private int preloadedRecordIndexInFile = -1;
+    private int preloadedSkippedKmersInRecord = 0;
+    private int preloadedSequenceIndexInRecord = 0;
+
+    private int preloadedSequencesBeforeRecord = 0;
+    private int preloadedSkippedBeforeRecord = 0;
+
     public LineKMerIterator(int k, BufferedReader reader, boolean skipN) throws IOException {
         this.k = k;
         this.kmer = new byte[k];
@@ -87,6 +111,29 @@ public class LineKMerIterator implements KMerIterator {
 
     public LineKMerIterator(int k, String fileName, boolean skipN) throws IOException {
        this(k, new BufferedReader(new InputStreamReader(FileUtils.getInputStreamPossiblyZIPorGZIP(fileName))), skipN);
+    }
+
+    private void handleSequenceStart() {
+        this.preloadedSkippedBeforeRecord += this.preloadedSkippedKmersInRecord;
+        this.preloadedSequencesBeforeRecord += this.preloadedSequenceIndexInRecord;
+
+        this.preloadedRecordIndexInFile++;
+        this.preloadedSequenceIndexInRecord = 0;
+        this.preloadedSkippedKmersInRecord = 0;
+    }
+
+    /**
+     * This updates all indices such that they equal the preloaded ones.
+     */
+    private void copyIndices() {
+        this.sequenceIndexInRecord = this.preloadedSequenceIndexInRecord;
+        this.skippedKmersInRecord = this.preloadedSkippedKmersInRecord;
+        // TODO: maybe only do when recordIndexInFile changes?
+        if (this.recordIndexInFile != this.preloadedRecordIndexInFile) {
+            this.skippedBeforeRecord = this.preloadedSkippedBeforeRecord;
+            this.sequencesBeforeRecord = this.preloadedSequencesBeforeRecord;
+            this.recordIndexInFile = this.preloadedRecordIndexInFile;
+        }
     }
 
     private boolean isSequenceChar() {
@@ -122,6 +169,7 @@ public class LineKMerIterator implements KMerIterator {
                 throw new IOException("fasta file contains header without body");
             }
 
+            this.handleSequenceStart();
             this.preload();            
         }
     }
@@ -139,6 +187,7 @@ public class LineKMerIterator implements KMerIterator {
             while(i < this.k - 1 && this.hasNext()) {
                 if(isSequenceChar()) {
                     if (isAmbiguousChar[this.currentLine[linePointer]]) {
+                        this.preloadedSkippedKmersInRecord += i + 1;
                         i = 0;
                         this.moveCursor();
                         continue;
@@ -149,6 +198,7 @@ public class LineKMerIterator implements KMerIterator {
                     i++;
                 } else {
                     // no need to check header start explicitely - if NOT a valid sequence character, will skip the current line.
+                    this.handleSequenceStart();
                     this.feedLine();
                     i = 0;
                 }
@@ -159,10 +209,12 @@ public class LineKMerIterator implements KMerIterator {
                     if (!isAmbiguousChar[this.currentLine[linePointer]]) {
                         return;
                     } else {
+                        this.preloadedSkippedKmersInRecord += i + 1;
                         this.moveCursor();
                         i = 0;
                     }
                 } else {
+                    this.handleSequenceStart();
                     this.feedLine();
                     i = 0;
                 }
@@ -187,7 +239,9 @@ public class LineKMerIterator implements KMerIterator {
         }
         this.kmer[this.k-1] = toUpperTable[this.currentLine[linePointer]];
         this.kmerReverseComplement[0] = toUpperTable[complementTable[this.currentLine[linePointer]]];
+        this.copyIndices();
         try {
+            this.preloadedSequenceIndexInRecord++;
             this.moveCursor();
             if (this.hasNext()) {
                 // We only need to check if the next character is ambiguous: if
@@ -195,6 +249,7 @@ public class LineKMerIterator implements KMerIterator {
                 // already handled implicitely in the this.moveCursor() -->
                 // this.feedLine() chain.
                 if (isAmbiguousChar[this.currentLine[this.linePointer]]) {
+                    this.preloadedSkippedKmersInRecord += this.k;
                     this.moveCursor();
                     this.isPreloaded = true; // avoid preload in feedLine
                     this.preload();
@@ -222,12 +277,16 @@ public class LineKMerIterator implements KMerIterator {
         return this.kmerReverseComplement;
     }
 
-    /**
-     * Won't return actual coordinates, maybe I can split the interface?
-     */
     @Override
     public KMerCoordinates getCoordinates() {
-        return new KMerCoordinates(0, 0, 0, 0, 0, this.kmer);
+        return new KMerCoordinates(
+            this.recordIndexInFile, 
+            this.sequenceIndexInRecord + this.sequencesBeforeRecord, 
+            this.sequenceIndexInRecord,
+            this.sequenceIndexInRecord + this.sequencesBeforeRecord + this.skippedKmersInRecord + this.skippedBeforeRecord,
+            this.sequenceIndexInRecord + this.skippedKmersInRecord, 
+            this.kmer
+        );
     }
     
 }

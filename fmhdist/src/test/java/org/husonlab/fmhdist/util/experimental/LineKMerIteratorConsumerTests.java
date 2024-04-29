@@ -1,4 +1,4 @@
-package org.husonlab.fmhdist.utils;
+package org.husonlab.fmhdist.util.experimental;
 
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -9,17 +9,22 @@ import static org.hamcrest.Matchers.hasSize;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import org.husonlab.fmhdist.util.InMemoryKMerIterator;
 import org.husonlab.fmhdist.util.KMerIterator;
 import org.junit.Ignore;
 import org.junit.Test;
 
 
-public class InMemoryKMerIteratorTests {
+
+public class LineKMerIteratorConsumerTests {
     @Test
     public void shouldIterateKmers() throws IOException {
-        try(KMerIterator km = new InMemoryKMerIterator(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
+        FileProducer p = new FileProducer(1);
+        final ExecutorService executor = Executors.newFixedThreadPool(1);
+        executor.submit(() -> {p.run();});
+        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWith1Seq.fasta", p, 0, true)) {
 
             List<String>kmers = new ArrayList<>();
             while(km.hasNext()) {
@@ -427,38 +432,54 @@ public class InMemoryKMerIteratorTests {
             "TCGCTCGTTAGGAAAGACATA", 
             "CGCTCGTTAGGAAAGACATAA"));
         }
+        p.close();
     }
 
     @Test
     public void shouldIterateKmersInMultipleSequences() throws IOException {
-        try(KMerIterator km = new InMemoryKMerIterator(21, "src/test/resources/fastaWith2Seq.fasta", true)) {
+        FileProducer p = new FileProducer(1);
+        final ExecutorService executor = Executors.newFixedThreadPool(1);
+        executor.submit(() -> {p.run();});
+        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWith2Seq.fasta", p, 0, true)) {
             List<String>kmers = new ArrayList<>();
             while(km.hasNext()) {
                 kmers.add(new String(km.next()));
             }
             assertThat(kmers, hasSize(800)); //both sequences are iterated independently, there is no k-mer spanning seq1 and seq2
         }
+        p.close();
     }
 
     @Test
     public void shouldNotCreateKmers() throws IOException {
-        try(KMerIterator km = new InMemoryKMerIterator(21, "src/test/resources/fastaWithTwoShortSeq.fasta", true)) {
+        FileProducer p = new FileProducer(1);
+        final ExecutorService executor = Executors.newFixedThreadPool(1);
+        executor.submit(() -> {p.run();});
+        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWithTwoShortSeq.fasta", p, 0, true)) {
             assertThat(km.hasNext(), equalTo(false));
         }
+        p.close();
     }
 
     @Test
     public void checkComplement() throws IOException {
-        try(KMerIterator km = new InMemoryKMerIterator(21, "src/test/resources/fastaWith1Seq.fasta", true)) {
+        FileProducer p = new FileProducer(1);
+        final ExecutorService executor = Executors.newFixedThreadPool(1);
+        executor.submit(() -> {p.run();});
+        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWith1Seq.fasta", p, 0, true)) {
             assertThat(km.hasNext(), equalTo(true));
             assertThat(new String(km.next()), equalTo("ACTCGTATGAACTTTGACTGG"));
             assertThat(new String(km.getReverseComplement()), equalTo("CCAGTCAAAGTTCATACGAGT"));
         }
+        p.close();
     }
 
     @Test
     public void checkDiscardAmbiguousChars() throws IOException {
-        try(KMerIterator km = new InMemoryKMerIterator(21, "src/test/resources/fastaWithAmbSeq.fasta", true)) {
+        FileProducer p = new FileProducer(1);
+        final ExecutorService executor = Executors.newFixedThreadPool(1);
+        executor.submit(() -> {p.run();});
+        try(KMerIterator km = new LineKMerIteratorConsumer(21, "src/test/resources/fastaWithAmbSeq.fasta", p, 0, true)) {
             int i = 0;
             while(km.hasNext()) {
                 km.next();
@@ -466,6 +487,7 @@ public class InMemoryKMerIteratorTests {
             }
             assertThat(i, equalTo((70*6) - 21 + 1 - 21));
         }
+        p.close();
     }
 
     @Test

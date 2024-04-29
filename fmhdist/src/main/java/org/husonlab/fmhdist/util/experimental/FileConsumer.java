@@ -1,4 +1,4 @@
-package org.husonlab.fmhdist.util;
+package org.husonlab.fmhdist.util.experimental;
 
 import java.io.BufferedReader;
 import java.io.IOException;

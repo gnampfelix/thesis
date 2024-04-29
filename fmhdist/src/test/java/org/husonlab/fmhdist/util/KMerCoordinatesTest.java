@@ -1,9 +1,8 @@
-package org.husonlab.fmhdist.utils;
+package org.husonlab.fmhdist.util;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 
-import org.husonlab.fmhdist.util.KMerCoordinates;
 import org.junit.Test;
 
 public class KMerCoordinatesTest {
