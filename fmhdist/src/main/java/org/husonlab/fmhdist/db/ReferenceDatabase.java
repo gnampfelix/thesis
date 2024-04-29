@@ -18,6 +18,7 @@ import org.husonlab.fmhdist.ncbi.TaxonomyTree;
 import org.husonlab.fmhdist.sketch.FracMinHashSketch;
 import org.husonlab.fmhdist.sketch.GenomeSketch;
 import org.sqlite.SQLiteConfig;
+import org.sqlite.SQLiteException;
 
 import jloda.thirdparty.HexUtils;
 
@@ -38,7 +39,7 @@ public class ReferenceDatabase implements Closeable{
         return result;
     }
 
-    public static ReferenceDatabase open(String path) throws SQLException {
+    public static ReferenceDatabase open(String path) throws SQLException, SQLiteException {
         SQLiteConfig config = new SQLiteConfig();
         ReferenceDatabase result = new ReferenceDatabase();
         result.connection = config.createConnection("jdbc:sqlite:"+path);

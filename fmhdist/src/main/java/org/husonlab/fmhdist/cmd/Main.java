@@ -55,7 +55,8 @@ public class Main {
             "-db", 
             "database",
             String.format(
-                "Path to reference database file (input for %s command)",
+                "Path to reference database file (input for %s command). Can be either a "+
+                "SQLite DB or a CSV (see --input param for more details)",
                 COMPARE_REF_SKETCH_COMMAND
             ),
             "database.db");
