@@ -19,11 +19,7 @@ public class GenomeSketch {
         final GenomeSketch result = new GenomeSketch(genome);
         
         KMerIterator kmers;
-        if (prepareCoordinates) {
-            kmers = new LineKMerIteratorWithCoordinates(kSize, genome.getFastaUrl(), true);
-        } else {
-            kmers = new LineKMerIteratorWithCoordinates(kSize, genome.getFastaUrl(), true);
-        }
+        kmers = new LineKMerIteratorWithCoordinates(kSize, genome.getFastaUrl(), true);
         result.sketch = FracMinHashSketch.compute(genome.getAccession(), kmers, sParam, hashFunction, seed, prepareCoordinates);
         kmers.close();
         return result;

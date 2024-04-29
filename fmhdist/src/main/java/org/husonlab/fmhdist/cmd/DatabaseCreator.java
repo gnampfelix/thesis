@@ -26,15 +26,16 @@ public class DatabaseCreator {
 
     public void run(
             String input,
-            String database,
+            String output,
             int kParameter,
             int sParameter,
             LongHashFunction hashFunction,
+            String hashFunctionName,
             int randomSeed) {
         Logger logger = Logger.getLogger(DatabaseCreator.class.getName());
 
-        if ((new File(database)).exists()) {
-            (new File(database)).delete();
+        if ((new File(output)).exists()) {
+            (new File(output)).delete();
         }
 
         try {
@@ -43,9 +44,13 @@ public class DatabaseCreator {
                     .collect(Collectors.toList());
             it.close();
 
+            logger.info("Preparing genomes...");
             List<Genome> genomes = api.getGenomes(accessionCodes);
+
+            logger.info("Preparing taxonomy tree...");
             TaxonomyTree tree = api.getTaxonomyTreeForGenomes(genomes);
 
+            logger.info("Sketching sequences...");
             Queue<GenomeSketch> sketches = new ConcurrentLinkedQueue<>();
             final Single<Throwable> exception = new Single<>();
             final ExecutorService executor = Executors
@@ -77,10 +82,11 @@ public class DatabaseCreator {
                 executor.awaitTermination(1000, TimeUnit.DAYS);
             }
 
-            ReferenceDatabase db = ReferenceDatabase.create(database);
+            logger.info("Exporting database...");
+            ReferenceDatabase db = ReferenceDatabase.create(output);
             db.insertTaxonomy(tree);
             db.insertSketches(sketches);
-            db.insertInfo(kParameter, sParameter, randomSeed);
+            db.insertFullInfo(kParameter, sParameter, randomSeed, hashFunctionName);
             db.close();
         } catch (Exception e) {
             System.out.println("well, f****");

@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -50,7 +51,7 @@ public class ReferenceDatabase implements Closeable{
     }
 
     public Collection<GenomeSketch> getSketches() throws SQLException, IOException {
-        this.logger.info("Getting genomes and sketches from DB...");
+        this.logger.fine("Getting genomes and sketches from DB...");
         Collection<GenomeSketch> result = new ArrayList<>();
         PreparedStatement view_statement = this.connection.prepareStatement("SELECT b.genome_size as genome_size, a.frac_min_hash_sketch as sketch, a.taxon_id as taxon_id, b.genome_accession, b.fasta_url, c.taxon_name FROM frac_min_hash_sketches as a JOIN genomes as b ON a.taxon_id = b.taxon_id JOIN taxa as c ON a.taxon_id = c.taxon_id;");
         ResultSet rs = view_statement.executeQuery();
@@ -67,12 +68,12 @@ public class ReferenceDatabase implements Closeable{
             result.add(new GenomeSketch(currentGenome, sketch));
         }
 
-        this.logger.info("Finished getting genomes and sketches from DB!");
+        this.logger.fine("Finished getting genomes and sketches from DB!");
         return result;
     }
 
     public void insertSketches(Collection<GenomeSketch> sketches) throws SQLException {
-        this.logger.info("Inserting genomes and sketches in DB...");
+        this.logger.fine("Inserting genomes and sketches in DB...");
         PreparedStatement genome_statement = this.connection.prepareStatement("INSERT INTO genomes (taxon_id, genome_accession, genome_size, fasta_url) VALUES (?, ?, ?, ?);");
         PreparedStatement sketch_statement = this.connection.prepareStatement("INSERT INTO frac_min_hash_sketches (taxon_id, frac_min_hash_sketch) VALUES (?, ?);");
         PreparedStatement check_unique_statement = this.connection.prepareStatement("SELECT 1 FROM genomes WHERE taxon_id = ?");
@@ -81,7 +82,7 @@ public class ReferenceDatabase implements Closeable{
             check_unique_statement.setInt(1, g.getGenome().getTaxonId());
             ResultSet rs = check_unique_statement.executeQuery();
             if (rs.next()) {
-                this.logger.warning(String.format("multiple accession codes for taxon %d found", g.getGenome().getTaxonId()));
+                this.logger.fine(String.format("multiple accession codes for taxon %d found. Skipping...", g.getGenome().getTaxonId()));
                 continue;
             }
 
@@ -95,11 +96,11 @@ public class ReferenceDatabase implements Closeable{
             sketch_statement.setString(2, HexUtils.encodeHexString(g.getSketch().getBytes()));
             sketch_statement.executeUpdate();
         }
-        this.logger.info("Finished inserting genome sketches in DB!");
+        this.logger.fine("Finished inserting genome sketches in DB!");
     }
 
     public void insertTaxonomy(TaxonomyTree taxonomy) throws SQLException {
-        this.logger.info("Inserting taxa in DB...");
+        this.logger.fine("Inserting taxa in DB...");
         PreparedStatement s = this.connection.prepareStatement("INSERT INTO taxa (taxon_id, taxon_name, taxon_display_name, parent_id) VALUES (?, ?, ?, ?)");
         for (Taxon t : taxonomy.getTaxa().values()) {
             s.setInt(1, t.getTaxonId());
@@ -114,11 +115,11 @@ public class ReferenceDatabase implements Closeable{
             s.setInt(4, parent);
             s.executeUpdate();
         }
-        this.logger.info("Finished inserting taxa in DB!");
+        this.logger.fine("Finished inserting taxa in DB!");
     }
 
-    public void insertInfo(int kSize, int sParam, int seed) throws SQLException{
-        this.logger.info("Inserting sketch creation info...");
+    public void insertFullInfo(int kSize, int sParam, int seed, String hashFunction) throws SQLException{
+        this.logger.fine("Inserting sketch creation info...");
         PreparedStatement s = this.connection.prepareStatement("INSERT INTO info (key, value) VALUES (?, ?);");
         int[] values = new int[]{kSize, sParam, seed};
         String[] keys = new String[]{"sketch_k", "sketch_s", "sketch_seed"};
@@ -127,10 +128,13 @@ public class ReferenceDatabase implements Closeable{
             s.setInt(2, values[i]);
             s.executeUpdate();
         }
+        s.setString(1, "hash_function");
+        s.setString(2, hashFunction);
+        s.executeUpdate();
     }
 
-    public Map<String, Integer> getInfo() throws SQLException {
-        this.logger.info("Fetching sketch creation info from DB...");
+    public Map<String, Integer> getNumericalInfo() throws SQLException {
+        this.logger.fine("Fetching sketch creation info from DB...");
         Map<String, Integer> result = new HashMap<>();
         PreparedStatement s = this.connection.prepareStatement("SELECT key, value FROM info;");
         ResultSet rs = s.executeQuery();
@@ -138,6 +142,17 @@ public class ReferenceDatabase implements Closeable{
             result.put(rs.getString("key"), rs.getInt("value"));
         }
         return result;        
+    }
+
+    public String getUsedHashFunction() throws SQLException {
+        this.logger.fine("Fetching used hash function from DB...");
+        PreparedStatement s = this.connection.prepareStatement("SELECT value FROM info WHERE key=?");
+        s.setString(1, "hash_function");
+        ResultSet rs = s.executeQuery();
+        while(rs.next()) {
+            return rs.getString("value");
+        }
+        return "";
     }
 
     @Override

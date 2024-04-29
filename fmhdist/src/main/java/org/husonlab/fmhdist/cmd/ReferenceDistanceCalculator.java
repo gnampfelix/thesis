@@ -18,6 +18,7 @@ import org.husonlab.fmhdist.sketch.Distance;
 import org.husonlab.fmhdist.sketch.FracMinHashSketch;
 import org.husonlab.fmhdist.sketch.GenomeSketch;
 import org.husonlab.fmhdist.sketch.IncompatibleParameterException;
+import org.husonlab.fmhdist.util.HashFunctionParser;
 
 import jloda.thirdparty.HexUtils;
 import jloda.util.FileLineIterator;
@@ -29,13 +30,13 @@ public class ReferenceDistanceCalculator {
 
     private FracMinHashSketch lineToSketch(String line){        
         try {
-            String[] comp = line.replaceAll("\\s+", "").split(",");
-            byte[] content = Files.readAllBytes(Paths.get(comp[0]));
+            String[] splitLine = line.replaceAll("\\s+", "").split(",");
+            byte[] content = Files.readAllBytes(Paths.get(splitLine[0]));
             FracMinHashSketch result = FracMinHashSketch.parse(HexUtils.decodeHexString(new String(content)));
-            if(comp.length > 1) {
-                result.setName(comp[1]);
+            if(splitLine.length > 1) {
+                result.setName(splitLine[1]);
             } else {
-                result.setName(comp[0]);
+                result.setName(splitLine[0]);
             }
             return result; 
         } catch (IOException e) {
@@ -53,20 +54,27 @@ public class ReferenceDistanceCalculator {
         try {
             logger.info("Loading reference DB!");
             ReferenceDatabase db = ReferenceDatabase.open(database);
-            Map<String, Integer> info = db.getInfo();
+            Map<String, Integer> info = db.getNumericalInfo();
+            String hashFunctionName = db.getUsedHashFunction();
             Collection<GenomeSketch> refSketches = db.getSketches();
             db.close();
 
             if (!info.containsKey("sketch_k") ||
                     !info.containsKey("sketch_s") ||
-                    !info.containsKey("sketch_seed")) {
+                    !info.containsKey("sketch_seed") ||
+                    hashFunctionName.equals("")) {
                 throw new IncompatibleParameterException(
-                        "reference db does not provide all sketching parameters (s, k, seed)");
+                        "reference db does not provide all sketching parameters (s, k, seed, hash function)");
+            }
+
+            if (!HashFunctionParser.getSupportedFunctions().contains(hashFunctionName)) {
+                throw new IncompatibleParameterException(String.format("hash function '%s' used in database is not supported", hashFunctionName));
             }
             int kParameter = info.get("sketch_k");
             int sParameter = info.get("sketch_s");
-            int randomSeed = info.get("sketch_seed");
-            // TODO: we must check the hash function here as well!
+            int randomSeed = info.get("sketch_seed");              
+
+            long hashedMagicNumber = FracMinHashSketch.getHashedMagicNumber(HashFunctionParser.createHashFunction(hashFunctionName, randomSeed));
 
             logger.info("Reading queries list...");
             FileLineIterator it = new FileLineIterator(input);
@@ -79,6 +87,17 @@ public class ReferenceDistanceCalculator {
             logger.info("Finding closest reference genomes...");
             Set<FracMinHashSketch> resultSketchSet = new HashSet<>();
             for (FracMinHashSketch querySketch : sketches) {
+                
+                if (
+                    sParameter != querySketch.getSParam() || 
+                    kParameter != querySketch.getKSize() || 
+                    randomSeed != querySketch.getSeed() || 
+                    hashedMagicNumber != querySketch.getHashedMagicNumber()
+                ) {
+                    logger.severe("sketches have incompatible sketching parameters");
+                    return;
+                }
+
                 for (GenomeSketch refSketch : refSketches) {
                     double jaccard = Distance.calculateJaccardIndex(querySketch.getValues(),
                             refSketch.getSketch().getValues(), sParameter);
@@ -122,7 +141,6 @@ public class ReferenceDistanceCalculator {
                         resultSketchesList.get(i).getValues(), 
                         sParameter
                     );
-
                     
                     distances_jaccard.setBoth(i + 1, j + 1, Distance.jaccardToDistance(jaccard, kParameter)); // for some reason, the method is 1-based
                     distances_containment.set(i+1, j+1, Distance.containmentToDistance(containment_i, kParameter));

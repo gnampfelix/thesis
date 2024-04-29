@@ -97,12 +97,12 @@ public class NcbiApi {
         Map<String, String> downloadLinks = new HashMap<>();      
         String nextPageToken = null;
         
-        logger.info("Downloading genome links...");
-        logger.info(String.format("Splitting list in %d batches", (accessionCodes.size() / TAXON_PAGE_SIZE + 1)));
+        logger.fine("Downloading genome links...");
+        logger.fine(String.format("Splitting list in %d batches", (accessionCodes.size() / TAXON_PAGE_SIZE + 1)));
         // somehow, the links API does not require/provide pagination
         int i = 0;
         for (List<String> partition : Lists.partition(accessionCodes, TAXON_PAGE_SIZE)) {
-            logger.info(String.format("Downloading batch %d...", ++i));
+            logger.fine(String.format("Downloading batch %d...", ++i));
             V2AssemblyLinksReply linksReply = this.genomes.genomeLinksByAccession(partition);
             List<V2AssemblyLinksReplyAssemblyLink> links = linksReply.getAssemblyLinks();
             if (links != null) {
@@ -187,7 +187,7 @@ public class NcbiApi {
     }
 
     public TaxonomyTree getTaxonomyTreeForGenomes(List<Genome> genomes) throws ApiException {
-        logger.info("Fetching taxonomy tree...");
+        logger.fine("Fetching taxonomy tree...");
 
         Map<Integer, Taxon> taxa = new HashMap<>();
         Map<Integer, Integer> genomeParents = new HashMap<>();
@@ -197,7 +197,7 @@ public class NcbiApi {
         // all taxa. So, maybe query the lineage for one taxon.
         Queue<List<String>> lineageQueryQueue = new LinkedList<>();
 
-        logger.info("Processing leaves...");
+        logger.fine("Processing leaves...");
         // First, get the lineage of all given genomes and create taxon for genome
         List<String> taxonBatch = new ArrayList<>();
         for (Genome g : genomes) {
@@ -213,7 +213,7 @@ public class NcbiApi {
         fetchLeafBatch(tree, taxa, lineageQueryQueue, taxonBatch, genomeParents);
 
         // Now, resolve all lineages, all elements are findable by construction
-        logger.info("Processing lineages...");
+        logger.fine("Processing lineages...");
         while (!lineageQueryQueue.isEmpty()) {
             List<String> lineageQuery = lineageQueryQueue.remove();
             logger.fine("Fetching lineage " + lineageQuery.toString());
@@ -251,14 +251,14 @@ public class NcbiApi {
         }
 
         // Finally, insert the leaves
-        logger.info("Adding genome linkes...");
+        logger.fine("Adding genome linkes...");
         for (Entry<Integer, Integer> genomeLink : genomeParents.entrySet()) {
             if (!tree.hasEdgeConnecting(taxa.get(genomeLink.getValue()), taxa.get(genomeLink.getKey()))) {
                 logger.fine("inserting edge (" + genomeLink.getValue() + "," + genomeLink.getKey() + ")...");
                 tree.putEdge(taxa.get(genomeLink.getValue()), taxa.get(genomeLink.getKey()));
             }
         }
-        logger.info("Fetched taxonomy tree!");
+        logger.fine("Fetched taxonomy tree!");
         return new TaxonomyTree(tree, taxa);
     }
 }

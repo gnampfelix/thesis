@@ -273,6 +273,10 @@ public class FracMinHashSketch {
         return this.hashedMagicNumber;
     }
 
+    public static long getHashedMagicNumber(LongHashFunction hashFunction) {
+        return hashFunction.hashInt(MAGIC_INT);
+    }
+
     /**
      * Parses a byte sequence as a FracMinHashSketch. The byte sequence is
      * described in the getBytes() documentation.
