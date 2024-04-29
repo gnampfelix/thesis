@@ -8,7 +8,6 @@ import static org.hamcrest.Matchers.hasSize;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -2,7 +2,6 @@ package org.husonlab.fmhdist.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public interface FileConsumer {
     public boolean isReady();

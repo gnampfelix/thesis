@@ -74,7 +74,6 @@ public class FastKMerIterator implements KMerIterator {
     private int skippedKmersInRecord = 0;
     private int sequenceIndexInRecord = 0;
     private int sequenceIndexInFile = 0;
-    private int byteCounter = 0;
 
     // Indices to keep track of the origin of the _next_ k-mer. Those values
     // will actually be incremented as the stream is processed.Those will be
@@ -84,7 +83,6 @@ public class FastKMerIterator implements KMerIterator {
     private int preloadedSkippedKmersInRecord = 0;
     private int preloadedSequenceIndexInRecord = 0;
     private int preloadedSequenceIndexInFile = 0;
-    private int preloadedByteCounter = 0;
  
     /**
      * Create a new Iterator to extract the kmers from the given file.
@@ -120,7 +118,6 @@ public class FastKMerIterator implements KMerIterator {
 
         this.reader = reader;
         this.nextByte = (byte) reader.read();
-        this.preloadedByteCounter++;
         this.preloadedRecordIndexInFile = -1;
         this.preload();
     }
@@ -169,11 +166,9 @@ public class FastKMerIterator implements KMerIterator {
     private void skipToNextLine() throws IOException {
         while (this.hasNext() && this.nextByte != '\n') {
             this.nextByte = (byte) this.reader.read();
-            this.preloadedByteCounter++;
         }
         if (this.hasNext()) {
             this.nextByte = (byte) this.reader.read();
-            this.preloadedByteCounter++;
         }
     }
 
@@ -220,13 +215,11 @@ public class FastKMerIterator implements KMerIterator {
                         this.preloadedSkippedKmersInRecord += i + 1;
                         i = 0;
                         this.nextByte = (byte) this.reader.read();
-                        this.preloadedByteCounter++;
                         break;
                     }
                     this.preloaded_kmer[i] = toUpperTable[this.nextByte];
                     this.preloaded_complement[this.k - i - 1] = toUpperTable[complementTable[this.nextByte]];
                     this.nextByte = (byte) this.reader.read();
-                    this.preloadedByteCounter++;
                     i++;
                 } else {
                     if (isHeaderStart()) {
@@ -251,7 +244,6 @@ public class FastKMerIterator implements KMerIterator {
                         this.preloadedSkippedKmersInRecord += i + 1;
                         i = 0;
                         this.nextByte = (byte) this.reader.read();
-                        this.preloadedByteCounter++;
                         continue;
                     }
                 } else {
@@ -276,7 +268,6 @@ public class FastKMerIterator implements KMerIterator {
         this.sequenceIndexInRecord = this.preloadedSequenceIndexInRecord;
         this.skippedKmersInFile = this.preloadedSkippedKmersInFile;
         this.skippedKmersInRecord = this.preloadedSkippedKmersInRecord;
-        this.byteCounter = this.preloadedByteCounter;
     }
 
     /**
@@ -305,7 +296,6 @@ public class FastKMerIterator implements KMerIterator {
         // Now, k-mer is finished. Time to prepare the next one!
         try {
             this.nextByte = (byte) reader.read();
-            this.preloadedByteCounter++;
             this.preloadedSequenceIndexInFile++;
             this.preloadedSequenceIndexInRecord++;
 
@@ -325,7 +315,6 @@ public class FastKMerIterator implements KMerIterator {
                         this.preloadedSkippedKmersInFile += this.k;
                         this.preloadedSkippedKmersInRecord += this.k;
                         this.nextByte = (byte) reader.read();
-                        this.preloadedByteCounter++;
                         needsPreload = true;
                     } 
                 } else {
@@ -379,7 +368,6 @@ public class FastKMerIterator implements KMerIterator {
             this.sequenceIndexInRecord,
             this.sequenceIndexInFile + this.skippedKmersInFile,
             this.sequenceIndexInRecord + this.skippedKmersInRecord, 
-            this.kmer,
-            0);
+            this.kmer);
     }    
 }

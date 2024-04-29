@@ -13,10 +13,8 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.husonlab.fmhdist.util.FastKMerIterator;
 import org.husonlab.fmhdist.util.KMerIterator;
 import org.husonlab.fmhdist.util.LineKMerIteratorWithCoordinates;
-import org.junit.Ignore;
 import org.junit.Test;
 
 

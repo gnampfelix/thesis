@@ -59,16 +59,16 @@ public class LineKMerIteratorConsumer implements KMerIterator {
 
     private BufferedReader reader;
 
-    private FileProducer producer;
     private FileConsumer consumer;
 
-    public LineKMerIteratorConsumer(int k, String fileName, FileProducer producer, int threadIndex, boolean skipN) throws IOException {
+    public LineKMerIteratorConsumer(int k, String fileName, FileProducer producer, int threadIndex, boolean skipN)
+            throws IOException {
         this.k = k;
         this.kmer = new byte[k];
         this.kmerReverseComplement = new byte[k];
         this.preloadedKmer = new byte[k];
         this.preloadedKmerReverseComplement = new byte[k];
-        
+
         this.isEOF = false;
         this.isPreloaded = false;
 
@@ -76,35 +76,33 @@ public class LineKMerIteratorConsumer implements KMerIterator {
         this.isAmbiguousChar['n'] = skipN;
 
         this.linePointer = 0;
-        this.producer = producer;
-        
+
         this.reader = new BufferedReader(new InputStreamReader(FileUtils.getInputStreamPossiblyZIPorGZIP(fileName)));
         this.consumer = producer.getFileConsumer(threadIndex);
         this.consumer.setReader(this.reader);
-        this.consumer.setReady(false);        
+        this.consumer.setReady(false);
 
         String current;
         String next;
 
         // the consumer should be ready semantically because it is set to ready
         // before above code can obtain it. Still, let's ensure this here.
-        while(true) {
+        while (true) {
             if (this.consumer.isReady()) {
                 current = this.consumer.getLine();
-                this.consumer.setReady(false);  
+                this.consumer.setReady(false);
                 break;
             }
         }
 
-        while(true) {
+        while (true) {
             if (this.consumer.isReady()) {
                 next = this.consumer.getLine();
-                this.consumer.setReady(false);  
+                this.consumer.setReady(false);
                 break;
             }
         }
-     
-        
+
         if (current == null || next == null) {
             throw new IOException("file is too short, valid FASTA files have at least two lines");
         }
@@ -113,8 +111,6 @@ public class LineKMerIteratorConsumer implements KMerIterator {
 
         this.preload();
     }
-
-
 
     private boolean isSequenceChar() {
         return !isLineContainingSkippableChar[this.currentLine[linePointer]];
@@ -136,18 +132,18 @@ public class LineKMerIteratorConsumer implements KMerIterator {
                     this.isEOF = true;
                     // don't un-ready the reader now - we want to stay in control
                     return;
-                } 
+                }
                 break;
-            }     
+            }
         }
-                        
-        this.consumer.setReady(false);  
+
+        this.consumer.setReady(false);
         this.nextLine = next.getBytes();
 
         // Peek at the first byte - do we start a new sequence?
         // Assumption: New sequences only occur at the beginning of a new line
-        // We can remove the checks for all calls to next()!    
-        // Only do this if we are not currently preloading    
+        // We can remove the checks for all calls to next()!
+        // Only do this if we are not currently preloading
         if (this.currentLine[0] == '>' && !this.isPreloaded) {
             this.currentLine = this.nextLine;
             while (true) {
@@ -160,13 +156,13 @@ public class LineKMerIteratorConsumer implements KMerIterator {
                     if (this.currentLine[0] == '>') {
                         throw new IOException("fasta file contains header without body");
                     }
-                    this.consumer.setReady(false);  
+                    this.consumer.setReady(false);
                     break;
                 }
-            }             
-            this.nextLine = next.getBytes();           
+            }
+            this.nextLine = next.getBytes();
 
-            this.preload();            
+            this.preload();
         }
     }
 
@@ -176,29 +172,31 @@ public class LineKMerIteratorConsumer implements KMerIterator {
         }
     }
 
-    private void preload() throws IOException{
+    private void preload() throws IOException {
         this.isPreloaded = true;
         int i = 0;
-        while(this.hasNext()) {
-            while(i < this.k - 1 && this.hasNext()) {
-                if(isSequenceChar()) {
+        while (this.hasNext()) {
+            while (i < this.k - 1 && this.hasNext()) {
+                if (isSequenceChar()) {
                     if (isAmbiguousChar[this.currentLine[linePointer]]) {
                         i = 0;
                         this.moveCursor();
                         continue;
                     }
                     this.preloadedKmer[i] = toUpperTable[this.currentLine[linePointer]];
-                    this.preloadedKmerReverseComplement[this.k - i - 1] = toUpperTable[complementTable[this.currentLine[linePointer]]];
+                    this.preloadedKmerReverseComplement[this.k - i
+                            - 1] = toUpperTable[complementTable[this.currentLine[linePointer]]];
                     this.moveCursor();
                     i++;
                 } else {
-                    // no need to check header start explicitely - if NOT a valid sequence character, will skip the current line.
+                    // no need to check header start explicitely - if NOT a valid sequence
+                    // character, will skip the current line.
                     this.feedLine();
                     i = 0;
                 }
             }
             // Now, let's check if the next byte is correct
-            if(this.hasNext()) {
+            if (this.hasNext()) {
                 if (this.isSequenceChar()) {
                     if (!isAmbiguousChar[this.currentLine[linePointer]]) {
                         return;
@@ -223,13 +221,13 @@ public class LineKMerIteratorConsumer implements KMerIterator {
     public byte[] next() {
         if (this.isPreloaded) {
             System.arraycopy(this.preloadedKmer, 0, this.kmer, 0, this.k - 1);
-            System.arraycopy(this.preloadedKmerReverseComplement, 1, this.kmerReverseComplement, 1, this.k-1);
+            System.arraycopy(this.preloadedKmerReverseComplement, 1, this.kmerReverseComplement, 1, this.k - 1);
             this.isPreloaded = false;
         } else {
             System.arraycopy(this.kmer, 1, this.kmer, 0, this.k - 1);
             System.arraycopy(this.kmerReverseComplement, 0, this.kmerReverseComplement, 1, this.k - 1);
         }
-        this.kmer[this.k-1] = toUpperTable[this.currentLine[linePointer]];
+        this.kmer[this.k - 1] = toUpperTable[this.currentLine[linePointer]];
         this.kmerReverseComplement[0] = toUpperTable[complementTable[this.currentLine[linePointer]]];
         try {
             this.moveCursor();
@@ -279,5 +277,5 @@ public class LineKMerIteratorConsumer implements KMerIterator {
     public KMerCoordinates getCoordinates() {
         return new KMerCoordinates(0, 0, 0, 0, 0, this.kmer);
     }
-    
+
 }

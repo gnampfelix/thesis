@@ -1,15 +1,10 @@
 package org.husonlab.fmhdist.util;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import jloda.util.FileLineIterator;
-import jloda.util.FileUtils;
 
 public class InMemoryKMerIterator implements KMerIterator {
     private static boolean[] isLineContainingSkippableChar = new boolean[128];
@@ -63,10 +58,6 @@ public class InMemoryKMerIterator implements KMerIterator {
 
     private int groupHelper;
 
-    private boolean isFinished;
-    private boolean isEOF;
-    
-
     public InMemoryKMerIterator(int k, String fileName, boolean skipN) throws IOException {
         this.k = k;
 
@@ -103,7 +94,6 @@ public class InMemoryKMerIterator implements KMerIterator {
 
     private void feedSequence()  {
         if (this.sequencePointer >= this.sequences.size()) {
-            this.isEOF = true;
             return;
         }
 

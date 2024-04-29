@@ -11,7 +11,6 @@ import org.husonlab.fmhdist.util.FastKMerIterator;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import jloda.util.progress.ProgressSilent;
 import net.openhft.hashing.LongHashFunction;
 
 public class DistanceTests {

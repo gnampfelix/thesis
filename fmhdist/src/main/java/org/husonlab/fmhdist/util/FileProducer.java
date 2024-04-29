@@ -2,18 +2,6 @@ package org.husonlab.fmhdist.util;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collections;
-
-import java.util.List;
-import java.util.Map;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import jloda.util.FileUtils;
 
 public class FileProducer {
     private class Consumer implements FileConsumer {
