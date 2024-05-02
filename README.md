@@ -27,6 +27,28 @@ those artifacts in your local Maven repository. After that, navigate to the
 `fmhdist` directory and execute `mvn clean install`. You might need to skip the
 tests if you don't have internet connection or NCBI is unavailable.
 
+### Example
+In `example`, there are five genomic sequences with their corresponding NCBI
+accessions. Those are the genomes of some bacteria and some fungi.
+
+Assuming you have the path to the built JAR file stored in `$fhmdist` and are in
+the example directory of this repository, you can sketch those sequences using
+
+```bash
+for accession in */*.fna; do 
+  echo $(pwd)/$accession,$(basename -s .fna $accession) >> sequences.csv; 
+done
+java -jar $fmhdist sketch --input sequences.csv --output . -t 2
+```
+
+and then estimate the distances using
+```bash
+for sketch in *.sketch; do
+  echo $(pwd)/$sketch,$(basename -s .sketch $sketch) >> sketches.csv;
+done
+java -jar $fmhdist dist --input sketches.csv --output distance.nxs
+```
+
 ### Functionality
 `fmhdist` is a command line utility that is able to
 
