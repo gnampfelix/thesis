@@ -16,7 +16,7 @@ import org.husonlab.fmhdist.ncbi.NcbiApi;
 import org.husonlab.fmhdist.ncbi.TaxonomyTree;
 import org.husonlab.fmhdist.sketch.GenomeSketch;
 
-import jloda.fx.util.ProgramExecutorService;
+import jloda.util.ProgramExecutorService;
 import jloda.util.FileLineIterator;
 import jloda.util.Single;
 import net.openhft.hashing.LongHashFunction;

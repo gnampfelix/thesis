@@ -15,7 +15,7 @@ import org.husonlab.fmhdist.ncbi.Genome;
 import org.husonlab.fmhdist.sketch.GenomeSketch;
 import org.husonlab.fmhdist.util.KMerCoordinates;
 
-import jloda.fx.util.ProgramExecutorService;
+import jloda.util.ProgramExecutorService;
 import jloda.thirdparty.HexUtils;
 import jloda.util.FileLineIterator;
 import jloda.util.Single;

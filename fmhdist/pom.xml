@@ -29,7 +29,7 @@
         <spotless.version>2.27.2</spotless.version>
         <guava.version>32.1.3-jre</guava.version>
         <sqlite.version>3.43.2.1</sqlite.version>
-        <jloda2.version>2.0.0-SNAPSHOT</jloda2.version>
+        <jloda3.version>1.0.0-SNAPSHOT</jloda3.version>
     </properties>
 
     <dependencies>
@@ -51,14 +51,19 @@
         </dependency>
         <dependency>
             <groupId>org.husonlab</groupId>
-            <artifactId>jloda2</artifactId>
-            <version>${jloda2.version}</version>
+            <artifactId>jloda-core</artifactId>
+            <version>${jloda3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.husonlab</groupId>
+            <artifactId>jloda-fx</artifactId>
+            <version>${jloda3.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.husonlab</groupId>
-            <artifactId>SplitsTreeCE</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>SplitsTree</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
