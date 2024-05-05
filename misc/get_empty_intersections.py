@@ -12,6 +12,7 @@ def create_parser():
     return (p.parse_args())
 
 def main():
+    sketch_size=10000
     args = create_parser()
     sketches = []
     for path in args.input:
@@ -25,7 +26,9 @@ def main():
         for j in range(i, len(sketches)):
             name_a, a = sketches[i]
             name_b, b = sketches[j]
-            interesction = a.intersection(b)
+            union = a.union(b)
+            s_union = set(sorted(list(union))[:sketch_size])
+            interesction = s_union.intersection(a).intersection(b)
             if len(interesction) == 0:
                 print(f"{name_a} vs {name_b} is empty")
 
