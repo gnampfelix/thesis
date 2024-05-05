@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import splitstree6.data.TaxaBlock;
 import splitstree6.io.writers.distances.NexusWriter;
 
 public class DistanceCalculator {
+    private boolean LOG_EMPTY_INTERSECTIONS = false;
 
     private FracMinHashSketch lineToSketch(String line){        
         try {
@@ -63,6 +65,13 @@ public class DistanceCalculator {
             int kParameter = 0;
             int randomSeed = 0;
             long hashedMagicNumber = 0;
+
+            List<String> emptyIntersectionLog = null;
+
+            if (LOG_EMPTY_INTERSECTIONS) {
+                emptyIntersectionLog = new ArrayList<>();
+            }
+
             for (int i = 0; i < sketches.size(); i++) {
                 if (sParameter != 0 || kParameter != 0 || randomSeed != 0 || hashedMagicNumber != 0) {
                     if (sParameter != sketches.get(i).getSParam() || kParameter != sketches.get(i).getKSize() || randomSeed != sketches.get(i).getSeed() || hashedMagicNumber != sketches.get(i).getHashedMagicNumber()) {
@@ -95,7 +104,10 @@ public class DistanceCalculator {
                         sParameter
                     );
 
-                    
+                    if (jaccard == 0 && emptyIntersectionLog != null) {
+                        emptyIntersectionLog.add(String.format("%s vs %s is empty\n", sketches.get(i).getName(), sketches.get(j).getName()));
+                    }
+
                     distances_jaccard.setBoth(i + 1, j + 1, Distance.jaccardToDistance(jaccard, kParameter)); // for some reason, the method is 1-based
                     distances_containment.set(i+1, j+1, Distance.containmentToDistance(containment_i, kParameter));
                     distances_containment.set(j+1, i+1, Distance.containmentToDistance(containment_j, kParameter));
@@ -121,6 +133,14 @@ public class DistanceCalculator {
             writer = new NexusWriter();
             writer.write(outFile, taxa, distances_mash);
             outFile.close();
+
+            if (emptyIntersectionLog != null) {
+                outFile = new FileWriter(output + ".log", false);
+                for(String line : emptyIntersectionLog) {
+                    outFile.write(line);
+                }
+                outFile.close();
+            }
 
         } catch (Exception e) {
             System.out.println("well, f****");
