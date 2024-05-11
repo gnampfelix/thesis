@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sc
 import gtfparse as gtf
+import pandas as pd
 
 gene_search_terms = [
     "Crinkler","CRN","PTHR33129","PTHR24362",
@@ -29,6 +30,7 @@ def create_parser():
     p.add_argument("-m", "--macle", help="The path to the macle file", required=True)
     p.add_argument("-o", "--overlap", help="Indicates if the window offset should be 1, otherwise <window-size>", action="store_true")
     p.add_argument("-dr", "--density-range", help="The range in which the density in a window is considered 'expected' is given by w/s +/- w/s * dr.", required=False, type=float, default=0.95)
+    p.add_argument("-p", "--plot", help="Show correlation plot", action="store_true")
     return (p.parse_args())
 
 class Coordinates:
@@ -309,15 +311,14 @@ def main():
         chi2_result = sc.stats.chi2_contingency(observations)
     else:
         chi2_result = None
-    unexpected_density_complexities, expected_density_complexities = split(hash_density_complexity_list, args.window_size, args.scaling, args.density_range)
-    if len(unexpected_density_complexities) > 0 and len(expected_density_complexities) > 0:
-        mannwhitneyu_results = sc.stats.mannwhitneyu(unexpected_density_complexities, expected_density_complexities)
-    else:
-        mannwhitneyu_results = None
-    
+        
     print()
     print("Statistics for hash count vs complexity of window")
     print(f"Number of windows analyzed: {len(hash_density_complexity_list)}")
+    
+    print("Observations")
+    print(pd.DataFrame(observations, columns=["unexpected density", "expected density"], index=["low complexity", "high complexity"]).to_markdown())
+    
     def overlapping_string():
         if not args.overlap:
             return "not "
@@ -330,15 +331,11 @@ def main():
     else:
         print(f"χ2({chi2_result.dof}, N={np.sum(observations)})={chi2_result.statistic}, p={chi2_result.pvalue}")
 
-    if mannwhitneyu_results == None:
-        print("at least one observation was empty, no Mann-Whitney-Test performed")
-    else:
-        print(f"Mann-Whitney-Test: z={mannwhitneyu_results.statistic}, p={mannwhitneyu_results.pvalue}")
-
-    plt.scatter(x, y, s=0.1)
-    plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
-    plt.ylabel(f"$C_m$ in window with size $w={macle_window_size}$")          
-    plt.show()
+    if (args.plot):
+        plt.scatter(x, y, s=0.1)
+        plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
+        plt.ylabel(f"$C_m$ in window with size $w={macle_window_size}$")          
+        plt.show()
 
     # Hash Density to Effector density analysis
     if args.annotations:
@@ -354,12 +351,6 @@ def main():
         
         chi2_result = sc.stats.chi2_contingency(observations)
 
-        unexpected_density_effectors, expected_density_effectors = split(hash_density_effector_density_list, args.window_size, args.scaling, args.density_range)
-        if len(unexpected_density_effectors) > 0 and len(expected_density_effectors) > 0: 
-            mannwhitneyu_results = sc.stats.mannwhitneyu(unexpected_density_effectors, expected_density_effectors)
-        else:
-            mannwhitneyu_results = None
-        
         print()
         print("Statistics for hash count vs effector gene count")
         print(f"Number of windows analyzed: {len(hash_density_complexity_list)}")
@@ -374,13 +365,10 @@ def main():
             print("at least one observation was empty, no χ2 performed")
         else:
             print(f"χ2({chi2_result.dof}, N={np.sum(observations)})={chi2_result.statistic}, p={chi2_result.pvalue}")
-        if mannwhitneyu_results == None:
-            print("at least one observation was empty, no Mann-Whitney-Test performed")
-        else:
-            print(f"Mann-Whitney-Test: z={mannwhitneyu_results.statistic}, p={mannwhitneyu_results.pvalue}")
 
-        plt.scatter(x, y, s=0.1)
-        plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
-        plt.ylabel(f"effector genes in window with size $w={macle_window_size}$")          
-        plt.show()
+        if args.plot:
+            plt.scatter(x, y, s=0.1)
+            plt.xlabel(f"hashes in window with size $w={args.window_size}$")    
+            plt.ylabel(f"effector genes in window with size $w={macle_window_size}$")          
+            plt.show()
 main()
