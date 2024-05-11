@@ -9,6 +9,7 @@ def create_parser():
 
     p.add_argument('-s', '--splits',
                    help="The list of files to compare the splits", nargs="+")
+    p.add_argument('-hs', '--hide-splits', help="Hide the details of the splits", action="store_true")
 
     return (p.parse_args())
 
@@ -74,6 +75,12 @@ def intersect(A: set, B: set) -> set:
             result.add(a)
     return result
 
+"""
+    Calculate the Robinson-Foulds-Distance for two sets of splits.
+"""
+def robinson_foulds(A: set, B: set) -> int:
+    return 0.5 * len(A.symmetric_difference(B))
+
 def main():
     args = create_parser()
     splits = []
@@ -99,17 +106,21 @@ def main():
         a_diff_b = sorted(list(difference(a[2], b[2])))
         b_diff_a = sorted(list(difference(b[2], a[2])))
         new_line = "\n"
-        print(f"a: {a[0]} vs b: {b[0]}")
+        print(f"a: {a[0]}")
+        print(f"b: {b[0]}")
         print(f"{len(a[1])} taxa in a, {len(b[1])} taxa in b")
+        print(f"Robinson-Foulds-Distance: {robinson_foulds(a[2], b[2])}")
         print(f"total weight in a: {sum([s.weight for s in a[2]])}")
         print(f"total weight in b: {sum([s.weight for s in b[2]])}")
         print(f"splits a \\ b: {len(a_diff_b)}")
         print(f"total weight of difference: {sum([s.weight for s in a_diff_b])}")
-        print(f"splits a \\ b:\n{new_line.join([str(e) for e in a_diff_b])}")
-        print()
+        if not args.hide_splits:
+            print(f"splits a \\ b:\n{new_line.join([str(e) for e in a_diff_b])}")
+            print()
         print(f"splits b \\ a: {len(b_diff_a)}")
         print(f"total weight of difference: {sum([s.weight for s in b_diff_a])}")
-        print(f"splits b \\ a:\n{new_line.join([str(e) for e in b_diff_a])}")
+        if not args.hide_splits:
+            print(f"splits b \\ a:\n{new_line.join([str(e) for e in b_diff_a])}")
         print()
         print()
 
