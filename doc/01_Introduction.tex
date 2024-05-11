@@ -1,0 +1,113 @@
+% !TEX root = thesis.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Introduction}
+  \label{sec:intro}
+
+Start with a comprehensive introduction about the questions of your thesis.\\\\
+In general, the introduction should include:
+\begin{itemize}
+  \item An introduction to the general topic and motivation of your thesis
+  \begin{itemize}
+    \item \textit{Why is your thesis relevant?}
+  \end{itemize}
+  \item A background and/or related work section
+  \begin{itemize}
+    \item \textit{What other research has been done on the topic?}
+    \item \textit{What question remained unanswered that you intend to tackle in your thesis?}
+    \item This can become an extra chapter
+  \end{itemize}
+  \item Short overview of the structure of the thesis
+  \begin{itemize}
+    \item Example: This thesis is structured as follows: First a background on XXX is introduced in the following background chapter (or the following section). In chapter \ref{sec:matmet} the developed algorithm to analyse ... is presented, followed by a comprehensive description of the used data or material. The results are given in chapter \ref{sec:res}. A discussion and short outlook conclude this thesis.
+  \end{itemize}
+\end{itemize}
+The following help newbies in \LaTeX to learn about sections, math equations and much more.
+
+\section{Quick \LaTeX\ Tutorial}
+  \label{sec:latex}
+In this section you get a short overview on how to include sections, figures, tables and math equations into a \LaTeX\ document, as well as to reference these. In addition you will learn how you can manipulate fonts and create bullet points.
+
+\subsection{Including and referencing non-text elements}
+  \label{sec:inre}
+In \LaTeX\ you can add sections (\verb|\section{<title>}|), subsections (\verb|\subsection{<title>}|) and subsubsections (\verb|\subsubsection{<title>}|) by using the respective command. If a section has a very long title, you can add a short title to the command that will appear in you Table of Content instead of the long title: \verb|\section[<short_title]{<long_title>}|.
+
+By adding the \verb|\label{}| command after a section command you can reference the section within the text. Use the \verb|\ref{}| command for this; e.g. if you want to reference the \LaTeX\ tutorial section use the command \verb|\ref{sec:latex}|, this would look like this in text: In section \ref{sec:latex}, some \LaTeX\ basics are explained.
+
+If you want to remove the numbering before a section title, add an asterics to the command (\verb|\subsubsection*{<title>}|). This will then look like the following (note that these sections will not appear in you List of Content):
+
+\subsubsection*{Including Figures}
+This is how you include a figure in \LaTeX. Of course you can also reference figures, again use the \verb|\ref{}| command. Figure \ref{fig:exmp} is an example on how a figure could look like. Make sure that figures only appear at the top or bottom of a page.
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=\textwidth]{figures/chordal.pdf}
+  \caption{Describe the most important aspects of your figure in the caption. Chordal Graphs}
+  \label{fig:exmp}
+\end{figure}
+
+
+\subsubsection*{Including Tables}
+Similarliy to figures, tables can be added to the thesis. In Table~\ref{tab:exmp} you see how this can be done. To reference tables you use the same command as for sections or figures. Make sure again as with figures that tables only appear at the top or bottom of a page. Also note that the caption of tables is at the top (i.e., above) of the actual table.
+
+
+\begin{table}[tb]
+  \centering
+    \caption[Example for a table]{Example table with a long legend so that you can see that the line spacing has been reduced in the legend. The font should also be slightly smaller. This makes the whole environment look more compact.}
+  \label{tab:exmp}
+  \begin{tabular}{|l|c|r|c|} \hline
+    \textbf{Column 1} & \textbf{Column 2} & \textbf{Column 3} & \textbf{Column 4} \\ \hline\hline
+  xxx1111 & xxxxxxx2222222 & xxxxxx333333  & xxxxxx4444 \\ \hline
+    ... & ... & ... & ... \\ \hline
+  \end{tabular}
+\end{table}
+
+
+\subsubsection*{Including Math Equations}
+In \LaTeX, you have two possibilities to include mathematical equations. First, you can add in-text equations. E.g. the formula used to calculate the average of a set of values is $\bar{x}=\frac{1}{n}\sum_{i=1}^{n}x_i$. For this, you put two \verb|$| signs around the equation.
+
+In other cases, the formula might get to big to have it within the text. For these cases, you use a math environment. In a math environment, you can add a label to a formula (e.g. eq. \ref{eq:den-norm} is the formula to calculate the density of the normal distribution):
+\begin{equation}\label{eq:den-norm}
+  g(x) = \frac{1}{2\pi\sigma}\cdot e^{-\frac{(x-\mu)^2}{2\sigma^2}}
+\end{equation}
+
+If you need a multi-line math environment use the \texttt{flalign} environment (e.g. in eq. \ref{eq:bino-1}). The formulas are aligned at the position where you put the \verb|&| sign within each line.
+\begin{flalign}\label{eq:bino-1}
+  f(x) &= (a+b)^2\\
+       &= a^2+2ab+b^2
+\end{flalign}
+
+By adding an asterics to the environment command (i.e. \verb|equation*| and \verb|flalign*|, respectively), you remove the numbering of the equations.
+
+
+\subsubsection*{Citations}
+Last but definetly not least, you learn how to include citations to you thesis. The information for each citation is added to the \texttt{mylit.bib} file in BibLaTex format. If you then want to add a citation to your text, you do this with the \verb|\cite{}| command. You put the citation keys (specified in the \texttt{mylit.bib} file) in your command. This can be done with only one citation key \cite{SaaSchTue97}, but you can also put multiple citation keys in the command \cite{TueConSaa96ismis,SchTueSaa98preprint}. Depending on the citation style you specified in \texttt{thesis.tex}, the citations appear within the text.
+
+
+\subsection{Font Manipulation and Listing}
+There are many possibilities to manipulate font appearances in \LaTeX. To emphasise a word or expression you can write them \emph{cursive} or \textbf{bold}. You can also change the font size using different commands, e.g. {\footnotesize small} or {\Large large}. You can also capitalise all \textsc{letters} in a word.
+
+\noindent To include a list, use the \verb|itemize| environment:
+\begin{itemize}
+  \item This gives you a list with bullet points
+  \begin{itemize}
+    \item If you want to include sub-items you have to create an environment within the environment
+  \end{itemize}
+  \item ...
+\end{itemize}
+
+\noindent If the list should be enumerated, you can use the \verb|enumerate| environment instead:
+\begin{enumerate}
+\item The items have numbers
+  \begin{enumerate}
+    \item Again, if you need to include sub-items, you have to create a second environment within the first
+  \end{enumerate}
+\item ...
+\end{enumerate}
+
+\vspace*{2cm}
+\begin{center}
+  \LARGE Good Luck with your Thesis!
+\end{center}
+  
