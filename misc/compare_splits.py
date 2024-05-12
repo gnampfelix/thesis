@@ -1,6 +1,5 @@
 import pandas as pd
 import argparse
-import numpy
 import itertools
 
 def create_parser():
