@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy as sc
 import gtfparse as gtf
-import pandas as pd
 
 gene_search_terms = [
     "Crinkler","CRN","PTHR33129","PTHR24362",

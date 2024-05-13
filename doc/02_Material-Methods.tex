@@ -6,13 +6,37 @@
 \chapter{Material and Methods}
   \label{sec:matmet}
 
-\section{Libraries used for Implementation}
+\section{Implementation of FracMinHash}
 The generation of phylogenetic outlines using FracMinHash was implemented using
 \texttt{java-17}, \texttt{jloda3} 1.0.0, \texttt{splitstree6} 1.0.0
 \cite{husonApplicationPhylogeneticNetworks2006} and
-\texttt{openapi-generator-maven-plugin} 6.3.0. For the hash functionality,
-\texttt{zero-allocation-hashing} 0.16 is used. \todo{Check: Do I need a full
-list or just the main contributers? Do I need a reference for each?}
+\texttt{openapi-generator-maven-plugin} 6.3.0.
+
+To sketch a sequence, its $k$-mers are read. $k$-mers that include ambiguous
+bases (that is, bases that are "N" or "n") are skipped. FASTA files can contain
+multiple sequences, but they are not concatenated and the $k$-mer decomposition
+is done for each sequence individually, i.e. no $k$-mer spans two or more
+sequences. The $k$-mers are brought into their canonical form
+\cite{ondovMashFastGenome2016,irberLightweightCompositionalAnalysis2022} by
+transorming all characters to uppercase, calculating the reverse complement of
+the $k$-mer and using the alphabetically smaller value of both.
+
+The $k$-mers are then hashed using a given hash function and a random seed. For
+this, the \texttt{LongHashFunctions} from \texttt{zero-allocation-hashing} 0.16
+are used. \todo{Check: Do I need a full list or just the main contributers? Do I
+need a reference for each?} Java \texttt{long} values are signed, so the range
+of the hash function is $[-2^{63}, 2^{63}]$. Thus, the threshold can be
+calculated using $-2^{63} + \frac{2^{64}}{s}$. 
+
+Hash values that are lesser than that threshold are kept in the sketch. The
+sketch is saved in a serialized format on the hard disk. To estimate the Jaccard
+index, the containment index and from those the distances, the formulas
+discussed in section \ref{sec:formulas} were used
+\cite{heraDebiasingFracMinHashDeriving2023,irberLightweightCompositionalAnalysis2022}.
+
+The distances are then stored in Nexus file format using the \texttt{SplitsTree}
+6.0.0-alpha \cite{husonApplicationPhylogeneticNetworks2006} serialization
+capabilities.
 
 
 \section{Benchmarking the Hash Functions}
@@ -128,7 +152,7 @@ analysed in details. For this, the splits were exported from SplitsTree
 format.
 
 Those files were processed with the script \texttt{compare\_splity.py}. This is
-based on \texttt{python} 3.12 and \texttt{pandas} 2.1.4
+based on \texttt{python} 3.12 \todo{citation} and \texttt{pandas} 2.1.4
 \cite{PandasdevPandasPandas2024,mckinneyDataStructuresStatistical2010}. All sets
 of splits are compared pairwise, that is for two sets $\Sigma_A$ and $\Sigma_B$,
 the following properties are calculated:
@@ -223,11 +247,11 @@ analysis to the five query sequences of dataset C and the reference genome for
 genomes in the set of reference sequences. For those sequences, I have prepared
 two different values to compare against.
 
-The first ist the Average Nucleotide Identity (ANI)
+The first is the Average Nucleotide Identity (ANI)
 \cite{konstantinidisGenomeBasedTaxonomyProkaryotes2005} calculated with
 \texttt{OrthoANI} \cite{leeOrthoANIImprovedAlgorithm2016} using the default
 parameters with \texttt{BLAST+} 2.14.1
-\cite{camachoBLASTArchitectureApplications2009} as the aligner.
+\cite{camachoBLASTArchitectureApplications2009} for alignment.
 
 The second is the Average Amino Acid Identity (AAI) calculated with the
 \texttt{Enveomics Collection} online resource
@@ -259,4 +283,73 @@ that lists the number of empty intersections for each pairwise calculation.
 
 
 
-\section{Hash Density analysis}
+\section{Hash Count analysis}
+\subsection*{$k$-mer Coordinates}
+To analyse the distribution of $k$-mers that are part of a FracMinHash sketch,
+the coordinates of each $k$-mer were exported when sketching dataset C with
+$k=21$, $s=2000$ and FarmHash with random seed $rs \in \{10, 20, 30, 40, 50, 60,
+70, 80, 90\}$. The larger amount of different hash seeds in comparison with the
+other experiments is to reduce the impact of a single seed further. 
+The coordinates saved for each $k$-mer consist of the following:
+
+\begin{itemize}
+  \item the sequence index, the index of the sequence inside the FASTA file
+  \item the $k$-mer index relative to the file, $k$-mers including
+  ambiguous bases are not counted, no $k$-mer is spanning two or more sequences
+  in the FASTA file
+  \item the $k$-mer index relative to the current sequence, $k$-mers including
+  ambiguous bases are not counted
+  \item the $k$-mer index relative to the file, $k$-mers including ambiguous
+  bases are counted
+  \item the $k$-mer index relative to the current sequence, $k$-mers including
+  ambiguous bases are counted
+  \item the $k$-mer itself, not the canonical form of it
+  \item the hash value of the canonical $k$-mer
+\end{itemize}
+
+The coordinate files were then analyzed with the script
+\texttt{coordinates\_complexity\_correlation.py} using \texttt{python} 3.12
+\todo{citation} and \texttt{numpy} 1.26.3 \cite{ArrayProgrammingNumPy}. For this
+analysis, each sequence in the FASTA is split into non-overlapping windows of
+size $w=10000$. For each window, the number of hashes inside the window that are
+part of the sketch are counted including duplicates and ambiguous bases.
+
+\subsection*{Sequence Complexity}
+Also part of the analysis is the the sequence complexity for each window. For
+this, the \texttt{macle} tool \cite{pirogovHighcomplexityRegionsMammalian2019}
+was used. First, the single FASTA file was split into the individual sequences
+using \texttt{split-fasta} 1.0.0 \todo{check citation}. Then, the complexity was
+calculated using the default parameters of \texttt{macle} and a a window size of
+$w=10000$. The output identifies each window by the position of its center base,
+so this needs to be shifted to the front of the window to match them to the hash
+count windows. \texttt{macle} prints a complexity of $-1$ if the window contains
+ambiguous bases, thus this information was used to identify and discard those
+windows.
+
+\subsection*{Statistical Analysis of connection between hash counts and sequence complexity}
+For all windows with non-negative sequence complexity $C_m$, the
+Pearson-Correlation \todo{check format and citation} was calculated. 
+
+Next, to check if there is any connection between windows having an unusual hash
+count and having a low sequence complexity, we need to define what we mean by
+that: Given the scaling parameter $s$ and a window size $w$, we would expect on
+average $\frac{w}{s}$ hashes per window that are part of the sketch. A window
+has \textbf{unsual hash counts} if the number of hashes is outside the interval
+$[\frac{w}{s} - r \frac{w}{s}, \frac{w}{s} + r \frac{w}{s}]$. I have set
+$r=0.95$, $s=2000$ and $w=10000$, which classifies all windows with a hash count
+of $0$ or $\geq 10$ as unusual.
+
+Given those inputs, I have performed the Mann-Whitney-U Test
+\cite{mannTestWhetherOne1947,wilcoxonIndividualComparisonsRanking1945} with the
+complexity values of each window into the two categories \textbf{unusual count}
+and \textbf{usual count}. I have corrected $\alpha = \frac{0.05}{69}$ to account
+for multiple testing of the 69 different genomes.
+
+The statistics were computed using \texttt{scipy} 1.11.3
+\cite{virtanenSciPyFundamentalAlgorithms2020}.
+
+\subsection*{Analysis of potential connection between low hash counts and gene location}
+To check if unusual hash counts can be linked to the location of (effector)
+genes in \textit{Phytophthora infestans}, I have mapped the start position of
+each CDS annotation to the corresponding window and counted the number of CDS
+per window.
