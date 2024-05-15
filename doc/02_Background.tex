@@ -1,0 +1,63 @@
+% !TEX root = thesis.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Background}
+  \label{sec:background}
+
+\section{Phylogenetic research about \textit{Phytophthora}}
+
+
+\section{Mash and Phylogenetic Outlines}
+The phylogenies discussed above are expensive both in terms of labor and in
+terms of computation: typical approaches include the prediction of conserved
+genes, the alignement of the corresponding sequences and then the inference of a
+phylogenetic, for example using Bayesian Inference
+\cite{abadPhytophthoraTaxonomicPhylogenetic2023a,winkworthComparativeAnalysesComplete2022}.
+
+Methods that utilize evolutionary distances
+\cite{saitouNeighborjoiningMethodNew1987} are faster \todo{cite?} than Bayesian
+inference but require some form of distance matrix as input. One could obtain
+such a distance, e.g. by utilizing the average nucleotide identiy (ANI)
+\cite{leeOrthoANIImprovedAlgorithm2016}. However, this in turn introduces a
+computational cost and is not suited for distantly related species.
+
+Another method, Mash, estimates the evolutionary distance by utilizing a concept
+from web search engines from the early days of the internet: MinHash
+\cite{broderResemblanceContainmentDocuments1998a,ondovMashFastGenome2016}. While
+this method is about estimating the similarity between two different documents
+on the world wide web, \Citeauthor{ondovMashFastGenome2016} applied the concept
+to nucleotide sequences.
+
+Such a sequence $A$ can be decomposed into a set containing all substrings of
+length $k$, the so called $k$-mers, using $k(A)$. \todo{do I need a mathematical
+definition here?} Using a \textit{hash function} $h: \Omega \rightarrow [0, H]$
+with usually $H=2^{64}$ or $H=2^{128}$ on modern computers, one can obtain the
+\textit{hash value} $h(i)$ for each such $k$-mer.
+
+For the sequence $A$ the \textit{sketch} $S(A)$ is the set of the $s$
+smallest $h(i) \forall i \in k(A)$. One can use the sketches of two genomes
+$A$ and $B$ to estimate the Jaccard similarity with 
+
+\begin{align}
+  J(A, B) = \frac{|A \cap B|}{|A \cup B|} \approx \frac{|S(A \cup B) \cap S(A) \cap S(B)|}{|S(A) \cup S(B)|}
+\end{align}
+
+This similarity can then be used to obtain a evolutionary distance using
+
+\begin{align}
+  D_{Mash}(A,B) = -\frac{1}{k}\ln{\frac{2J(A,B)}{1+J(A,B)}}
+\end{align}
+
+This method is widely used to estimate the evolutionary distances. In the
+original publication, the authors created Mash sketches for all bacterial
+\todo{check wording here, is it bacterial?} genomes in NCBI, estimated the
+distances based on those and calcualted an evolutionary tree
+\cite{ondovMashFastGenome2016}. It is also incorportated into FastANI to
+estimate ANI scores, well, fast \cite{jainHighThroughputANI2018}.
+
+A third use case for Mash is the creation of phylogenetic context using
+phylogenetic outlines \cite{bagciMicrobialPhylogeneticContext2021}.
+
+\section{FracMinHash}
