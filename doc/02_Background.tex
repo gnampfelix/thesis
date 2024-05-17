@@ -96,20 +96,77 @@ outline can be seen in Figure~\ref{fig:outlineExample}.
   \label{fig:outlineExample}
 \end{figure}
 
-\section{Phylogenetic research on \textit{Phytophthora}} Assumption: I will
-introduce the basic concept of Phytophthora already in the introduction. Thus,
-let's limit it to:
+\section{Phylogenetic research on \textit{Phytophthora}} 
 
-- The first Phytophthora publication 
-- Currently ongoing Phytophthora plagues 
-- milestones in phylogeny
-\cite{pkroonGenusPhytophthoraAnno2012,yangExpandedPhylogenyGenus2017,abadPhytophthoraTaxonomicPhylogenetic2023a}
-- comparative studies \cite{mandalComparativeGenomeAnalysis2022,catalaUseGenusSpecificAmplicon2015}
-- studies involving related genera \cite{winkworthComparativeAnalysesComplete2022,navarroComparisonSpeciesCommunities2021}
-- studies involving hybridization \cite{vanpouckeUnravellingHybridizationPhytophthora2021}
-- studies that discuss the two speeds genome \cite{dongTwospeedGenomesFilamentous2015}
-- studies that focus on infestans \cite{ayala-usmaWholeGenomeDuplication2021,raffaeleAnalysesGenomeArchitecture2010}
-- studies that focus on cinnamomi \cite{solis-garciaPhytophthoraRootRot2020}
+The first scientific publication on \textit{Phytophthora} was in 1876 by
+Heinrich Anton de Bary \cite{kroonGenusPhytophthoraAnno2012} \todo{find citation
+for original publication}. Since then, extensive research has been conducted on
+a variety of aspects about this genus. Initially, it was thought to be part of
+the fungi kingdom because of several morphological similarities
+\todo{citation!}, but is now classified on the phylum rank as Oomycota, which is
+a direct child of the Eukaryote superkingdom \todo{cite, check
+https://bsppjournals.onlinelibrary.wiley.com/doi/10.1111/mpp.12568}.
+
+- Currently ongoing Phytophthora plagues
+
+There are many revisions of \textit{Phytophthora} phylogeny, e.g.
+\cite{kroonGenusPhytophthoraAnno2012,yangExpandedPhylogenyGenus2017,abadPhytophthoraTaxonomicPhylogenetic2023a}.
+Typically, the genus is divided into multiple clades, each with a numerical
+identifier. The exact number and relationsips of the clades is different from
+publication to publication. As I will use those clade topologies later, I will
+quickly layout the topologies given by the three publications above in Newick
+format.
+
+\Citeauthor{kroonGenusPhytophthoraAnno2012} state the following topology:\\
+\texttt{((((((((1, 4), 2), 5), 3), 6), 7), 8), (9, 10))}\cite{kroonGenusPhytophthoraAnno2012}
+
+\Citeauthor{yangExpandedPhylogenyGenus2017} state the following topology:\\
+\texttt{((((((((1, 4), 2), 3), 5), 7), 6), 8), (9, 10))}\cite{yangExpandedPhylogenyGenus2017}
+
+\Citeauthor{abadPhytophthoraTaxonomicPhylogenetic2023a} state the following topolgy:\\
+\texttt{(((((((((1, 2), (12, 4)), (3, 13)), 5), 6), 7), 11), 8), (9, 10))}\cite{abadPhytophthoraTaxonomicPhylogenetic2023a}
+
+\todo{I think I might have a little mistake in my results when stating that the (8, 10) cluster is important.}
+
+Given the rise of modern sequencing techniques, and thus the increased abundance
+of available genomic data, more and more studies are also comparing different
+aspects of \textit{Phytophthora} genomes, e.g. the location and content of
+transposable elements and simple sequence repeats
+\cite{mandalComparativeGenomeAnalysis2022}, the evolution of mitogenome
+sequences involving other Peronosporaceae genomes
+\cite{winkworthComparativeAnalysesComplete2022}, the diversity of
+\textit{Phytophthora} genomes found in soil and water samples
+\cite{catalaUseGenusSpecificAmplicon2015} or the differences in species
+communities associated with soy beans
+\cite{navarroComparisonSpeciesCommunities2021}.
+
+The findings include that some \textit{Phytophthora} species are
+hybrids, e.g. \textit{Phytophthora $\times$cambivora}
+\cite{jungSixNewPhytophthora2017,vanpouckeUnravellingHybridizationPhytophthora2021}.
+Given this information, the use of phylogeneitc networks over phylogenetic trees
+is becoming interesting. 
+
+Also of interest is the concept of the two-speed genome model. Under this
+hypothesis, some \textit{Phytophthora} genomes have different evolutionary
+rates, i.e. the regions containing the household genes evolve slower than those
+regions containing the effector genes \cite{dongTwospeedGenomesFilamentous2015}.
+The fast evolving regions are gene sparse and repeat rich, the latter seems to
+enable faster evolution on a molecular level with repeat induced point mutations
+\cite{dongTwospeedGenomesFilamentous2015}. There is evidence for this model for
+various \textit{Phytophthora} species including \textit{Phytophthora cinnamomi}
+\cite{engelbrechtGenomeDestructiveOomycete2021} and \textit{Phytophthora
+infestans}\cite{ayala-usmaWholeGenomeDuplication2021,dongTwospeedGenomesFilamentous2015},
+but there is also evidence that not all \textit{Phytophthora} species have this
+genome architecture, e.g. \textit{Phytophthora betacei}
+\cite{ayala-usmaWholeGenomeDuplication2021}
+
+\textit{Phytophthora cinnamomi} and \textit{Phytophthora infestans} receive lots
+of attention because of their impact on wildlife and agriculture:
+\textit{Phytophthora cinnamomi} is reported to target over 5000 different hosts
+such as avocado trees in Europe and natural vegeation in Australia
+\cite{hardhamPhytophthoraCinnamomi2018,solis-garciaPhytophthoraRootRot2020},
+\textit{Phytophthora infestans} is most famously known for its devestating
+impact on potatoes and tomatoes \cite{ayala-usmaWholeGenomeDuplication2021}.
 
 
 \section{Mash}
