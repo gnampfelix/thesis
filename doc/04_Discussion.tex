@@ -6,6 +6,134 @@
 \chapter{Discussion}
   \label{sec:diss}
 
+The aim of this thesis is to explore some aspects of FracMinHash in the context
+of phylogenies for \textit{Phytophthora} and to compare the results to
+outlines calculated with Mash.
+
+FracMinHash is generally able to reproduce trees and outlines that were
+previously calculated using Mash distances based on genome sequences of
+\textit{Phytophthora}. The phylogenies visualize well defined clusters of
+species that are in line with the clades and subclades described in literature
+\cite{abadPhytophthoraTaxonomicPhylogenetic2023a,yangExpandedPhylogenyGenus2017}.
+
+There are some differences between the splits based on the FracMinHash distances
+and the splits based on the Mash distances that also impact the interpretation
+of the results slightly. However, those differences are not substantially,
+especially when taking the differences between published phylogenies into
+account.
+
+With a dataset of closely related species (such as dataset A), the choice of
+parameters $k$ and $s$ for sketching is not influencing the results
+considerably: choice of $k \in \{19, 20, 21, 25\}$ or $s \in \{1000, 2000,
+4000\}$ don't influcence clade clustering at all, only the placement of clades
+differs to some degree that is again comparable to the differences between
+FracMinHash and Mash.
+
+The differences have impact, however, when including species with diverging
+genome lengths or that are only distantly related, e.g. when including bacterial
+or fungal genomes. Here, Mash isn't able to estimate evolutionary distances and
+outputs a distance of $1$ more often than FracMinHash. Considering the
+application of phylogenetic context, the user is required to give a distance
+threshold for all genomes that should be part of the result outline. In the
+experiments with dataset C, I have put all those genomes into the set of the
+query genomes, which implies they will always be part of the resulting outline.
+However, in a scenario where those are part of the reference database, the
+failure of Mash to estimate distances below $1$, e.g. for \textit{Venturia
+carpophila} would remove this species from the set (as setting a threshold of
+$1$ would imply having no threshold at all).
+
+Using a value of $s=2000$ for dataset C yields sketches for the highlighted
+genomes with sizes in the interval $[2832, 44796]$. The sketch of size $44796$
+belongs to \textit{Phytophthora infestans}, the sketch of size $2832$ to
+\textit{Thermogemmatispora aurantia}. This reflects the different genome sizes
+well, altough the sketches can become considerably larger compared to Mash
+sketches. The argument that FracMinHash performs better because sketch sizes
+are larger compared to Mash can be invalidaded by tuning the scaling parameter
+$s$ such that relevant genomes approximately have a sketch size of $10000$. In
+the experiments with dataset C, using values of $s=500$ (setting the bacterial
+genome sketches to $\approx 10000$) and $s=3500$ (setting the fungal genomes
+sketches to $\approx 10000$) didn't change the number of empty intersections of
+the calculated sketches for the comparison of the fungal queries to
+\textit{Phytophthora}. 
+
+Moreover, scaling the sketch according to the genome size seems a sensible thing
+to do to reflect the larger amount of data available for large genomes. Still,
+expecting the user to supply a value for $s$ can feel arbitrary, similar to
+$s_{mash}$ in Mash.
+
+\textit{Phytophthora} were considered fungi during some period because they
+share some aspects with fungal species. The phylogenetic outline generated based
+on FracMinHash sketches in which fungal query genomes are placed between
+\textit{Phytophthora}, albeit with some distance, shows this relationship.
+Although the AAI values for those comparisons are at the lower end of the range
+and the separation to the bacterial genomes is very small, the fact that the
+fungal query sequences are more closely related to the \textit{Phytophthora}
+reference sequences is already indicated here. The experiments with dataset C
+thus support the hypothesis that FracMinHash is better suited for distance
+estimation in those circumstances.
+
+Altough the method is more sensitive for genomes with diverging genome sizes,
+there is a lower boundary in terms of genome size. This observation was already
+made in
+\cite{irberLightweightCompositionalAnalysis2022,heraDebiasingFracMinHashDeriving2023}
+and is repeated here. While it is impressive to see clusters that are in line
+with clade membership for mtDNA datasets with sketch sizes not substantially
+larger than $300$, the clade placement is not backed by literature
+\cite{winkworthComparativeAnalysesComplete2022,abadPhytophthoraTaxonomicPhylogenetic2023a,
+yangExpandedPhylogenyGenus2017}. This also exlcudes viral genomes from the set
+of applicable sequences, as they tend to be even shorter \todo{cite} than mtDNA.
+
+A general assumption of \textit{locality sensitive hashing} methods is that
+hashes are evenly distributed across the genome. Using the coordinates of
+$k$-mers inside a FracMinHash sketch, we could observe windows in some genomes
+that contained more or less hashes that one would expect given the scaling
+parameter $s$. This is true for 37 out of the 64 \textit{Phytophthora} reference
+genomes. To ensure that this is result is not directly depending on a given hash
+seed, the calculations were performed for 9 different hash seeds, using the
+median count per window. From a practical point of view, having windows with
+more hashes than expected does not necessarily imply that this window is
+overrepresented in the sketch, i.e. the number of actual repeats was not
+included. However, regions with lower counts than expected also exist and here,
+we can assume that those windows are underrepresented.
+
+The impact of this on the biological interpretation of the generated phylogenies
+is probably minimal, as those differences can be linked to low sequence
+complexity in those windows. To put it differently, those windows don't store
+the same amount information as windows with high sequence complexity. For the
+reference genome of \textit{Phytophthora infestans}, this is also backed by the
+fact that there is not a single window with unusual hash counts that contains a
+CDS. Because of this, a potential link to the two-speeds-genome hypothesis for
+\textit{Phytophthora} - which is based repeat rich regions - could also not be
+verified.
+
+The genome size alone cannot explain the observation of those windows. While
+there is a trend that genomes with a larger total amount of analysed windows
+have windows with unusual counts, there are cases like \textit{Phytophthora
+castanetorum} with a total number of $n=6928$ analysed windows out of which
+$295$ had unusual counts. Compare this to \textit{Phytophthora cinnamomi} with a
+total number of $n=10799$ analysed windows of which only $28$ have unusual
+counts. Also, ny construction of the analysis, ambiguous bases cannot explain
+the differences as all windows with a complexity score $C_m < 0$ where excluded. 
+
+Computationally, it is interesting that the existing tools all use MurMur hash
+to obtain hash values
+\cite{ondovMashFastGenome2016,bagciMicrobialPhylogeneticContext2021,irberLightweightCompositionalAnalysis2022}.
+In the last 10 years, many non cryptographic hash functions were published that
+exceed MurMur hash performance, which in turn can be utilized for faster
+runtime. It would be interesting to see if hash functions that are specialized
+for hashing consecutive $k$-mers could be utilized to improve the performance in
+that part of the programs even further \todo{find the hash function again}.
+
+Altough the used hash functions are faster, the implementation of
+\texttt{fmhdist} still only beats \texttt{sourmash} in terms of runtime when
+exploting the fact that sourmash does not support multithreading out of the box.
+When using a single core, both \texttt{sourmash} and \texttt{mash} outperform
+\texttt{fmhdist} in terms of runtime. Without a deep dive into the architecture
+of all involved implementations, one could only speculate about the reasons, the
+choice of programming language for the heavy lifting (\texttt{rust} in the case
+of \texttt{sourmash}, \texttt{c++} in the case of \texttt{mash}) could play a
+role here. \todo{maybe memory footprint?}
+
 Of course very important! You need to discuss the informatics as well as bio part of your thesis topic.\\\\
 This section should include the following:
 \begin{itemize}

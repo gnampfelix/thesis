@@ -16,7 +16,21 @@ Let $X$ be a set of $n$ taxa. A \textit{phylogenetic tree} on $X$ is a tree of
 which the leaves are bijectively labeled by $X$. One way to calculate a
 phylogenetic tree for $X$ using a distance matrix $D$ is Neighbor-Joining
 \cite{saitouNeighborjoiningMethodNew1987}. An example tree can be seen in
-Figure~\ref{fig:exampleTree}. This tree tree also enables an intuitive
+Figure~\ref{fig:exampleTree}. 
+
+To serialize a tree, one could use the Newick format
+\cite{pavlopoulosReferenceGuideTree2010}. In this format, leaves are represented
+by their label, siblings are separated by comma. A tree is put in to
+parantheses, the same applies for subtrees. Two sibling subtrees are thus also
+separated by comma. The format also supports the inclusion of edge lengths by
+putting them after a double colon after the subtree or leaf. I am mostly
+interested in tree topology, so I won't include edge lengths into any Newick
+strings in this thesis. The tree depicted in Figure~\ref{fig:exampleTree}
+serialized to Newick looks like this:
+
+\texttt{((A, B), C)}
+
+This tree tree also enables an intuitive
 perspective at the concept of a \textit{split}: a split $S$ is a bipartition of
 $X$. In the case of phylogenetic trees, each edge in the tree is thus a split.
 Formally, a \textit{split} is a biparition $S=A|B$ with $A, B \subset X$
