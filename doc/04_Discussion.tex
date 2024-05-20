@@ -61,16 +61,16 @@ to do to reflect the larger amount of data available for large genomes. Still,
 expecting the user to supply a value for $s$ can feel arbitrary, similar to
 $s_{mash}$ in Mash.
 
-\textit{Phytophthora} were considered fungi during some period because they
-share some aspects with fungal species. The phylogenetic outline generated based
-on FracMinHash sketches in which fungal query genomes are placed between
-\textit{Phytophthora}, albeit with some distance, shows this relationship.
-Although the AAI values for those comparisons are at the lower end of the range
-and the separation to the bacterial genomes is very small, the fact that the
-fungal query sequences are more closely related to the \textit{Phytophthora}
-reference sequences is already indicated here. The experiments with dataset C
-thus support the hypothesis that FracMinHash is better suited for distance
-estimation in those circumstances.
+\textit{Phytophthora} were considered fungi during in the past because they
+share some aspects with fungal species. \todo{cite}The phylogenetic outline
+generated based on FracMinHash sketches in which fungal query genomes are placed
+between \textit{Phytophthora}, albeit with some distance, shows this
+relationship. Although the AAI values for those comparisons are at the lower end
+of the range and the separation to the bacterial genomes is very small, the fact
+that the fungal query sequences are more closely related to the
+\textit{Phytophthora} reference sequences is already indicated here. The
+experiments with dataset C thus support the hypothesis that FracMinHash is
+better suited for distance estimation in those circumstances.
 
 Altough the method is more sensitive for genomes with diverging genome sizes,
 there is a lower boundary in terms of genome size. This observation was already
@@ -93,8 +93,8 @@ seed, the calculations were performed for 9 different hash seeds, using the
 median count per window. From a practical point of view, having windows with
 more hashes than expected does not necessarily imply that this window is
 overrepresented in the sketch, i.e. the number of actual repeats was not
-included. However, regions with lower counts than expected also exist and here,
-we can assume that those windows are underrepresented.
+included in the anlaysis. However, regions with lower counts than expected also
+exist and here, we can assume that those windows are underrepresented.
 
 The impact of this on the biological interpretation of the generated phylogenies
 is probably minimal, as those differences can be linked to low sequence
@@ -112,7 +112,7 @@ have windows with unusual counts, there are cases like \textit{Phytophthora
 castanetorum} with a total number of $n=6928$ analysed windows out of which
 $295$ had unusual counts. Compare this to \textit{Phytophthora cinnamomi} with a
 total number of $n=10799$ analysed windows of which only $28$ have unusual
-counts. Also, ny construction of the analysis, ambiguous bases cannot explain
+counts. Also, by construction of the analysis, ambiguous bases cannot explain
 the differences as all windows with a complexity score $C_m < 0$ where excluded. 
 
 Computationally, it is interesting that the existing tools all use MurMur hash
@@ -143,18 +143,3 @@ benchmark.
 Altough \texttt{fmhdist} is slower, it is still very much usable on household
 notebooks, enabling rapid sketch calculations and thus, experiments with
 different parameters, hash functions and input sequences, if needed.
-
-
-
-Of course very important! You need to discuss the informatics as well as bio part of your thesis topic.\\\\
-This section should include the following:
-\begin{itemize}
-  \item Short summary of the aim of the study
-  \item Discussion of the results
-  \item Contextualisation of the results/ Putting the results into context (that was set in the introduction)
-  \item You can also discuss limitations of your thesis and formulate an outlook for future/ follow-up research (Outlook can become an extra chapter.)
-  \item Finally, you can add a short conclusion of the main findings/ take aways of the thesis
-\end{itemize}
-Take your time for writing the discussion, besides the introduction chapter it is the most important chapter of your thesis.\\\\
-Also do not subsection the discussion too heavily.\\\\
-At least 5 pages.

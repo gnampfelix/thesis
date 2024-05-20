@@ -60,9 +60,9 @@ between clades well. All included taxa are clustered with their corresponding
 clade members
 \cite{abadPhytophthoraTaxonomicPhylogenetic2023a,yangExpandedPhylogenyGenus2017}.
 
-The dataset also includes several taxa that are represented by multiple
-different sequences. This relationship can also be read from the produced trees
-and outlines.
+The dataset includes several taxa that are represented by multiple different
+sequences. This relationship can also be read from the produced trees and
+outlines.
 
 \subsection*{Trees}
 The tree that was calculated using the re-computed Mash distance for dataset
@@ -257,7 +257,7 @@ The outlines from dataset B with $s=100$ are depicted in
 Figure~\ref{fig:winkworthTree}. Here, sketch sizes range from $333$ to $454$.
 Comparing the trees and outlines for $s=1$ values to published phylogenies
 \cite{abadPhytophthoraTaxonomicPhylogenetic2023a,yangExpandedPhylogenyGenus2017},
-we can observe that several relationships between clade are not depicted, e.g.
+we can observe that several relationships between clades are not depicted, e.g.
 the clades 1, 2 and 4 or the clades 8 and 10 can only be clustered when adding
 more clades.
 
@@ -295,8 +295,8 @@ vexans} and \textit{Nothophytophthora sp.} are shared between the two trees.
 \section{FracMinHash estimates distances for distantly related genomes}
 The different outlines based on the \texttt{mashtree} and \texttt{fmhdist}
 ($s=2000$) distances of dataset C, respectively, are depicted in
-Figure~/ref{fig:avocadoOutlineComparison}. Of interest is the placement of the
-query genomes, the bacterial queries are very clearly separated from the all
+Figure~\ref{fig:avocadoOutlineComparison}. Of interest is the placement of the
+query genomes: the bacterial queries are very clearly separated from the all
 \textit{Phytophthora} reference genomes in both outlines. This is not true for
 the two fungal queries, they are placed in between the \textit{Phytophthora}
 reference genomes in the \texttt{fmhdist} variant but also as outliers in the
@@ -322,12 +322,12 @@ the five queries and the \textit{Phytophthora infestans} reference directly
 (Table~\ref{ta:avocadoDistance}). All distances involving the bacterial queries
 are $1.0$.
 
-The mash distance for \textit{Venturia carpophila} is $1.0$ for the comparison
-the bacterial queries and \textit{Phytophthora infestans} and
-\textit{Phytophthora cinnamomi} and $0.3726$ for the comparison with the other
-fungal query, \textit{Mortierella claussenii}. This query, in turn, does have
-low distances of $0.3290$ and $0.4056$ to \textit{Phytophthora cinnamomi} and
-\textit{Phytophthora infestans}, respectively.
+The Mash distance for \textit{Venturia carpophila} is $1.0$ for the comparison
+to the bacterial queries, \textit{Phytophthora infestans} and
+\textit{Phytophthora cinnamomi}. The distance is $0.3726$ for the comparison
+with the other fungal query, \textit{Mortierella claussenii}. This query, in
+turn, does have low distances of $0.3290$ and $0.4056$ to \textit{Phytophthora
+cinnamomi} and \textit{Phytophthora infestans}, respectively.
 
 For FracMinHash, we can see that both fungal queries have a distance below 1 to
 the two \textit{Phytophthora} genomes.
@@ -457,16 +457,11 @@ are completely empty. The number of such windows varies from 0 (e.g.
 \textit{Phytophthora $\times$  alni}, GCA\_000439335.1) to 566
 (\textit{Phytophthora tentaculata}, GCA\_033557915.1). This is illustrated in
 Figure~\ref{fig:sketchCountsOverview} 
- \todo{maybe discussion?}
-Sketches are usually sets, but are treated as multiset for this analyisis. From
-this follows that if a window contains more hashes than expected, they could
-still have the same value and thus be only represented once in the actual
-sketch. 
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.7\textwidth]{figures/image.png}
-  \caption{Sketch counts for sequence XYZ of Phytophthora infestans}
+  \includegraphics[width=0.7\textwidth]{figures/placeholder_density.png}
+  \caption{Placeholder, the final figure will look similar. Sketch counts for sequence XYZ of Phytophthora infestans}
   \label{fig:sketchCountsOverview}
 \end{figure}
 

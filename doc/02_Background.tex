@@ -6,10 +6,10 @@
 \chapter{Background}
   \label{sec:background}
 
-For this thesis, several experiments and analysis were conducted involving Mash,
-FracMinHash, phylogenetic trees and phylogenetic outlines using genomic
+For this thesis, several experiments and analysises were conducted involving
+Mash, FracMinHash, phylogenetic trees and phylogenetic outlines using genomic
 sequences of \textit{Phytophthora}. This chapter aims to introduce those topics
-such that the experiments and analysis can be better understood.
+such that the experiments and analysises can be better understood.
 
 \section{Phylogenetic trees and phylogenetic outlines}
 Let $X$ be a set of $n$ taxa. A \textit{phylogenetic tree} on $X$ is a tree of
@@ -22,20 +22,20 @@ To serialize a tree, one could use the Newick format
 \cite{pavlopoulosReferenceGuideTree2010}. In this format, leaves are represented
 by their label, siblings are separated by comma. A tree is put in to
 parantheses, the same applies for subtrees. Two sibling subtrees are thus also
-separated by comma. The format also supports the inclusion of edge lengths by
-putting them after a double colon after the subtree or leaf. I am mostly
-interested in tree topology, so I won't include edge lengths into any Newick
-strings in this thesis. The tree depicted in Figure~\ref{fig:exampleTree}
-serialized to Newick looks like this:
+separated by comma. The format supports the inclusion of edge lengths by putting
+them after a double colon after the subtree or leaf. I am mostly interested in
+tree topology, so I won't include edge lengths into any Newick strings in this
+thesis. The tree depicted in Figure~\ref{fig:exampleTree} serialized to Newick
+looks like this:
 
 \texttt{((A, B), C)}
 
-This tree tree also enables an intuitive
-perspective at the concept of a \textit{split}: a split $S$ is a bipartition of
-$X$. In the case of phylogenetic trees, each edge in the tree is thus a split.
-Formally, a \textit{split} is a biparition $S=A|B$ with $A, B \subset X$
-such that $A \neq \emptyset$, $B \neq \emptyset$, $A \cap B = \emptyset$ and $A
-\cup B = X$.  \todo{citation?}
+This tree tree also enables an intuitive perspective on the concept of a
+\textit{split}: a split $S$ separates $X$ into two parts. In the case of
+phylogenetic trees, each edge in the tree is thus a split. Formally, a
+split is a biparition $S=A|B$ with $A, B \subset X$ such that $A \neq
+\emptyset$, $B \neq \emptyset$, $A \cap B = \emptyset$ and $A \cup B = X$.
+\todo{citation?}
 
 The \textit{weight} of a split $\omega(S)$ is also directly depicted in the tree
 as the length of the edge. 
@@ -71,16 +71,18 @@ However, as trees do not allow loops, they are not able to display evolutionary
 events such as horizontal gene transfer or hybridization. Those features are
 supported by phylogenetic networks, which allow loops. \todo{maybe cite?} The
 Neighbor-Net algorithm \cite{bryantNeighborNetAgglomerativeMethod2004} is one
-algorithm to clauclate a phylogenetic network. 
+algorithm to construct a phylogenetic network. 
 
-This algorithm calculates the set of weighted splits $\Sigma$ using the distance
-matrix $D$. Those splits could already be displayed as a valid phylogenetic
-network, however this introduces many, many edges and internal nodes that are
-hard to interpret. Phylogenetic outlines provide a simplification of that by
-replacing large areas of edges and internal nodes with a single polygon that
-only keeps the outermost edges and internal nodes.
-\cite{bagciMicrobialPhylogeneticContext2021}. An example of such a phylogenetic
-outline can be seen in Figure~\ref{fig:outlineExample}. 
+This algorithm calculates the set of weighted splits $\Sigma$ using a distance
+matrix $D$. This matrix specifies the pairwise distance of all taxa in $X$.
+Those splits could already be displayed as a valid phylogenetic network, however
+this introduces many, many edges and internal nodes that are hard to interpret.
+Phylogenetic outlines provide a simplification of that by replacing large areas
+of edges and internal nodes with a single polygon that only keeps the outermost
+edges and outermost internal nodes \cite{bagciMicrobialPhylogeneticContext2021}.
+In such a network, each split is either visualised by a single edge or by a pair
+of parallel edges. An example of such a phylogenetic outline can be seen in
+Figure~\ref{fig:outlineExample}. 
 
 \begin{figure}
   \centering
@@ -113,7 +115,7 @@ outline can be seen in Figure~\ref{fig:outlineExample}.
 \section{Phylogenetic research on \textit{Phytophthora}} 
 
 The first scientific publication on \textit{Phytophthora} was in 1876 by
-Heinrich Anton de Bary \cite{kroonGenusPhytophthoraAnno2012} \todo{find citation
+Heinrich Anton de Bary \cite{kroonGenusPhytophthoraAnno2012}\todo{find citation
 for original publication}. Since then, extensive research has been conducted on
 a variety of aspects about this genus. Initially, it was thought to be part of
 the fungi kingdom because of several morphological similarities
@@ -121,15 +123,13 @@ the fungi kingdom because of several morphological similarities
 a direct child of the Eukaryote superkingdom \todo{cite, check
 https://bsppjournals.onlinelibrary.wiley.com/doi/10.1111/mpp.12568}.
 
-- Currently ongoing Phytophthora plagues
 
 There are many revisions of \textit{Phytophthora} phylogeny, e.g.
 \cite{kroonGenusPhytophthoraAnno2012,yangExpandedPhylogenyGenus2017,abadPhytophthoraTaxonomicPhylogenetic2023a}.
 Typically, the genus is divided into multiple clades, each with a numerical
 identifier. The exact number and relationsips of the clades is different from
 publication to publication. As I will use those clade topologies later, I will
-quickly layout the topologies given by the three publications above in Newick
-format.
+quickly write them in Newick format.
 
 \Citeauthor{kroonGenusPhytophthoraAnno2012} state the following topology:\\
 \texttt{((((((((1, 4), 2), 5), 3), 6), 7), 8), (9, 10))}\cite{kroonGenusPhytophthoraAnno2012}
@@ -157,7 +157,7 @@ communities associated with soy beans
 The findings include that some \textit{Phytophthora} species are
 hybrids, e.g. \textit{Phytophthora $\times$cambivora}
 \cite{jungSixNewPhytophthora2017,vanpouckeUnravellingHybridizationPhytophthora2021}.
-Given this information, the use of phylogeneitc networks over phylogenetic trees
+Given this information, the use of phylogenetic networks over phylogenetic trees
 is becoming interesting. 
 
 Also of interest is the concept of the two-speed genome model. Under this
@@ -169,10 +169,10 @@ enable faster evolution on a molecular level with repeat induced point mutations
 \cite{dongTwospeedGenomesFilamentous2015}. There is evidence for this model for
 various \textit{Phytophthora} species including \textit{Phytophthora cinnamomi}
 \cite{engelbrechtGenomeDestructiveOomycete2021} and \textit{Phytophthora
-infestans}\cite{ayala-usmaWholeGenomeDuplication2021,dongTwospeedGenomesFilamentous2015},
+infestans} \cite{ayala-usmaWholeGenomeDuplication2021,dongTwospeedGenomesFilamentous2015},
 but there is also evidence that not all \textit{Phytophthora} species have this
 genome architecture, e.g. \textit{Phytophthora betacei}
-\cite{ayala-usmaWholeGenomeDuplication2021}
+\cite{ayala-usmaWholeGenomeDuplication2021}.
 
 \textit{Phytophthora cinnamomi} and \textit{Phytophthora infestans} receive lots
 of attention because of their impact on wildlife and agriculture:
@@ -187,13 +187,13 @@ impact on potatoes and tomatoes \cite{ayala-usmaWholeGenomeDuplication2021}.
 The phylogenies discussed above are expensive both in terms of labor and in
 terms of computation: typical approaches include the prediction of conserved
 genes, the alignement of the corresponding sequences and then the inference of a
-phylogenetic, for example using Bayesian Inference
+phylogenetic tree, for example using Bayesian inference
 \cite{abadPhytophthoraTaxonomicPhylogenetic2023a,winkworthComparativeAnalysesComplete2022}.
 
 Methods that utilize evolutionary distances
 \cite{saitouNeighborjoiningMethodNew1987} are faster \todo{cite?} than Bayesian
 inference but require some form of distance matrix as input. One could obtain
-such a distance, e.g. by utilizing the average nucleotide identiy (ANI)
+such a distance matrix, e.g. by utilizing the average nucleotide identiy (ANI)
 \cite{leeOrthoANIImprovedAlgorithm2016}. However, this in turn introduces
 computational cost and is not suited for distantly related species.
 
@@ -206,7 +206,7 @@ to nucleotide sequences.
 
 Let $A = a_1 a_2 \dots a_l$ be a string with length $l$ on the DNA alphabet with
 $a_i = \{A, T, G, C\}$. $A$ can be decomposed into a set containing all
-substrings of length $k$, the so called $k$-mers, using $k(A) = \{a_i \dots
+substrings of length $k$, so called $k$-mers, using $k(A) = \{a_i \dots
 a_{i+k-1} | 1 \leq i < l-k-1\}$. Using a \textit{hash function} $h: \Omega
 \rightarrow [0, H]$ with typically $H=2^{64}$ or $H=2^{128}$ on modern
 computers, one can obtain the \textit{hash value} $h(i)$ for each such $k$-mer.
@@ -215,29 +215,27 @@ For the sequence $A$ the \textit{Mash sketch} $S(A)$ is the set of the
 $s_{mash}$ smallest $h(i) ~ \forall i \in k(A)$. Note that the parameter
 $s_{mash}$ is called $s$ in the original Mash publication
 \cite{ondovMashFastGenome2016}, but as this parameter is also used in
-FracMinHash with different semantics, I denote it as $s_{mash}$. It was shown
-that those sketches can be used as a sample for the input sequence to answer
-questions of similarity \cite{ondovMashFastGenome2016}. One can use the sketches
-of two genomes $A$ and $B$ to estimate the Jaccard similarity with 
+FracMinHash with different semantics, I denote it as $s_{mash}$. One can use the
+sketches of two genomes $A$ and $B$ to estimate the Jaccard similarity with 
 
 \begin{align}
   J(A, B) = \frac{|A \cap B|}{|A \cup B|} \approx \frac{|S(A \cup B) \cap S(A) \cap S(B)|}{|S(A) \cup S(B)|}
 \end{align}
 
-This similarity can then be used to obtain a evolutionary distance using
+This similarity can then be used to obtain a measure of distance using
 
 \begin{align}
   D_{Mash}(A,B) = -\frac{1}{k}\ln{\frac{2J(A,B)}{1+J(A,B)}}
 \end{align}
 
-This method is widely used to estimate the evolutionary distances. In the
+This method is widely used in different circumstances. In the
 original publication, the authors created Mash sketches for all bacterial
 \todo{check wording here, is it bacterial?} genomes in NCBI, estimated the
 distances based on those and calcualted an evolutionary tree
-\cite{ondovMashFastGenome2016}. It is also incorportated into FastANI to
+\cite{ondovMashFastGenome2016}. Mash is also incorportated into FastANI to
 estimate ANI scores, well, fast \cite{jainHighThroughputANI2018}.
 
-A third use case for Mash is the creation of phylogenetic context using
+A third use case for Mash is the creation of phylogenetic contexts using
 phylogenetic outlines \cite{bagciMicrobialPhylogeneticContext2021} in
 metagenomic studies. Here, one sequences all DNA found in a given sample, e.g.
 soil or sea water, and assembles (draft) genomes from the acquired reads
@@ -250,7 +248,7 @@ Mash distance to the query below a user defined threshold
 
 Mash itself is implemented in a tool called \texttt{mash}
 \cite{ondovMashFastGenome2016}. For convenience, there exists also a tool called
-\texttt{mashtree} \cite{katzMashtreeRapidComparison2019} which utilized Mash to
+\texttt{mashtree} \cite{katzMashtreeRapidComparison2019} which utilizes Mash to
 directly calculate distances and a phylogenetic tree given some input sequences.
 
 \section{FracMinHash}
@@ -276,18 +274,16 @@ Formally, the FracMinHash sketch is defined as
   \mathbf{FRAC}_s(A) = \{h(i) \leq \frac{H}{s} | \forall i \in k(A)\}
 \end{align}
 
-Where a Mash sketch keeps the $s_{mash}$ smallest hashes, FracMinHash keeps all
-those hashes that are below a given threshold $\frac{H}{s}$
-
 This approach has the advantage that the sketching can be applied to streams: it
-is known if a hash is part of the sketchas soon as the $k$-mer is hashed. This
+is known if a hash is part of the sketch as soon as the $k$-mer is hashed. This
 also applies when calculating the intersection between two sketches. 
 
 In Mash, to estimate the Jaccard index, it is required to also find the
 $s_{mash}$ smallest overall hashes of the two input sequences, i.e. $S(A \cup
 B)$. This is not needed for FracMinHash, as all hashes that are part of the
 input sketches already satisfy the condition $\leq \frac{H}{s}$. Thus, the
-Jaccard estimation including a factor correcting for bias is given as
+Jaccard estimation (including a factor correcting for bias) is given in
+\cite{heraDebiasingFracMinHashDeriving2023} as
 
 \begin{align}
   J_{frac} = \frac{\hat{J}_{frac}}{1 - (1 - s)^{|A \cup B|}}
@@ -299,9 +295,9 @@ with
   \hat{J}_{frac}(A, B) = \frac{|\mathbf{FRAC}_s(A) \cap \mathbf{FRAC}_s(B)|}{|\mathbf{FRAC}_s(A) \cup \mathbf{FRAC}_s(B)|}  
 \end{align}
 
-This Jaccard index can be used to calculate evolutionary distance, for which the
-FracMinHash publications follow again a different approach from Mash. Mash uses
-a Poisson model that assumes that all $k$-mers mutate independently
+This Jaccard index can be used to calculate evolutionary distances, for which
+the FracMinHash publications follow again an approach different to Mash. Mash
+uses a Poisson model that assumes that all $k$-mers mutate independently
 \cite{ondovMashFastGenome2016,heraDebiasingFracMinHashDeriving2023,fanAssemblyAlignmentfreeMethod2015},
 whereas FracMinHash assumes a simple model in which each nucleotide $a_i$ of a
 sequence $A$ mutates at a fixed rate $p$
@@ -309,7 +305,8 @@ sequence $A$ mutates at a fixed rate $p$
 mutated sequence $A'$ has an average nucleotide identity (ANI) of $1-p$ to $A$.
 As the inverse can be used to calculate a distance from any similarity ($D = 1 -
 I$), I will denote $p$ in the following as $D_{frac}$. Following this, the
-authors define an estimation of the distance 
+authors define an estimation of the distance in
+\cite{heraDebiasingFracMinHashDeriving2023} as
 
 \begin{align}
   D_{frac}(A, B) = 1 - (\frac{2J_{frac}(A,B)}{1+J_{frac}(A, B)})^{\frac{1}{k}}

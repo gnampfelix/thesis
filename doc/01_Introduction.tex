@@ -8,31 +8,32 @@
 
 The tree of life is a form of phylogeny that is taught to high school students
 at young age \cite{bildungsplanBiologie2015}. Using the tree of life, students
-can graps the concept of evolutionary relationships and see which species are
+can grap the concept of evolutionary relationships and see which species are
 closely related and which species aren't. 
 
 Using such a phylogeny, one can easily construct the set of all closely related
-species by walking the edges of the tree to the closest neighbors. Finding
-closely related species enables answers to all sorts of questions: How did
-populations of seagulls grow and shrink based on the evolution of their MHC
-molecules \cite{mancilla-moralesCharacterizationSelectionTransSpecies2022}?
-Where have the south american native ungulates their origin based on ancient DNA
-fragments \cite{welkerAncientProteinsResolve2015}?
+species by walking the edges of the tree to the closest neighbors, starting at
+the species of interest. Finding closely related species enables answers to all
+sorts of questions: How did populations of seagulls grow and shrink based on the
+evolution of their MHC molecules
+\cite{mancilla-moralesCharacterizationSelectionTransSpecies2022}? Where have the
+south american native ungulates their origin based on ancient DNA fragments
+\cite{welkerAncientProteinsResolve2015}?
 
 A third question that one can answer with the help of phylogenies is the
 question of identification: If I can place an unkown species in the tree of
 life, I can estimate the identity of that species by looking at its neighbors.
 
 This gives rise to the problem of tree inference, i.e. which methods can be used
-to calculate such a tree and place a unkown species in that tree. Currently used
-methods include maximum parsimony based methods
+to calculate such a tree and place an unkown species in that tree. Currently used
+approaches include maximum parsimony based methods
 \cite{sankoffMinimalMutationTrees1975}, distance based methods
 \cite{saitouNeighborjoiningMethodNew1987} and bayesian methods
 \cite{huelsenbeckMRBAYESBayesianInference2001}. 
 
 In the context of \textit{metagenomics}, a typical problem is to identify what
 species constitute the analysed samples. This is typically called \textit{binning}
-or \textit{classification} \cite{kuninBioinformaticianGuideMetagenomics2008}.
+or \textit{classification} \cite{kuninBioinformaticianGuideMetagenomics2008}
 and is implemented in tools such as GTDB-tk
 \cite{chaumeilGTDBTkToolkitClassify2020} and MEGAN
 \cite{husonMEGANLRNewAlgorithms2018}.
@@ -43,22 +44,22 @@ query sequence in a \textit{phylogenetic outline} by calculating the Mash
 distances of the query and a set of reference sequences
 \cite{bagciMicrobialPhylogeneticContext2021}. 
 
-Mash is a method to estimate evolutionary distances fast based on the concept of
-a \textit{MinHash sketch}
+Mash is a method to estimate evolutionary distances based on the concept of a
+\textit{MinHash sketch}
 \cite{broderResemblanceContainmentDocuments1998a,ondovMashFastGenome2016}.
 Briefly, a genomic sequence is decomposed into its $k$-mers before hashing those
-$k$-mers using a hash function. A sketch is the set the $s_{mash}$ smallest hash
-values and can be easily compared to other sketches, e.g. by calculating the
-Jaccard index of them. In a recent publication, FracMinHash was introduced which
-aims to tackle some of the issues with Mash
+$k$-mers using a hash function. A sketch is the set of the $s_{mash}$ smallest
+hash values and can be easily compared to other sketches, e.g. by calculating
+the Jaccard index. In a recent publication, FracMinHash was introduced
+which aims to tackle some of the issues with Mash
 \cite{irberLightweightCompositionalAnalysis2022}, in particular problems with
-genomes of different genome sizes
+genomes of different sizes
 \cite{heraDebiasingFracMinHashDeriving2023,irberLightweightCompositionalAnalysis2022}.
 The method is similar to Mash, but here a sketch is the set of all hash values
 that are below a given threshold.
 
 In the publication of the phylogenetic context using phylogenetic outlines, the
-phylogenetic context was created for bacterial genomes, but the authors already
+context was created for bacterial genomes, but the authors already
 hint that the method could be applied to small eukaryotes such as
 \textit{Phytophthora} \cite{bagciMicrobialPhylogeneticContext2021}.
 
@@ -92,7 +93,7 @@ outlines based on three different datasets:
   \cite{mandalComparativeGenomeAnalysis2022,yangExpandedPhylogenyGenus2017,abadPhytophthoraTaxonomicPhylogenetic2023a}
   to verifiy that the method is generally able to represent phylogenetic
   relationships well. This dataset is also used to explore the impact of
-  different parameters, in particular $k$, $s$ and the choice of hash function.
+  different parameters of FracMinHash.
   \item The mtDNA dataset compiled by
   \Citeauthor{winkworthComparativeAnalysesComplete2022} is used to get an idea
   of the limits of the method in terms of genome size.
@@ -103,7 +104,7 @@ outlines based on three different datasets:
   explore the differences between Mash and FracMinHash concerning distantly
   related species and genomes with different genome sizes. It is also used to
   analyse the origin of hashes that are part of a FracMinHash sketch, i.e. to
-  answer the question if those hashes are evently distributed accross the
+  answer the question if those hashes are evenly distributed accross the
   genome.
 \end{itemize}
 
