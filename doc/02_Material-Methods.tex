@@ -359,5 +359,24 @@ each CDS annotation to the corresponding window and counted the number of CDS
 per window.
 
 \section{Runtime benchmarks}
-To compare the runtime of \texttt{fmhdist} with \texttt{mash} and sourmash,
-\todo{add details}
+To compare the runtime of \texttt{fmhdist} with \texttt{mash} and
+\texttt{sourmash}, each tool was run five times to calculate the sketches for
+dataset C on a consumer notebook using 16GB memory and up to 8 cores ($4.2$
+GHz).
+
+The performance benachmark is limited to the creation of the sequence sketches
+as this is by far the most time consuming part of the pipeline. The runtime was
+measured using the wall clock output of the \texttt{time} utility shipped with
+most Linux distributions. Unless otherwise specified, default settings were
+used. 
+
+The runtime for \texttt{mash} was measured using \texttt{time mash sketch -l
+input.csv -s 10000} for the single-threaded use case and \texttt{time mash
+sketch -l input.csv -s 10000 -p 6} for the multithreaded use case. The runtime
+for \texttt{sourmash} was measured using \texttt{time sourmash sketch dna
+--from-file input.csv}. The runtime for \texttt{fmhdist} was measured using
+\texttt{time java -jar fmhdist.jar --input input.csv -t 1 -k 31 -s 1000} for the
+single-threaded use case and \texttt{time java -jar fmhdist.jar --input
+input.csv -t 6 -k 31 -s 1000} for the multithreaded use case. \texttt{sourmash}
+currently only supports single threaded application out of the box, so only this
+scenario could be benchmarked.

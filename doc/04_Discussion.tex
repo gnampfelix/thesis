@@ -132,7 +132,19 @@ When using a single core, both \texttt{sourmash} and \texttt{mash} outperform
 of all involved implementations, one could only speculate about the reasons, the
 choice of programming language for the heavy lifting (\texttt{rust} in the case
 of \texttt{sourmash}, \texttt{c++} in the case of \texttt{mash}) could play a
-role here. \todo{maybe memory footprint?}
+role here. It is interesting, however, that \texttt{sourmash} is considerably
+slower than \texttt{mash} using only a single thread. Using a scaling parameter
+of $s=1000$ by default, most of the resulting sketches (median size is $54513$)
+are considerably larger than the $10000$ used by \texttt{mash}. This obviously
+adds computational cost and could be among the reasons why \texttt{sourmash}
+(and to some extend, \texttt{fmhdist}) is slower than \texttt{mash} in the
+benchmark.
+
+Altough \texttt{fmhdist} is slower, it is still very much usable on household
+notebooks, enabling rapid sketch calculations and thus, experiments with
+different parameters, hash functions and input sequences, if needed.
+
+
 
 Of course very important! You need to discuss the informatics as well as bio part of your thesis topic.\\\\
 This section should include the following:

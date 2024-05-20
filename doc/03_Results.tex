@@ -563,11 +563,29 @@ interesting to check if there are genes coding for effector preoteins located in
 some of the windows with unusual hash counts. However, there is not a single CDS
 in those windows and therefore also no CDS coding for effector proteins.
 
-. This
-is linked to repeat-rich regions which in turn are regions with low sequence
-complexity
-\cite{tarailo-graovacUsingRepeatMaskerIdentify2009,pirogovHighcomplexityRegionsMammalian2019}. 
 
 \section{\texttt{fmhdist} is slower than \texttt{mash} and \texttt{sourmash}}
+The results of the performance analysis are listed in
+Table~\ref{ta:performance}. The dataset has a combined size of $5.477$ GBp,
+so \texttt{fmhdist} is capable of sketching $\approx 26$ MBp/s using a single
+thread and $\approx 65$ MBp/s using six threads. This is outperformed
+drastically by \texttt{mash}, which is capable of sketching $\approx 40$ MBp/s
+and $\approx 107$ MBp/s. \texttt{sourmash} ($\approx 31$ MBp/s) is faster than
+\texttt{fmhdist} but slower than \texttt{mash} using a single core, but is not
+offering multithreading out of the box. 
+
+\begin{table}[]
+  \centering
+  \begin{tabular}{@{}lrrrrr@{}}
+  \toprule
+                  & \texttt{mash} (1)     & \texttt{mash} (6) & \texttt{sourmash} (1) & \texttt{fmhdist} (1) & \texttt{fmhdist} (6) \\ \midrule
+  min (s) & 135                     &  44                     &  171              &  201                      & 75                         \\
+  max (s) & 140                     &  58                     &  178              &  215                      & 91                         \\
+  avg (s) & 137                     &  51                     &  174              &  208                      & 84                         \\ \bottomrule
+  \end{tabular}
+  \caption{Runtime comparison of \texttt{mash}, \texttt{sourmash} and
+  \texttt{sourmash} to calculate sketches for dataset C. The number of threads used is stated in parantheses.}
+  \label{ta:performance}
+\end{table}
 
 \clearpage
