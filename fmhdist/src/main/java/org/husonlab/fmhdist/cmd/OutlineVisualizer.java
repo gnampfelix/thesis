@@ -1,15 +1,18 @@
 package org.husonlab.fmhdist.cmd;
 
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.logging.Logger;
 
-import javax.imageio.ImageIO;
-
 import org.jfree.svg.SVGGraphics2D;
+import org.jfree.svg.SVGHints;
 
+import javafx.geometry.Point2D;
 import jloda.graph.Edge;
 import jloda.graph.Node;
 import jloda.graph.NodeArray;
@@ -22,11 +25,6 @@ import splitstree6.data.SplitsBlock;
 import splitstree6.data.TaxaBlock;
 import splitstree6.io.readers.NexusImporter;
 import splitstree6.layout.splits.algorithms.PhylogeneticOutline;
-import javafx.geometry.Point2D;
-
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
 
 public class OutlineVisualizer {
     public void run(String input, String output, int width, int height, int scale, int xOffset, int yOffset) {
@@ -54,13 +52,10 @@ public class OutlineVisualizer {
 
             logger.info("Creating output...");
             BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            Graphics2D graphics = img.createGraphics();
-                        
-            graphics.setBackground(Color.red);
-            graphics.setPaint(Color.white);
-            graphics.fillRect(0, 0, width, height);
+            SVGGraphics2D graphics = new SVGGraphics2D(width, height);
             
             graphics.setPaint(Color.black);
+            graphics.setRenderingHint(SVGHints.KEY_BEGIN_GROUP, "edges");
             for(Edge e : graph.edges()) {
                 Node s = e.getSource();
                 Node t = e.getTarget();
@@ -75,7 +70,8 @@ public class OutlineVisualizer {
 
                 graphics.drawLine(x1, y1, x2, y2);
             }
-
+            graphics.setRenderingHint(SVGHints.KEY_END_GROUP, "edges");
+            graphics.setRenderingHint(SVGHints.KEY_BEGIN_GROUP, "leaves");
             for(Node n : graph.leaves()) {
                 String label = n.getLabel();
                 Point2D p = nodes.get(n);
@@ -83,14 +79,15 @@ public class OutlineVisualizer {
                 int y = (int)Math.floor(p.getY() * scale) + yOffset;
                 graphics.drawString(label, x, y);
             }
+            graphics.setRenderingHint(SVGHints.KEY_END_GROUP, "leaves");
             
             File imageFile = new File(output);
             if (imageFile.exists()) {
                 imageFile.delete();
             }
-            imageFile.createNewFile();
-            ImageIO.write(img, "jpg", imageFile);
-            System.out.println();
+            FileWriter writer = new FileWriter(imageFile);
+            writer.write(graphics.getSVGDocument());
+            writer.close();
         } catch (Exception e) {
             System.out.println("well, f****");
             e.printStackTrace();
