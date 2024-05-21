@@ -12,6 +12,7 @@ public class Main {
     private final static String COMPARE_SKETCH_COMMAND = "dist";
     private final static String COMPARE_REF_SKETCH_COMMAND = "ref_dist";
     private final static String SKETCH_COMMAND = "sketch";
+    private final static String OUTLINE_COMMAND = "outline";
 
     public static void main(String[] args) throws UsageException {
         final ArgsOptions options = new ArgsOptions(args, Main.class,
@@ -33,7 +34,11 @@ public class Main {
             ),
             new ArgsOptions.Command(
                 SKETCH_COMMAND,
-                "Calculate the sketch for all given sequences and store them on the file system")
+                "Calculate the sketch for all given sequences and store them on the file system"),
+            new ArgsOptions.Command(
+                OUTLINE_COMMAND,
+                "Calculates the phylogenetic outline based on the given distances")
+            
             );
 
         options.comment("Input/Output options");
@@ -137,6 +142,9 @@ public class Main {
                 SequenceSketcher sketcher = new SequenceSketcher();
                 sketcher.run(input, output, kParameter, sParameter, hashFunction, randomSeed, saveCoordinates);
                 break;
+            case OUTLINE_COMMAND:
+                OutlineVisualizer visualizer = new OutlineVisualizer();
+                visualizer.run(input, output);
         }
     }
 }
