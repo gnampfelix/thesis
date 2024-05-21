@@ -118,6 +118,13 @@ public class Main {
             0.4
         );
 
+        options.comment("Visualization options");
+        final int width = options.getOption("-iw", "imageWidth", "The width of the generated outline image", 1000);
+        final int height = options.getOption("-ih", "imageHeight", "The height of the generated outline image", 1000);
+        final int scale = options.getOption("-is", "imageScale", "The scaling factor of the generated outline image", 1000);
+        final int xOffset = options.getOption("-ix", "imageXOffset", "The x offset of the generated outline image", 500);
+        final int yOffset = options.getOption("-iy", "imageYOffset", "The y offset of the generated outline image", 500);
+
         options.comment("Performance options");
         ProgramExecutorService
                 .setNumberOfCoresToUse(options.getOption("-t", "threads", "Number of threads", 1));
@@ -144,7 +151,7 @@ public class Main {
                 break;
             case OUTLINE_COMMAND:
                 OutlineVisualizer visualizer = new OutlineVisualizer();
-                visualizer.run(input, output);
+                visualizer.run(input, output, width, height, scale, xOffset, yOffset);
         }
     }
 }
