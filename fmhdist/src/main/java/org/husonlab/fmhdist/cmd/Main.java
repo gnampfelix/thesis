@@ -124,6 +124,14 @@ public class Main {
         final int scale = options.getOption("-is", "imageScale", "The scaling factor of the generated outline image", 1000);
         final int xOffset = options.getOption("-ix", "imageXOffset", "The x offset of the generated outline image", 500);
         final int yOffset = options.getOption("-iy", "imageYOffset", "The y offset of the generated outline image", 500);
+        final String labels = options.getOption(
+            "-il", 
+            "imageLabels", 
+            "Path to a TSV listing alternative labels for the generated outline. If not set, taxa name from distance "+
+            "file will be used. If set but taxa are missing, their taxon name from the distance file will be used. List "+
+            "taxa without value to hide the label in the output.", 
+            ""
+        );
 
         options.comment("Performance options");
         ProgramExecutorService
@@ -151,7 +159,7 @@ public class Main {
                 break;
             case OUTLINE_COMMAND:
                 OutlineVisualizer visualizer = new OutlineVisualizer();
-                visualizer.run(input, output, width, height, scale, xOffset, yOffset);
+                visualizer.run(input, output, width, height, scale, xOffset, yOffset, labels);
         }
     }
 }

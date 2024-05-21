@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.jfree.svg.SVGGraphics2D;
@@ -17,6 +19,7 @@ import jloda.graph.Edge;
 import jloda.graph.Node;
 import jloda.graph.NodeArray;
 import jloda.phylo.PhyloSplitsGraph;
+import jloda.util.FileLineIterator;
 import jloda.util.parse.NexusStreamParser;
 import jloda.util.progress.ProgressSilent;
 import splitstree6.algorithms.distances.distances2splits.NeighborNet;
@@ -27,7 +30,7 @@ import splitstree6.io.readers.NexusImporter;
 import splitstree6.layout.splits.algorithms.PhylogeneticOutline;
 
 public class OutlineVisualizer {
-    public void run(String input, String output, int width, int height, int scale, int xOffset, int yOffset) {
+    public void run(String input, String output, int width, int height, int scale, int xOffset, int yOffset, String labels) {
         Logger logger = Logger.getLogger(OutlineVisualizer.class.getName());
         try {       
             logger.info("Reading distances...");
@@ -47,8 +50,26 @@ public class OutlineVisualizer {
             NodeArray<Point2D> nodes = new NodeArray<>(graph);
             BitSet usedSplits = new BitSet();
             ArrayList<ArrayList<Node>> loops = new ArrayList<>();
-
             PhylogeneticOutline.apply(new ProgressSilent(), true, taxa, splits, graph, nodes, usedSplits, loops, 0, 0);
+
+            Map<String,String> labelMap = null;
+            if (labels == null || labels.equals("")) {
+                logger.info("No labels provided, using taxa ids...");
+            } else {
+                logger.info("Reading label file...");
+                labelMap = new HashMap<>();
+                try(FileLineIterator it = new FileLineIterator(labels)) {
+                    while(it.hasNext()) {
+                        String line = it.next();
+                        String[] elements = line.split("\t");
+                        String value = null;
+                        if (elements.length > 1) {
+                            value = elements[1];
+                        }
+                        labelMap.put(elements[0], value);
+                    }
+                }
+            }
 
             logger.info("Creating output...");
             BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -74,6 +95,16 @@ public class OutlineVisualizer {
             graphics.setRenderingHint(SVGHints.KEY_BEGIN_GROUP, "leaves");
             for(Node n : graph.leaves()) {
                 String label = n.getLabel();
+                if (labelMap != null) {
+                    if (labelMap.containsKey(label)) {
+                        label = labelMap.get(label);
+                        // Listing only the key in the map without the label
+                        // indicates that the label should be skipped
+                        if(label == null) {
+                            continue;
+                        }
+                    }
+                }
                 Point2D p = nodes.get(n);
                 int x = (int)Math.floor(p.getX() * scale) + xOffset;
                 int y = (int)Math.floor(p.getY() * scale) + yOffset;
