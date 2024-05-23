@@ -15,8 +15,14 @@ such that the experiments and analysises can be better understood.
 Let $X$ be a set of $n$ taxa. A \textit{phylogenetic tree} on $X$ is a tree of
 which the leaves are bijectively labeled by $X$. One way to calculate a
 phylogenetic tree for $X$ using a distance matrix $D$ is Neighbor-Joining
-\cite{saitouNeighborjoiningMethodNew1987}. An example tree can be seen in
-Figure~\ref{fig:exampleTree}. 
+\cite{saitouNeighborjoiningMethodNew1987} by iteratively linking two nodes with
+a new parent node. Briefly, Neighbor-Joining starts with the star configuration,
+i.e. all taxa are represented by a leaf node and all nodes are linked only to
+the central root node. Then, two nodes $v$ and $w$ are selected such that their
+distance is minimal and the distance to all other nodes is maximal. They are
+linked together by a new parent node $p$, which replaces $v$ and $w$ in the
+distance matrix. This process is repeated until only one entry remains in the
+distance matrix. An example tree can be seen in Figure~\ref{fig:exampleTree}.
 
 To serialize a tree, one could use the Newick format
 \cite{pavlopoulosReferenceGuideTree2010}. In this format, leaves are represented
@@ -32,10 +38,10 @@ looks like this:
 
 This tree tree also enables an intuitive perspective on the concept of a
 \textit{split}: a split $S$ separates $X$ into two parts. In the case of
-phylogenetic trees, each edge in the tree is thus a split. Formally, a
-split is a biparition $S=A|B$ with $A, B \subset X$ such that $A \neq
-\emptyset$, $B \neq \emptyset$, $A \cap B = \emptyset$ and $A \cup B = X$.
-\todo{citation?}
+phylogenetic trees, each edge in the tree is thus a split. Formally, a split is
+a biparition $S=A|B$ with $A, B \subset X$ such that $A \neq \emptyset$, $B \neq
+\emptyset$, $A \cap B = \emptyset$ and $A \cup B = X$
+\cite{scornavaccaSplitsUnrootedPhylogenetic2010}.
 
 The \textit{weight} of a split $\omega(S)$ is also directly depicted in the tree
 as the length of the edge. 
@@ -67,18 +73,28 @@ as the length of the edge.
 Phylogenetic trees are widely used to communicate evolutionary relationships
 between species
 \cite{mandalComparativeGenomeAnalysis2022,winkworthComparativeAnalysesComplete2022,ayala-usmaWholeGenomeDuplication2021}.
-However, as trees do not allow loops, they are not able to display evolutionary
-events such as horizontal gene transfer or hybridization. Those features are
-supported by phylogenetic networks, which allow loops. \todo{maybe cite?} The
-Neighbor-Net algorithm \cite{bryantNeighborNetAgglomerativeMethod2004} is one
-algorithm to construct a phylogenetic network. 
+Phylogenetic trees are a type of \textit{phylogenetic networks}, of which
+different types exist \cite{husonApplicationPhylogeneticNetworks2006}. Depending
+on the use case, one might choose a different kind of phylogenetic network to
+communicate evolutionary relationships, e.g. \textit{splits networks} or
+\textit{hybridization networks}. This is especially useful when one needs to
+include evolutionary events such as horizontal gene transfer or hybridization,
+which are not supported by phylogenetic trees as displaying those implies
+displaying loops. 
 
-This algorithm calculates the set of weighted splits $\Sigma$ using a distance
-matrix $D$. This matrix specifies the pairwise distance of all taxa in $X$.
-Those splits could already be displayed as a valid phylogenetic network, however
-this introduces many, many edges and internal nodes that are hard to interpret.
-Phylogenetic outlines provide a simplification of that by replacing large areas
-of edges and internal nodes with a single polygon that only keeps the outermost
+The Neighbor-Net algorithm \cite{bryantNeighborNetAgglomerativeMethod2004} is
+one algorithm to construct a phylogenetic network. In the most recent version,
+it works by finding a circular ordering of the taxa $X$ based on a distance matrix
+$D$, calculating all splits $\Sigma$ that are compatible to that ordering and
+estimating their weights \cite{bryantNeighborNetImprovedAlgorithms2023}. 
+
+$\Sigma$ as calculated by Neighbor-Net contains $\mathcal{O}(n^2)$ splits
+\cite{bryantNeighborNetImprovedAlgorithms2023}. Those splits could already be
+displayed as a valid phylogenetic network, however this introduces
+$\mathcal{O}(n^4)$ edges and internal nodes
+\cite{bagciMicrobialPhylogeneticContext2021} that are hard to interpret.
+Phylogenetic outlines provide a simplification of that by replacing internal
+edges and internal nodes with a single polygon that only keeps the outermost
 edges and outermost internal nodes \cite{bagciMicrobialPhylogeneticContext2021}.
 In such a network, each split is either visualised by a single edge or by a pair
 of parallel edges. An example of such a phylogenetic outline can be seen in
@@ -115,14 +131,14 @@ Figure~\ref{fig:outlineExample}.
 \section{Phylogenetic research on \textit{Phytophthora}} 
 
 The first scientific publication on \textit{Phytophthora} was in 1876 by
-Heinrich Anton de Bary \cite{kroonGenusPhytophthoraAnno2012}\todo{find citation
-for original publication}. Since then, extensive research has been conducted on
-a variety of aspects about this genus. Initially, it was thought to be part of
-the fungi kingdom because of several morphological similarities
-\todo{citation!}, but is now classified on the phylum rank as Oomycota, which is
-a direct child of the Eukaryote superkingdom \todo{cite, check
-https://bsppjournals.onlinelibrary.wiley.com/doi/10.1111/mpp.12568}.
-
+\Citeauthor{debaryResearchesNaturePotatofungus1876}
+\cite{debaryResearchesNaturePotatofungus1876,kroonGenusPhytophthoraAnno2012}.
+Since then, extensive research has been conducted on a variety of aspects about
+this genus. Initially, as indicated by the title of the publication by
+\Citeauthor{debaryResearchesNaturePotatofungus1876}, members of
+\textit{Phytophthora} were thought to be fungi, but the genus is now classified
+in the Phylum Pseudofungi within the kingdom Chromista
+\cite{hardhamPhytophthoraCinnamomi2018,beakesEvolutionaryPhylogenyOomycete2012}.
 
 There are many revisions of \textit{Phytophthora} phylogeny, e.g.
 \cite{kroonGenusPhytophthoraAnno2012,yangExpandedPhylogenyGenus2017,abadPhytophthoraTaxonomicPhylogenetic2023a}.
@@ -139,8 +155,6 @@ quickly write them in Newick format.
 
 \Citeauthor{abadPhytophthoraTaxonomicPhylogenetic2023a} state the following topolgy:\\
 \texttt{(((((((((1, 2), (12, 4)), (3, 13)), 5), 6), 7), 11), 8), (9, 10))}\cite{abadPhytophthoraTaxonomicPhylogenetic2023a}
-
-\todo{I think I might have a little mistake in my results when stating that the (8, 10) cluster is important.}
 
 Given the rise of modern sequencing techniques, and thus the increased abundance
 of available genomic data, more and more studies are also comparing different
@@ -187,15 +201,17 @@ impact on potatoes and tomatoes \cite{ayala-usmaWholeGenomeDuplication2021}.
 The phylogenies discussed above are expensive both in terms of labor and in
 terms of computation: typical approaches include the prediction of conserved
 genes, the alignement of the corresponding sequences and then the inference of a
-phylogenetic tree, for example using Bayesian inference
+phylogenetic tree, for example using bayesian inference
 \cite{abadPhytophthoraTaxonomicPhylogenetic2023a,winkworthComparativeAnalysesComplete2022}.
 
-Methods that utilize evolutionary distances
-\cite{saitouNeighborjoiningMethodNew1987} are faster \todo{cite?} than Bayesian
-inference but require some form of distance matrix as input. One could obtain
-such a distance matrix, e.g. by utilizing the average nucleotide identiy (ANI)
-\cite{leeOrthoANIImprovedAlgorithm2016}. However, this in turn introduces
-computational cost and is not suited for distantly related species.
+In contrast to them, the methods used in this thesis, namely Neighbor-Joining
+and the Neighbor-Net algorithm for tree and network construction, respectively,
+rely on distance matrices for the involved taxa
+\cite{saitouNeighborjoiningMethodNew1987,bryantNeighborNetImprovedAlgorithms2023,bryantNeighborNetAgglomerativeMethod2004}.
+One could obtain such a distance matrix, e.g. by utilizing the average
+nucleotide identiy (ANI) \cite{leeOrthoANIImprovedAlgorithm2016}. However, this
+in turn introduces computational cost and is not suited for distantly related
+species.
 
 Another method, Mash, estimates the evolutionary distance by utilizing a concept
 from web search engines from the early days of the internet: MinHash
@@ -228,10 +244,9 @@ This similarity can then be used to obtain a measure of distance using
   D_{Mash}(A,B) = -\frac{1}{k}\ln{\frac{2J(A,B)}{1+J(A,B)}}
 \end{align}
 
-This method is widely used in different circumstances. In the
-original publication, the authors created Mash sketches for all bacterial
-\todo{check wording here, is it bacterial?} genomes in NCBI, estimated the
-distances based on those and calcualted an evolutionary tree
+This method is widely used in different circumstances. In the original
+publication, the authors created Mash sketches for all RefSeq genomes, estimated
+the distances based on those and calcualted an evolutionary tree
 \cite{ondovMashFastGenome2016}. Mash is also incorportated into FastANI to
 estimate ANI scores, well, fast \cite{jainHighThroughputANI2018}.
 
@@ -258,14 +273,15 @@ A recently published method is called FracMinHash by
 \cite{irberLightweightCompositionalAnalysis2022} and aims to tackle some of the
 issues with Mash, namely the fact that Mash is not optimal for containment
 estimation and that it is not optimal for distance estimation for genomes with
-different sizes.
+different sizes
+\cite{heraDerivingConfidenceIntervals2023,koslickiImprovingMinHashContainment2019}.
 
 The key idea of FracMinHash is to define a threshold $\frac{H}{s}$ with $H$
 being the largest value that $h$ can produce and $s$ a user defined scaling
 parameter with $0 < s \leq H$ such that a FracMinHash sketch only contains hash
 values below that threshold. As shown in Section~\ref{sec:res}, the sketch size can be
 approximated by $\frac{n}{s}$ where $n$ is the size of the input sequence
-\cite{irberLightweightCompositionalAnalysis2022,heraDebiasingFracMinHashDeriving2023}.
+\cite{irberLightweightCompositionalAnalysis2022,heraDerivingConfidenceIntervals2023}.
 
 
 Formally, the FracMinHash sketch is defined as 
@@ -283,7 +299,7 @@ $s_{mash}$ smallest overall hashes of the two input sequences, i.e. $S(A \cup
 B)$. This is not needed for FracMinHash, as all hashes that are part of the
 input sketches already satisfy the condition $\leq \frac{H}{s}$. Thus, the
 Jaccard estimation (including a factor correcting for bias) is given in
-\cite{heraDebiasingFracMinHashDeriving2023} as
+\cite{heraDerivingConfidenceIntervals2023} as
 
 \begin{align}
   J_{frac} = \frac{\hat{J}_{frac}}{1 - (1 - s)^{|A \cup B|}}
@@ -298,15 +314,15 @@ with
 This Jaccard index can be used to calculate evolutionary distances, for which
 the FracMinHash publications follow again an approach different to Mash. Mash
 uses a Poisson model that assumes that all $k$-mers mutate independently
-\cite{ondovMashFastGenome2016,heraDebiasingFracMinHashDeriving2023,fanAssemblyAlignmentfreeMethod2015},
+\cite{ondovMashFastGenome2016,heraDerivingConfidenceIntervals2023,fanAssemblyAlignmentfreeMethod2015},
 whereas FracMinHash assumes a simple model in which each nucleotide $a_i$ of a
 sequence $A$ mutates at a fixed rate $p$
-\cite{heraDebiasingFracMinHashDeriving2023}. The authors note that such a
+\cite{heraDerivingConfidenceIntervals2023}. The authors note that such a
 mutated sequence $A'$ has an average nucleotide identity (ANI) of $1-p$ to $A$.
 As the inverse can be used to calculate a distance from any similarity ($D = 1 -
 I$), I will denote $p$ in the following as $D_{frac}$. Following this, the
 authors define an estimation of the distance in
-\cite{heraDebiasingFracMinHashDeriving2023} as
+\cite{heraDerivingConfidenceIntervals2023} as
 
 \begin{align}
   D_{frac}(A, B) = 1 - (\frac{2J_{frac}(A,B)}{1+J_{frac}(A, B)})^{\frac{1}{k}}

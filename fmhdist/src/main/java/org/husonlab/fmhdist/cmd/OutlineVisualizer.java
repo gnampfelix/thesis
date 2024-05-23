@@ -1,7 +1,6 @@
 package org.husonlab.fmhdist.cmd;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -72,7 +71,6 @@ public class OutlineVisualizer {
             }
 
             logger.info("Creating output...");
-            BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             SVGGraphics2D graphics = new SVGGraphics2D(width, height);
             
             graphics.setPaint(Color.black);

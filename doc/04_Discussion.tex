@@ -61,27 +61,31 @@ to do to reflect the larger amount of data available for large genomes. Still,
 expecting the user to supply a value for $s$ can feel arbitrary, similar to
 $s_{mash}$ in Mash.
 
-\textit{Phytophthora} were considered fungi during in the past because they
-share some aspects with fungal species. \todo{cite}The phylogenetic outline
-generated based on FracMinHash sketches in which fungal query genomes are placed
-between \textit{Phytophthora}, albeit with some distance, shows this
-relationship. Although the AAI values for those comparisons are at the lower end
-of the range and the separation to the bacterial genomes is very small, the fact
-that the fungal query sequences are more closely related to the
-\textit{Phytophthora} reference sequences is already indicated here. The
-experiments with dataset C thus support the hypothesis that FracMinHash is
-better suited for distance estimation in those circumstances.
+As described in Chapter~\ref{sec:background}, \textit{Phytophthora} were
+considered fungi in the past because they share some aspects with true fungi.
+\cite{debaryResearchesNaturePotatofungus1876,rossmanWhyArePhytophthora2012}. The
+phylogenetic outline generated based on FracMinHash sketches in which fungal
+query genomes are placed between \textit{Phytophthora}, albeit with some
+distance, shows this relationship, or at least avoids clustering the fungal
+queries together with the bacterial queries. Although the AAI values for those
+comparisons are at the lower end of the range and the separation to the
+bacterial genomes is very small, the fact that the fungal query sequences are
+more closely related to the \textit{Phytophthora} reference sequences than the
+bacterial queries is also indicated here. The experiments with dataset C thus
+support the hypothesis that FracMinHash is better suited for distance estimation
+in those circumstances.
 
 Altough the method is more sensitive for genomes with diverging genome sizes,
 there is a lower boundary in terms of genome size. This observation was already
 made in
-\cite{irberLightweightCompositionalAnalysis2022,heraDebiasingFracMinHashDeriving2023}
+\cite{irberLightweightCompositionalAnalysis2022,heraDerivingConfidenceIntervals2023}
 and is repeated here. While it is impressive to see clusters that are in line
 with clade membership for mtDNA datasets with sketch sizes not substantially
 larger than $300$, the clade placement is not backed by literature
 \cite{winkworthComparativeAnalysesComplete2022,abadPhytophthoraTaxonomicPhylogenetic2023a,
 yangExpandedPhylogenyGenus2017}. This also exlcudes viral genomes from the set
-of applicable sequences, as they tend to be even shorter \todo{cite} than mtDNA.
+of applicable sequences, as they tend to be even shorter than mtDNA
+\cite{dimmockIntroductionModernVirology2001}.
 
 A general assumption of \textit{locality sensitive hashing} methods is that
 hashes are evenly distributed across the genome. Using the coordinates of
@@ -99,12 +103,19 @@ exist and here, we can assume that those windows are underrepresented.
 The impact of this on the biological interpretation of the generated phylogenies
 is probably minimal, as those differences can be linked to low sequence
 complexity in those windows. To put it differently, those windows don't store
-the same amount information as windows with high sequence complexity. For the
-reference genome of \textit{Phytophthora infestans}, this is also backed by the
-fact that there is not a single window with unusual hash counts that contains a
-CDS. Because of this, a potential link to the two-speeds-genome hypothesis for
-\textit{Phytophthora} - which is based repeat rich regions - could also not be
-verified.
+the same amount information as windows with high sequence complexity. This can
+be explained intuitively: assume the hash value $h(i)$ for a $k$-mer $i$ is
+smaller than $\frac{H}{s}$ and is therefore part of the FracMinHash sketch. Now,
+every other instance of this $k$-mer has the same hash value and is thus also
+represented in the sketch. If a $k$-mer is appearing repeatedly in a given
+window of size $w$, we can assume this window is repeat rich and thus probably
+has a low sequence complexity \cite{pirogovHighcomplexityRegionsMammalian2019}.
+The same applies if $h(i)$ is greater than $\frac{H}{s}$.
+
+For the reference genome of \textit{Phytophthora infestans}, there is not a
+single window with unusual hash counts that contains a CDS. Because of this, a
+potential link to the two-speeds-genome hypothesis for \textit{Phytophthora} -
+which is based repeat rich regions - could also not be verified.
 
 The genome size alone cannot explain the observation of those windows. While
 there is a trend that genomes with a larger total amount of analysed windows
@@ -122,7 +133,8 @@ In the last 10 years, many non cryptographic hash functions were published that
 exceed MurMur hash performance, which in turn can be utilized for faster
 runtime. It would be interesting to see if hash functions that are specialized
 for hashing consecutive $k$-mers could be utilized to improve the performance in
-that part of the programs even further \todo{find the hash function again}.
+that part of the programs even further, i.e \texttt{ntHash}
+\cite{mohamadiNtHashRecursiveNucleotide2016}.
 
 Altough the used hash functions are faster, the implementation of
 \texttt{fmhdist} still only beats \texttt{sourmash} in terms of runtime when
@@ -142,4 +154,17 @@ benchmark.
 
 Altough \texttt{fmhdist} is slower, it is still very much usable on household
 notebooks, enabling rapid sketch calculations and thus, experiments with
-different parameters, hash functions and input sequences, if needed.
+different parameters, hash functions and input sequences, if needed. An example
+pipeline could start with preparing a reference database of relevant species
+using \texttt{fmhdist db}, which is a matter of minutes, sketching the query
+sequences in question with \texttt{fmhdist sketch}, calculating the distances to
+only the closest genomes from the reference database with \texttt{fmhdist
+ref-dist} and finally calclulating the phylogenetic outline using
+\texttt{fmhdist outline}. Although the outline itself is also generated very
+fast, the options for the user are somewhat limited. For complex outlines with
+many taxa, one would probably want to apply complex formatting to highlight
+several aspects of the outline. This should then be done using a tool that is
+specialized on those capabilities such as SplitsTree 6
+\cite{husonApplicationPhylogeneticNetworks2006}. Nevertheless, the resulting
+outline can give a good overview of the phylogenetic neighborhood and can thus
+play a part in setting the phylogenetic context, e.g. for \textit{Phytophthora}.
