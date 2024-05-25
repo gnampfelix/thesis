@@ -3,8 +3,6 @@ import sys
 import miniFasta as mf
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy as sc
-import gtfparse as gtf
 
 """
 Script to plot hash counts of a given window and the sequence complexity of the
@@ -129,6 +127,11 @@ def split(data, w, s, dr):
 
 
 def main():
+    new_rc_params = {'text.usetex': False,
+        "svg.fonttype": 'none',
+        "font.size": 20
+    }
+    plt.rcParams.update(new_rc_params)
     args = create_parser()
     seq = mf.read(args.sequence)
     complexities, macle_window_size = read_macle_complexity(args.macle)
@@ -190,27 +193,28 @@ def main():
         elif (len(median_densities) < args.window_threshold):
             print(f"warning: only {len(median_densities)} window analyzed for {macle_header}, no plot shown")
         else:
+            print(f"showing plot for {macle_header}")
             fig, ax1 = plt.subplots()
-            ax1.set_title(macle_header)
+            #ax1.set_title(f"hash counts and sequence complexity for sequence")
 
-            p1 = ax1.plot(window_index, mean_densities, label="mean #hashes", color="darkgray")
-            p2 = ax1.plot(window_index, median_densities, label="median #hashes", color="black")
-            p3 = ax1.fill_between(window_index, min_densities, max_densities, facecolor="lightgray", label="#hash range")
+            p1 = ax1.plot(window_index, mean_densities, label="mean hash count", color="darkgray")
+            p2 = ax1.plot(window_index, median_densities, label="median hash count", color="black")
+            p3 = ax1.fill_between(window_index, min_densities, max_densities, facecolor="lightgray", label="hash count range")
 
             ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 
             relevant_complexities = [comp for index, comp in complexities[macle_header] if is_window_start(index, args.window_size, args.overlap)]
-            p4 = ax2.plot(window_index, relevant_complexities, color="forestgreen", label="$C_m$ complexity")
+            p4 = ax2.plot(window_index, relevant_complexities, color="forestgreen", label="\\$C_m\\$ complexity")
 
-            ax1.set_ylabel("#hashes in window")
-            ax1.set_xlabel(f"window start position in genome with $w={args.window_size}$")
+            ax1.set_ylabel("hashes in window")
+            ax1.set_xlabel(f"window index with \\$w={args.window_size}\\$")
             
             ax1.tick_params(axis="y")
             ax1.set_ylim([0, 20])
             ax2.tick_params(axis="y")
 
-            ax2.set_ylim([0, 1])
-            ax2.set_ylabel("$C_m$") 
+            ax2.set_ylim([0, 1.1])
+            ax2.set_ylabel("\\$C_m\\$") 
 
             all_plots = p1 + p2 # Those two are lists, concatenate
             all_plots.append(p3) # this is not a list, append

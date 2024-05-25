@@ -469,10 +469,16 @@ Figure~\ref{fig:sketchCountsOverview}
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.7\textwidth]{figures/placeholder_density.png}
-  \caption{Placeholder, the final figure will look similar. Sketch counts for
-   sequence XYZ of Phytophthora infestans. I could use 3303740.1 or (maybe
-   better), 3303751.1, 3303758.1 has a nice minimum at pos 340}
+  \includesvg[width=1.0\textwidth]{figures/hash_counts_complexity_plot.svg}
+  \caption{Counts of hashes in non-overlapping windows of the sketch for the
+   NW\_003303758.1 sequence of the reference genome of \textit{Phytophthora
+   infestans}. For each window, the number of hashes that are part of the
+   FracMinHash sketch are counted, including duplicates and ambiguous bases.
+   Windows are in the order as they appear in the genome. Nine different random
+   seeds were used, the count range for those seeds are highlighted in gray.
+   $C_m$ values that are below $0$ indicate ambiguous bases inside that window.
+   At window 341, the median hash count is $0$ which coincides with a low
+   sequence complexitiy $C_m$.}
   \label{fig:sketchCountsOverview}
 \end{figure}
 
