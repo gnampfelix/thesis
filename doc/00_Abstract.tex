@@ -4,10 +4,38 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section*{Abstract}
-Write here your abstract.
-
+Many phylogenetic methods to communicate evolutionary relationships exist, one
+of which is the \textit{phylogenetic outline}
+\cite{bagciMicrobialPhylogeneticContext2021}. This method is currently
+implemented in tools such as \texttt{SplitsTree} 6
+\cite{husonApplicationPhylogeneticNetworks2006} using Mash to obtain distances
+for the input sequences \cite{ondovMashFastGenome2016}. Recently, FracMinHash
+was published as a method to obtain evolutionary distances similar to Mash
+\cite{irberLightweightCompositionalAnalysis2022}. In FracMinHash, all $k$-mers
+$i$ of a sequence are hashed to obtain a value $h(i)$, all hashes below a given
+threshold constitute a sketch. Two sketches can be compared using set
+operations. This thesis implements distance estimation with FracMinHash in a
+tool called \texttt{fmhdist} and uses this tool to explore the resulting
+phylogenies for genomes of \textit{Phytophthora}. For closely related species,
+clade membership and, to some extend, clade relationships are represented well.
+Relationships of distantly related genomes, such as \textit{Phytophthora
+cinnamomi} and fungal organisms found in soil samples of orchards infected by
+\textit{Phytophthora cinnamomi}, are better represented by FracMinHash distances
+than by Mash distances. FracMinHash cannot be applied on short genomic sequences
+(e.g mtDNA) to reproduce phylogenies that are close to literature. For some
+\textit{Phytophthora} genomes, FracMinHash sketches contain windows that have a
+different number of hashes than expected, those windows can be linked to low
+sequence complexity. \texttt{fmhdist} is slower than comparable tools, but still
+is able to set the phylogenetic context
+\cite{bagciMicrobialPhylogeneticContext2021} for a query sequence in a few
+minutes. The source code is available at
+\url{https://github.com/gnampfelix/thesis}.
 \newpage
 
 
 \section*{Acknowledgements}
-Write here your acknowledgements.
+I want to thank Prof. Huson and Prof. Lockhart for agreeing to review my thesis
+and for their input during the project. Moreover, I want to thank Banu Cetinkaya
+and Anupam Gautam for their input, support and feedback during all phases of the
+thesis. Finally, I want to thank Niklas Agethen, Michael Mederer and Isabelle
+Steinhauser for their feedback on the manuscript.

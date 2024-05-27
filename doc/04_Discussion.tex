@@ -158,7 +158,21 @@ benchmarking setup. This obviously adds computational cost and could be among
 the reasons why \texttt{sourmash} (and to some extend, \texttt{fmhdist}) is
 slower than \texttt{mash} in the benchmark.
 
-Altough \texttt{fmhdist} is slower, it is still very much usable on household
+\cleardoublepage
+
+\chapter{Conclusion}
+In this thesis, I have implemented FracMinHash in a tool called \texttt{fmhdist}
+to obtain distances and phylogenies for genomic sequences of
+\textit{Phytophthora}. The results show that FracMinHash can in general be used
+to reproduce published phylogenies in terms of clade clustering and, to some
+extend, also in terms of clade placement. However, shorter sequences (such as
+mtDNA) are too short, the resulting phylogenies don't depict clade relationships
+correctly. FracMinHash sketches are typically larger compared to Mash sketches
+and contain windows that are not as dense as one would expect. However, this
+does not seem to have a direct impact on the biological interpreation of the
+produced outlines.  
+Altough \texttt{fmhdist} is slower than other implemantions such as
+\texttt{mash} and \texttt{sourmash}, it is still very much usable on household
 notebooks, enabling rapid sketch calculations and thus, experiments with
 different parameters, hash functions and input sequences, if needed. An example
 pipeline could start with preparing a reference database of relevant species
