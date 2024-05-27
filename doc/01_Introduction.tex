@@ -8,14 +8,12 @@
 
 The tree of life is a form of phylogeny that is taught to high school students
 at young age \cite{bildungsplanBiologie2015}. Using the tree of life, students
-can grap the concept of evolutionary relationships and see which species are
-closely related and which species aren't. 
-
-Using such a phylogeny, one can easily construct the set of all closely related
-species by walking the edges of the tree to the closest neighbors, starting at
-the species of interest. Finding closely related species enables answers to all
-sorts of questions: How did populations of seagulls grow and shrink based on the
-evolution of their MHC molecules
+can grasp the concept of evolutionary relationships and see which species are
+closely related and which species aren't. Given a query species, e.g. dog or
+mouse, students can walk the edges of the tree and see that dog and mouse are
+more closely related than dog and oak tree, say. Understanding evolutionary
+relationships enables answers to all sorts of questions: How did populations of
+seagulls grow and shrink based on the evolution of their MHC molecules
 \cite{mancilla-moralesCharacterizationSelectionTransSpecies2022}? Where have the
 south american native ungulates their origin based on ancient DNA fragments
 \cite{welkerAncientProteinsResolve2015}?
@@ -23,25 +21,23 @@ south american native ungulates their origin based on ancient DNA fragments
 A third question that one can answer with the help of phylogenies is the
 question of identification: If I can place an unkown species in the tree of
 life, I can estimate the identity of that species by looking at its neighbors.
-
 This gives rise to the problem of tree inference, i.e. which methods can be used
-to calculate such a tree and place an unkown species in that tree. Currently used
-approaches include maximum parsimony based methods
+to calculate such a tree and place an unkown species in that tree. Currently
+used approaches include maximum parsimony based methods
 \cite{sankoffMinimalMutationTrees1975}, distance based methods
 \cite{saitouNeighborjoiningMethodNew1987} and bayesian methods
 \cite{huelsenbeckMRBAYESBayesianInference2001}. 
 
 In the context of \textit{metagenomics}, a typical problem is to identify what
-species constitute the analysed samples. This is typically called \textit{binning}
-or \textit{classification} \cite{kuninBioinformaticianGuideMetagenomics2008}
-and is implemented in tools such as GTDB-tk
-\cite{chaumeilGTDBTkToolkitClassify2020} and MEGAN
-\cite{husonMEGANLRNewAlgorithms2018}.
-
-Another approach in metagenomics to learn about the phylogenetic neighborhood of
-an unknown species is the \textit{phylogenetic context}. This method places a
-query sequence in a \textit{phylogenetic outline} by calculating the Mash
-distances of the query and a set of reference sequences
+species constitute the analysed samples. This is typically called
+\textit{binning} or \textit{classification}
+\cite{kuninBioinformaticianGuideMetagenomics2008} and is implemented in tools
+such as GTDB-tk \cite{chaumeilGTDBTkToolkitClassify2020} and MEGAN
+\cite{husonMEGANLRNewAlgorithms2018}. An alternative to classification is the
+establishment of the \textit{phylogenetic context}. This method places a query
+sequence in a \textit{phylogenetic outline} by calculating the \textit{Mash}
+distances of
+the query and a set of reference sequences
 \cite{bagciMicrobialPhylogeneticContext2021}. 
 
 Mash is a method to estimate evolutionary distances based on the concept of a
@@ -50,7 +46,7 @@ Mash is a method to estimate evolutionary distances based on the concept of a
 Briefly, a genomic sequence is decomposed into its $k$-mers before hashing those
 $k$-mers using a hash function. A sketch is the set of the $s_{mash}$ smallest
 hash values and can be easily compared to other sketches, e.g. by calculating
-the Jaccard index. In a recent publication, FracMinHash was introduced
+the Jaccard index. In a recent publication, \textit{FracMinHash} was introduced
 which aims to tackle some of the issues with Mash
 \cite{irberLightweightCompositionalAnalysis2022}, in particular problems with
 genomes of different sizes
@@ -58,14 +54,13 @@ genomes of different sizes
 The method is similar to Mash, but here a sketch is the set of all hash values
 that are below a given threshold.
 
-In the publication of the phylogenetic context using phylogenetic outlines, the
-context was created for bacterial genomes, but the authors already
-hint that the method could be applied to small eukaryotes such as
-\textit{Phytophthora} \cite{bagciMicrobialPhylogeneticContext2021}.
+Initially, the phylogenetic context was established for bacterial studies but
+the authors already hint that the method could be applied to small eukaryotes
+such as \textit{Phytophthora} \cite{bagciMicrobialPhylogeneticContext2021}.
 
-Members of the genus \textit{Phytophthora} are plant pathogenes targeting plants
-worldwide: \textit{Phytophthora ramorum} is responsible for the death of
-millions of oak trees in the United States
+Members of the genus \textit{Phytophthora} are plant pathogenes targeting
+organisms worldwide: \textit{Phytophthora ramorum} is responsible for the death
+of millions of oak trees in the United States
 \cite{cobbMagnitudeRegionalScaleTree2020}, \textit{Phytophthora infestans} is
 the cause of the potato late blight that triggered the Irish Great Famine in the
 1840s \cite{yoshidaRiseFallPhytophthora2013} and \textit{Phytophthora cinnamomi}
@@ -92,20 +87,21 @@ outlines based on three different datasets:
   is used to compare the generated phylogenies with published phylogenies, e.g.
   \cite{mandalComparativeGenomeAnalysis2022,yangExpandedPhylogenyGenus2017,abadPhytophthoraTaxonomicPhylogenetic2023a}
   to verifiy that the method is generally able to represent phylogenetic
-  relationships well. This dataset is also used to explore the impact of
+  relationships. This dataset is also used to explore the impact of
   different parameters of FracMinHash.
   \item The mtDNA dataset compiled by
-  \Citeauthor{winkworthComparativeAnalysesComplete2022} is used to get an idea
-  of the limits of the method in terms of genome size.
+  \Citeauthor{winkworthComparativeAnalysesComplete2022}
+  \cite{winkworthComparativeAnalysesComplete2022} is used to get an idea of the
+  limits of the method in terms of genome size.
   \item A dataset based on sequences of bacterial and fungal genomes that are
   typically found in soil samples of avocado trees infected with
   \textit{Phytophthora cinnamomi} \cite{solis-garciaPhytophthoraRootRot2020} and
-  all currently published \textit{Phytophthora} reference sequences is used to
-  explore the differences between Mash and FracMinHash concerning distantly
-  related species and genomes with different genome sizes. It is also used to
-  analyse the origin of hashes that are part of a FracMinHash sketch, i.e. to
-  answer the question if those hashes are evenly distributed accross the
-  genome.
+  all currently published \textit{Phytophthora} reference sequences in the NCBI
+  database is used to explore the differences between Mash and FracMinHash
+  concerning distantly related species and genomes with different genome sizes.
+  It is also used to analyse the origin of hashes that are part of a FracMinHash
+  sketch, i.e. to answer the question if those hashes are evenly distributed
+  accross the genome.
 \end{itemize}
 
 This thesis is structured as usual: First, I want to introduce the most

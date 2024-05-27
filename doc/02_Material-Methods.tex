@@ -7,7 +7,7 @@
   \label{sec:matmet}
 
 \section{Implementation of FracMinHash}
-The generation of phylogenetic outlines using FracMinHash was implemented based
+The calculation of phylogenetic outlines using FracMinHash was implemented based
 on the libraries \texttt{java17-openjdk} \cite{theopenjdkcommunityJDK172021},
 \texttt{jloda3} 1.0.0, \texttt{splitstree6} 1.0.0
 \cite{husonApplicationPhylogeneticNetworks2006} and
@@ -16,20 +16,20 @@ on the libraries \texttt{java17-openjdk} \cite{theopenjdkcommunityJDK172021},
 denote the library as \texttt{splitstree6} and the tool that is mainly based on
 that library as \texttt{SplitsTree}.
 
-To sketch a sequence, its $k$-mers are read. $k$-mers that include ambiguous
-bases (that is, bases that are "N" or "n") are skipped. FASTA files can contain
-multiple sequences, but they are not concatenated and the $k$-mer decomposition
-is done for each sequence individually, i.e. no $k$-mer spans two or more
-sequences. The $k$-mers are brought into their canonical form
-\cite{ondovMashFastGenome2016,irberLightweightCompositionalAnalysis2022} by
-transforming all characters to uppercase, calculating the reverse complement of
-the $k$-mer and using the alphabetically smaller value of both.
+To sketch a sequence, its $k$-mers are read, $k$-mers that include ambiguous
+bases (i.e. bases that are "N" or "n") are skipped. FASTA files can contain
+multiple sequences, but they are not concatenated in \texttt{fmhdist} and the
+$k$-mer decomposition is done for each sequence individually, i.e. no $k$-mer
+spans two or more sequences. The $k$-mers are brought into their canonical form
+by transforming all characters to uppercase, calculating the reverse complement
+of the $k$-mer and using the alphabetically smaller value of both
+\cite{ondovMashFastGenome2016,irberLightweightCompositionalAnalysis2022} .
 
 The $k$-mers are then hashed using a given hash function and a random seed. For
 this, the \texttt{LongHashFunctions} from \texttt{zero-allocation-hashing} 0.16
 are used \cite{ZeroAllocationHashing2022}. Java \texttt{long} values are signed,
-so the range of the hash function is $[-2^{63}, 2^{63}]$. Thus, the threshold
-can be calculated using $-2^{63} + \frac{2^{64}}{s}$. 
+thus the range of the hash function is $[-2^{63}, 2^{63}]$. Therefore, the
+threshold can be calculated using $\frac{2^{64}}{s} -2^{63}$. 
 
 Hash values that are smaller than that threshold are kept in the sketch. The
 sketch is saved in a serialized format on the hard disk. To estimate the Jaccard
@@ -45,7 +45,7 @@ To store the resulting outlines as SVG images, \texttt{jfree.svg} 5.0.5
 \cite{gilbertJFreeSVG2023} was used.
 
 
-\section{Benchmarking the Hash Functions}
+\section{Benchmarking hash functions}
 To get an understanding of which hash function performs best in terms of
 runtime, the \texttt{jmh} benchmarking framework 1.37
 \cite{theopenjdkcommunityJavaMicrobenchmarkHarness2023} was used to benchmark
@@ -63,32 +63,34 @@ all hash functions is given by \texttt{zero-allocation-hashing} 0.16
 using a fork count of 2. Besides that, default parameters were used. Each
 benchmark consisted of hashing a string of length 21, which is a $k$-mer size
 used in different applications
-\cite{ondovMashFastGenome2016,bagciMicrobialPhylogeneticContext2021}.
+\cite{ondovMashFastGenome2016,bagciMicrobialPhylogeneticContext2021}. The
+benchmark was executed on a consumer notebook with 16GB memory and 8 cores
+($4.2$ GHz).
 
 
-\section{Datasets used}
-To evaluate properties of FracMinHash, analysis was performed using different
-data sets. 
+\section{Datasets}
+To explore properties of FracMinHash, analysis was performed using different
+datasets. 
 
 The first dataset (\textbf{A}) consists of 128 different \textit{Phytophthora}
 genomes. The list is taken from \cite{mandalComparativeGenomeAnalysis2022}
-without further modifications. Genomes were downloaded from NCBI uding the
-\texttt{datasets} utility \cite{sayersDatabaseResourcesNational2022} using the
-accession codes listed in that study.
+without further modifications. Genomes were downloaded from NCBI using the
+\texttt{datasets} utility \cite{sayersDatabaseResourcesNational2022} which was
+given the accession codes listed in that study.
 
 The second dataset (\textbf{B}) consists of 72 mtDNA sequences of
 \textit{Phytophthora}
 and other Oomycetes of the Peronosporaceae family. The list is taken without
 further modifications from Supplementary Table 1 from
 \cite{winkworthComparativeAnalysesComplete2022}. Genomes were downloaded from
-NCBI using the Entrez interface \cite{sayersDatabaseResourcesNational2022} using
+NCBI with the Entrez interface \cite{sayersDatabaseResourcesNational2022} using
 the accession codes listed in that study, appended by the identifier of the most
 recent version for that accession code.
 
 The third dataset (\textbf{C}) consists of all 64 \textit{Phytophthora}
-reference sequences in the NCBI databasase ("reference") as well as five
-different query sequences that are typically found in soil samples of avocado
-orchards that are infected with \textit{Phytophthora cinnamomi}
+reference sequences in the NCBI databasase as well as five different query
+sequences that are typically found in soil samples of avocado orchards that are
+infected with \textit{Phytophthora cinnamomi}
 \cite{solis-garciaPhytophthoraRootRot2020}. Those query sequences are divided
 into two bacterial genomes, two fungal and one \textit{Phytophthora cinnamomi}
 genome:
@@ -108,17 +110,18 @@ using the \texttt{datasets} \cite{sayersDatabaseResourcesNational2022} utility.
 
 
 
-\section{Comparison with published Phylogenies}
-\cite{mandalComparativeGenomeAnalysis2022} displays a rooted phylogenetic tree
-in Figure 4 that was generated using \texttt{mashtree}
+\section{Comparison with published phylogenies}
+Figure 4 in \cite{mandalComparativeGenomeAnalysis2022} displays a rooted
+phylogenetic tree that was generated using \texttt{mashtree}
 \cite{katzMashtreeRapidComparison2019,ondovMashFastGenome2016}. Unfortunately,
 the corresponding distance matrix or a serialized version of the tree are not
 available. Thus, the data needs to be re-computed. For this, the
-\texttt{mashtree\_bootstrap.pl} 1.4.6 was applied to dataset A as described by
+\texttt{mashtree\_bootstrap.pl} 1.4.6 was applied to dataset \textbf{A} as
+described by
 \cite{mandalComparativeGenomeAnalysis2022}, additionally the distance matrix was
 saved using the \texttt{--outmatrix} parameter.
 
-Distance matrices for dataset A using the FracMinHash method
+Distance matrices for dataset \textbf{A} using the FracMinHash method
 \cite{heraDerivingConfidenceIntervals2023,irberLightweightCompositionalAnalysis2022}
 were calculated with \texttt{fmhdist} using different combinations of the
 scaling parameter $s$ and $k$-mer size $k$. For a fixed $k=21$, different $s \in
@@ -139,14 +142,14 @@ Neighbor Net method
 using the default parameters. Based on this, a phylogenetic outline was
 calculated \cite{bagciMicrobialPhylogeneticContext2021}. Trees were compared
 using  the Consensus Network method \cite{hollandUsingConsensusNetworks2004}
-with default options, except Consensus=ConsensusNetwork.
+with default options, except \texttt{Consensus=ConsensusNetwork}.
 
 
 
-\section{Split difference analysis}
+\section{Analysis of split differences}
 \label{sec:splitanalysis}
-To explore the differences between the phylogenetic outline based on the Mash
-distances and those based on FracMinHash further, the splits were analysed in
+To further explore the differences between the phylogenetic outline based on the
+Mash distances and those based on FracMinHash, the splits were analysed in
 detail. For this, the splits were exported from \texttt{SplitsTree} 6.3.20
 \cite{husonApplicationPhylogeneticNetworks2006} using the plain text format.
 
@@ -172,23 +175,25 @@ the following properties are calculated:
 \end{itemize}
 
 The script outputs a list of the diverging splits sorted by the weight of the
-split. Each split is formatted as a list of taxa names on the smaller side of
-the split sorted alphabetically and joined using the "|" symbol such that the
-split can be searched in \texttt{SplitsTree} 6.3.20 using the regular expression
-search.
+split. Each split is formatted as a list of taxon names on the smaller side of
+the split sorted alphabetically and joined using the pipe symbol ("|") such that
+the split can be searched in \texttt{SplitsTree} 6.3.20 using the regular
+expression search.
 
 
 
-\section{Reproducing phylogenies for shorter sequences}
+\section{Analysis for shorter sequences}
 To get an idea of the practical lower boundaries of FracMinHash in terms of
-input genome size, dataset B was sketched. As this dataset consists of just a
+input genome size, dataset \textbf{B} was sketched. As this dataset consists of
+just a
 single long FASTA file, it was split into its records using \texttt{split-fasta}
 1.0.0 \cite{vashishtSplitfasta2020}. The files were then sketched using
 FracMinHash
 \cite{irberLightweightCompositionalAnalysis2022,heraDerivingConfidenceIntervals2023}
-in \texttt{fmhdist} using $k=21$, $s \in \{1, 10, 50, 100, 1000\}$ and the
-FarmHash 1.0 hash function \cite{pikeFarmhash2014,ZeroAllocationHashing2022}
-with random seed 42.
+in \texttt{fmhdist} using $k=21$ and the FarmHash 1.0 hash function
+\cite{pikeFarmhash2014,ZeroAllocationHashing2022} with random seed 42. The
+scaling parameter was selected with  $s \in \{1, 10, 50, 100, 1000\}$ such that
+a comparison of the results for different scaling parameters is possible.
 
 Given the calculated distances, \texttt{SplitsTree} 6.3.20
 \cite{husonApplicationPhylogeneticNetworks2006} was used to obtain trees, splits
@@ -200,28 +205,30 @@ using the default parameters. Based on this, a phylogenetic outline was
 calculated \cite{bagciMicrobialPhylogeneticContext2021}.
 
 
-\section{Calculating distances of distantly related genomes and genomes with different sizes}
+\section{Phylogenetic outlines for distantly related species}
 To explore the claim that FracMinHash works better for genomes of different
-sizes, both reference and query sequences of dataset C were sketched, distances
+sizes, both reference and query sequences of dataset \textbf{C} were sketched,
+distances
 calculated and the results compared. 
 
 \subsection*{Sketching using FracMinHash}
 \label{sec:intersectionlog}
 Reference and query sequences were sketched using \texttt{fmhdist} with $k=21$,
 $s=2000$ using FarmHash \cite{pikeFarmhash2014,ZeroAllocationHashing2022} with
-random seeds $rs \in \{10, 20, 30, 40, 50\}$. As a typical size for Mash
-sketches is is $s_{mash}=10000$, i.e. the default value used in
-\texttt{mashtree} \cite{katzMashtreeRapidComparison2019,ondovMashFastGenome2016}
-and to ensure that it is not the fact that the relevant sketches are just
-larger, additional sketching with $s=500$ (which aims to bring the sketch size
-of the bacterial query sequences to 10000) and $s=3500$ (which aims to bring the
-sketch size of the fungal query sequences to 10000) was performed. Using the
-sketches, the distance matrix was calculated. For this, the implementation was
-changed such that an additional log is created that lists all empty
-intersections when calculating the intersection of the two sketches.
+random seeds $rs \in \{10, 20, 30, 40, 50\}$. As a Mash sketch size
+$s_{mash}=10000$ is typically found in literature, e.g. as the default value
+used in \texttt{mashtree}
+\cite{katzMashtreeRapidComparison2019,ondovMashFastGenome2016} and to ensure
+that it is not the fact that the relevant sketches are just larger, additional
+sketching with $s=500$ (which aims to bring the sketch size of the bacterial
+query sequences to 10000) and $s=3500$ (which aims to bring the sketch size of
+the fungal query sequences to 10000) was performed. Using the sketches, the
+distance matrix was calculated. For this, the implementation was changed such
+that an additional log is created that lists all empty intersections when
+calculating the intersection of the two sketches.
 
 \subsection*{Sketching using MashTree}
-To obtain a base value to compare agains, \texttt{mashtree} 1.4.6
+To obtain a base value to compare against, \texttt{mashtree} 1.4.6
 \cite{katzMashtreeRapidComparison2019,ondovMashFastGenome2016} was applied with
 hash seed $rs \in \{10, 20, 30, 40, 50\}$, \texttt{--outmatrix} and the
 \texttt{--save-sketches} parameter. The resulting sketches were then also
@@ -242,19 +249,21 @@ The splits were then also analysed using the script outlined in Section
 \ref{sec:splitanalysis}.
 
 \subsection*{Obtaining reference values}
-As there are no published phylogenies for dataset C that enable a comparison, I
+As there are no published phylogenies for dataset \textbf{C} that enable a
+comparison, I
 need a different ground truth to compare the results of above distance
 calculation against. As the aim for this experiment is to analyse the influcence
 of different genome sizes of distantly related organisms, I have limited this
-analysis to the five query sequences of dataset C and the reference genome for
+analysis to the five query sequences of dataset \textbf{C} and the reference
+genome for
 \textit{Phytophthora infestans} (GCF\_000142945.1) as this is one of the largest
 genomes in the set of reference sequences. For those sequences, I have prepared
 two different values to compare against.
 
-The first is the Average Nucleotide Identity (ANI) calculated with
-\texttt{OrthoANI} \cite{leeOrthoANIImprovedAlgorithm2016} using the default
-parameters with \texttt{BLAST+} 2.14.1
-\cite{camachoBLASTArchitectureApplications2009} for alignment.
+The first is the ANI calculated with \texttt{OrthoANI}
+\cite{leeOrthoANIImprovedAlgorithm2016} using the default parameters with
+\texttt{BLAST+} 2.14.1 \cite{camachoBLASTArchitectureApplications2009} for
+alignment.
 
 The second is the Average Amino Acid Identity (AAI)
 \cite{konstantinidisGenomeBasedTaxonomyProkaryotes2005} calculated with the
@@ -264,21 +273,20 @@ this requires amino acid sequences as input and those are not available for the
 \textit{Venturia carpophila} and \textit{Phytophthora cinnamomi} sequences, they
 were predicted using the \texttt{gmes\_petap.pl} script provided in the
 \texttt{GeneMark ES} 4.72 package \cite{lomsadzeGeneIdentificationNovel2005}
-using the default parameters and extracted using the \texttt{gffread} utility
+with the default parameters and extracted using the \texttt{gffread} utility
 0.12.7 \cite{perteaGFFUtilitiesGffRead2020}.
 
 
 \subsection*{Calculating empty intersections}
-When the sketch intersections are empty, the estiamted Jaccard similarity is
-always 0. The numerator of the Jaccard estimation using Mash sketches is $|S(A
-\cup B) \cap S(A) \cap S(B)|$, i.e. Mash does not only calculate the sketch
-intersections, but also intersects that result with the sketch of the union of
-the two input sketches \cite{ondovMashFastGenome2016}. This increases the
-chances of getting a Jaccard estimation of 0. 
+When the sketch intersections are empty, the estimated Jaccard similarity is
+always 0. However, Mash includes not only the sketch intersections in the
+Jaccard estimation, but also the sketch of the union of the input genomes, i.e.
+$|S(A \cup B) \cap S(A) \cap S(B)|$ \cite{ondovMashFastGenome2016}. This enables
+Jaccard estimations of 0 even though the sketch intersections are not empty.
 
 To explore if FracMinHash produces more or less empty intersections, I have
-prepared a the script \texttt{get\_empty\_intersections.py} which takes a list
-of Mash sketches in JSON format and outputs all pairs for which the numerator of
+prepared the script \texttt{get\_empty\_intersections.py} which takes a list of
+Mash sketches in JSON format and outputs all pairs for which the numerator of
 the Jaccard estimation is $0$. One could have also taken all entries in the
 distance matrix that are $1$, but to ensure that no pruning or rounding is
 happening at any place, I have calculated the numerator directly.
@@ -293,12 +301,11 @@ that lists the number of empty intersections for each pairwise calculation.
 \section{Hash Count analysis}
 \subsection*{$k$-mer Coordinates}
 To analyse the distribution of $k$-mers that are part of a FracMinHash sketch,
-the coordinates of each $k$-mer were exported when sketching dataset C in
-\texttt{fmhdist} with $k=21$, $s=2000$ and FarmHash with random seed $rs \in
-\{10, 20, 30, 40, 50, 60, 70, 80, 90\}$. The larger amount of different hash
-seeds in comparison with the other experiments is to reduce the impact of a
-single seed further. The coordinates saved for each $k$-mer consist of the
-following:
+the coordinates of each $k$-mer were exported when sketching dataset \textbf{C}
+in \texttt{fmhdist} with $k=21$, $s=2000$ and FarmHash 1.0 with random seed $rs
+\in \{10, 20, 30, 40, 50, 60, 70, 80, 90\}$. The larger amount of different hash
+seeds in comparison with the other experiments further reduces the impact of a
+single seed. The coordinates saved for each $k$-mer consist of the following:
 
 \begin{itemize}
   \item the sequence index, the index of the sequence inside the FASTA file
@@ -324,52 +331,53 @@ number of hashes inside the window that are part of the sketch are counted
 including duplicates and ambiguous bases.
 
 \subsection*{Sequence Complexity}
-Also part of the analysis is the the sequence complexity for each window. For
-this, the \texttt{macle} tool \cite{pirogovHighcomplexityRegionsMammalian2019}
-was used to obtain the sequence complexity $C_m$. First, the single FASTA file
-of each genome was split into the individual sequences using
-\texttt{split-fasta} 1.0.0 \cite{vashishtSplitfasta2020}. Then, the complexity
-was calculated using the default parameters of \texttt{macle} and a window size
-of $w=10000$. The output identifies each window by the position of its center
-base, so this needs to be shifted to the front of the window to match them to
-the hash count windows. \texttt{macle} outputs a complexity of $-1$ if the
-window contains ambiguous bases, thus this information was used to identify and
-discard those windows.
+Also part of the analysis is the sequence complexity for each window. For this,
+the \texttt{macle} tool \cite{pirogovHighcomplexityRegionsMammalian2019} was
+used to obtain the sequence complexity $C_m$. First, the single FASTA file of
+each genome was split into the individual sequences using \texttt{split-fasta}
+1.0.0 \cite{vashishtSplitfasta2020}. Then, the complexity was calculated using
+the default parameters of \texttt{macle} and a window size of $w=10000$. The
+output identifies each window by the position of its center base, so this needs
+to be shifted to the front of the window to match it to the corresponding hash
+count window. \texttt{macle} outputs a complexity of $-1$ if the window contains
+ambiguous bases, this information was used to identify and discard those
+windows.
 
 \subsection*{Statistical Analysis of connections between hash counts and sequence complexity}
-For all windows with non-negative sequence complexity $C_m$, the Pearson
-Correlation $r$ to evaluate a potential correlation between hash counts and
-sequence complexity.
+For all windows with a non-negative sequence complexity $C_m$, the Pearson
+Correlation $r$ was calculated to evaluate a potential correlation between hash
+counts and sequence complexity.
 
 Next, to check if there is any connection between windows having an unusual hash
-count and having a low sequence complexity, we need to define what we mean by
-that: Given the scaling parameter $s$ and a window size $w$, we would expect on
-average $\frac{w}{s}$ hashes per window that are part of the sketch. A window
-has \textit{unsual hash counts} if the number of hashes is outside the interval
+count and having a low sequence complexity, we need to define what is considered
+unusual: Given the scaling parameter $s$ and a window size $w$, we would expect
+on average $\frac{w}{s}$ hashes per window that are part of the sketch. A window
+has \textit{unusual hash counts} if the number of hashes is outside the interval
 $[\frac{w}{s} - r \frac{w}{s}, \frac{w}{s} + r \frac{w}{s}]$. I have set
 $r=0.95$, $s=2000$ and $w=10000$, which classifies all windows with a hash count
 of $0$ or $\geq 10$ as unusual.
 
 Given those inputs, I have performed the Mann-Whitney U test
 \cite{mannTestWhetherOne1947,wilcoxonIndividualComparisonsRanking1945} with the
-complexity values of each window into the two categories "unusual count" and
-"usual count". $\alpha$ was corrected with $\alpha = \frac{0.05}{69}$ to account
-for multiple testing of the 69 different genomes.
+complexity values of each window split into the two categories "unusual count"
+and "usual count". $\alpha$ was corrected with $\alpha = \frac{0.05}{69}$ to
+account for multiple testing of the 69 different genomes.
 
-The statistics were computed using \texttt{scipy} 1.11.3
+The statistics were computed using \texttt{python} 3.12
+\cite{vanrossumPythonReferenceManual2009} and \texttt{scipy} 1.11.3
 \cite{virtanenSciPyFundamentalAlgorithms2020}.
 
 \subsection*{Analysis of potential connection between low hash counts and gene location}
 To check if unusual hash counts can be linked to the location of (effector)
 genes in \textit{Phytophthora infestans}, I have mapped the start position of
-each CDS annotation to the corresponding window and counted the number of CDS
-per window.
+each coding sequence (CDS) annotation to the corresponding window and counted
+the number of CDS per window.
 
 \section{Runtime benchmarks}
 To compare the runtime of \texttt{fmhdist} with \texttt{mash} and
 \texttt{sourmash}, each tool was executed five times to calculate the sketches
-for dataset C on a consumer notebook using 16GB memory and up to 8 cores ($4.2$
-GHz).
+for dataset \textbf{C} on a consumer notebook using 16GB memory and up to 8
+cores ($4.2$ GHz).
 
 The performance benchmark is limited to the creation of the sequence sketches
 as this is by far the most time consuming part of the pipeline. The runtime was

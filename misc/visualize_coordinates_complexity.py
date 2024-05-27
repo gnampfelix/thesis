@@ -127,11 +127,12 @@ def split(data, w, s, dr):
 
 
 def main():
-    new_rc_params = {'text.usetex': False,
-        "svg.fonttype": 'none',
+    rc_params = {
+        "text.usetex": False,
+        "svg.fonttype": "none",
         "font.size": 20
     }
-    plt.rcParams.update(new_rc_params)
+    plt.rcParams.update(rc_params)
     args = create_parser()
     seq = mf.read(args.sequence)
     complexities, macle_window_size = read_macle_complexity(args.macle)

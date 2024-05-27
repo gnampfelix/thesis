@@ -8,35 +8,42 @@
 
 For this thesis, several experiments and analysises were conducted involving
 Mash, FracMinHash, phylogenetic trees and phylogenetic outlines using genomic
-sequences of \textit{Phytophthora}. This chapter aims to introduce those topics
-such that the experiments and analysises can be better understood.
+sequences of \textit{Phytophthora}. This chapter aims to introduce those
+concepts such that the experiments and analyses can be better understood.
 
 \section{Phylogenetic trees and phylogenetic outlines}
-Let $X$ be a set of $n$ taxa. A \textit{phylogenetic tree} on $X$ is a tree of
-which the leaves are bijectively labeled by $X$. One way to calculate a
-phylogenetic tree for $X$ using a distance matrix $D$ is Neighbor-Joining
-\cite{saitouNeighborjoiningMethodNew1987} by iteratively linking two nodes with
-a new parent node. Briefly, Neighbor-Joining starts with the star configuration,
-i.e. all taxa are represented by a leaf node and all nodes are linked only to
-the central root node. Then, two nodes $v$ and $w$ are selected such that their
-distance is minimal and the distance to all other nodes is maximal. They are
-linked together by a new parent node $p$, which replaces $v$ and $w$ in the
-distance matrix. This process is repeated until only one entry remains in the
-distance matrix. An example tree can be seen in Figure~\ref{fig:exampleTree}.
+Phylogenetic trees visualize evolutionary relationship between different taxa.
+Such a tree can be rooted and is typically bifurcating, i.e. each internal node
+has exactly two children. Leaves of that tree are labelled by the set of taxa
+and the tree edges are usually drawn to scale, i.e. evolutionary distances are
+represented by edge lengths. Formally, let $X$ be a set of $n$ taxa. A
+phylogenetic tree $T = (V, E)$ with the nodes $V$ and the edges $E$ on $X$ is a
+tree of which the leaves are bijectively labeled by $X$
+\cite{scornavaccaPhylogeneticTrees2010}. Internal nodes are usually not labeled.
+One way to calculate a rooted phylogenetic tree for $X$ using a distance matrix
+$D$ is Neighbor-Joining \cite{saitouNeighborjoiningMethodNew1987} by iteratively
+linking two nodes with a new parent node. Briefly, Neighbor-Joining starts with
+the star configuration, i.e. all taxa are represented by a leaf node and all
+nodes are linked only to the central root node. Then, two nodes $v$ and $w$ are
+selected such that their distance is minimal and the distance to all other nodes
+is maximal. They are linked together by a new parent node $p$, which replaces
+$v$ and $w$ in the distance matrix. This process is repeated until only one
+entry remains in the distance matrix. An example tree can be seen in
+Figure~\ref{fig:exampleTree}.
 
 To serialize a tree, one could use the Newick format
 \cite{pavlopoulosReferenceGuideTree2010}. In this format, leaves are represented
 by their label, siblings are separated by comma. A tree is put in to
 parantheses, the same applies for subtrees. Two sibling subtrees are thus also
 separated by comma. The format supports the inclusion of edge lengths by putting
-them after a double colon after the subtree or leaf. I am mostly interested in
-tree topology, so I won't include edge lengths into any Newick strings in this
-thesis. The tree depicted in Figure~\ref{fig:exampleTree} serialized to Newick
-looks like this:
+them after a double colon after the subtree or leaf. This thesis mostly focusses
+on topology and less on actual edge lengths, so those won't be included in any
+given Newick string. The tree depicted in Figure~\ref{fig:exampleTree}
+serialized to Newick looks like this:
 
 \texttt{((A, B), C)}
 
-This tree tree also enables an intuitive perspective on the concept of a
+This tree also enables an intuitive perspective on the concept of a
 \textit{split}: a split $S$ separates $X$ into two parts. In the case of
 phylogenetic trees, each edge in the tree is thus a split. Formally, a split is
 a biparition $S=A|B$ with $A, B \subset X$ such that $A \neq \emptyset$, $B \neq
@@ -63,20 +70,20 @@ as the length of the edge.
       \node[right = 10mm of l3](a) {A} edge(ba);
       \node[right = 20mm of l3] (c) {C} edge[color_edge](abc);
     \end{tikzpicture}
-  \caption{Example of a rooted phylogenetic tree on the taxa $X = \{A, B, C\}$.
-  The leaves are labeled with the taxa, the internal nodes don't have labels.
-  Each edge can be seen as a split $S=A|B$, e.g. the cyan edge is the split $S =
-  \{A, B\} | \{C\}$.}
+  \caption[Example of a rooted phylogenetic tree]{Example of a rooted
+  phylogenetic tree on the taxa $X = \{A, B, C\}$. The leaves are labeled with
+  the taxa, the internal nodes don't have labels. Each edge can be seen as a
+  split $S=A|B$, e.g. the cyan edge is the split $S = \{A, B\} | \{C\}$.}
   \label{fig:exampleTree}
 \end{figure}
 
 Phylogenetic trees are widely used to communicate evolutionary relationships
 between species
 \cite{mandalComparativeGenomeAnalysis2022,winkworthComparativeAnalysesComplete2022,ayala-usmaWholeGenomeDuplication2021}.
-Phylogenetic trees are a type of \textit{phylogenetic networks}, of which
-different types exist \cite{husonApplicationPhylogeneticNetworks2006}. Depending
-on the use case, one might choose a different kind of phylogenetic network to
-communicate evolutionary relationships, e.g. \textit{splits networks} or
+They are one of multiple different types type of \textit{phylogenetic networks}
+\cite{husonApplicationPhylogeneticNetworks2006}. Depending on the use case, one
+might choose a different kind of phylogenetic network to communicate
+evolutionary relationships, e.g. \textit{splits networks} or
 \textit{hybridization networks}. This is especially useful when one needs to
 include evolutionary events such as horizontal gene transfer or hybridization,
 which are not supported by phylogenetic trees as displaying those implies
@@ -121,16 +128,17 @@ Figure~\ref{fig:outlineExample}.
     \node[right = 20mm of l4](b) {B} edge(i3);
     \node[right = 40mm of l2](c) {C} edge(i4);
   \end{tikzpicture}
-  \caption{Example of a rooted phylogenetic outline on the taxa $X = \{A, B,
-  C\}$. The outer nodes are labeled with the taxa, the internal nodes don't have
-  labels. In this example, each edge and each pair of parallel edges can be seen
-  as a split, e.g. the cyan edges depict the split $S = \{A, B\} | \{C\}$}
+  \caption[Example of a rooted phylogenetic outline]{Example of a rooted
+  phylogenetic outline on the taxa $X = \{A, B, C\}$. The outer nodes are
+  labeled with the taxa, the internal nodes don't have labels. In this example,
+  each edge and each pair of parallel edges can be seen as a split, e.g. the
+  cyan edges depict the split $S = \{A, B\} | \{C\}$.}
   \label{fig:outlineExample}
 \end{figure}
 
 \section{Phylogenetic research on \textit{Phytophthora}} 
 
-The first scientific publication on \textit{Phytophthora} was in 1876 by
+The first scientific publication on \textit{Phytophthora} was made in 1876 by
 \Citeauthor{debaryResearchesNaturePotatofungus1876}
 \cite{debaryResearchesNaturePotatofungus1876,kroonGenusPhytophthoraAnno2012}.
 Since then, extensive research has been conducted on a variety of aspects about
@@ -144,17 +152,17 @@ There are many revisions of \textit{Phytophthora} phylogeny, e.g.
 \cite{kroonGenusPhytophthoraAnno2012,yangExpandedPhylogenyGenus2017,abadPhytophthoraTaxonomicPhylogenetic2023a}.
 Typically, the genus is divided into multiple clades, each with a numerical
 identifier. The exact number and relationsips of the clades is different from
-publication to publication. As I will use those clade topologies later, I will
-quickly write them in Newick format.
+publication to publication. This thesis compares the topologies of the generated
+trees with literature, so it is useful to state their Newick strings here:
 
-\Citeauthor{kroonGenusPhytophthoraAnno2012} state the following topology:\\
-\texttt{((((((((1, 4), 2), 5), 3), 6), 7), 8), (9, 10))}\cite{kroonGenusPhytophthoraAnno2012}
-
-\Citeauthor{yangExpandedPhylogenyGenus2017} state the following topology:\\
-\texttt{((((((((1, 4), 2), 3), 5), 7), 6), 8), (9, 10))}\cite{yangExpandedPhylogenyGenus2017}
-
-\Citeauthor{abadPhytophthoraTaxonomicPhylogenetic2023a} state the following topolgy:\\
-\texttt{(((((((((1, 2), (12, 4)), (3, 13)), 5), 6), 7), 11), 8), (9, 10))}\cite{abadPhytophthoraTaxonomicPhylogenetic2023a}
+\begin{itemize}
+  \item \Citeauthor{kroonGenusPhytophthoraAnno2012} state the following topology:\\
+    \texttt{((((((((1, 4), 2), 5), 3), 6), 7), 8), (9, 10))}\cite{kroonGenusPhytophthoraAnno2012}
+  \item \Citeauthor{yangExpandedPhylogenyGenus2017} state the following topology:\\
+    \texttt{((((((((1, 4), 2), 3), 5), 7), 6), 8), (9, 10))}\cite{yangExpandedPhylogenyGenus2017}
+  \item \Citeauthor{abadPhytophthoraTaxonomicPhylogenetic2023a} state the following topolgy:\\
+    \texttt{(((((((((1, 2), (12, 4)), (3, 13)), 5), 6), 7), 11), 8), (9, 10))}\cite{abadPhytophthoraTaxonomicPhylogenetic2023a}
+\end{itemize}
 
 Given the rise of modern sequencing techniques, and thus the increased abundance
 of available genomic data, more and more studies are also comparing different
@@ -171,19 +179,20 @@ communities associated with soy beans
 The findings include that some \textit{Phytophthora} species are
 hybrids, e.g. \textit{Phytophthora $\times$cambivora}
 \cite{jungSixNewPhytophthora2017,vanpouckeUnravellingHybridizationPhytophthora2021}.
-Given this information, the use of phylogenetic networks over phylogenetic trees
-is becoming interesting. 
+Given this information, using phylogenetic networks over phylogenetic trees
+might be a sensible thing to do.
 
-Also of interest is the concept of the two-speed genome model. Under this
-hypothesis, some \textit{Phytophthora} genomes have different evolutionary
-rates, i.e. the regions containing the household genes evolve slower than those
-regions containing the effector genes \cite{dongTwospeedGenomesFilamentous2015}.
-The fast evolving regions are gene sparse and repeat rich, the latter seems to
+Also of interest is the concept of the two-speed genome model. Under model, some
+\textit{Phytophthora} genomes have regions with diverging evolutionary rates,
+i.e. the regions containing the household genes evolve slower than those regions
+containing the effector genes \cite{dongTwospeedGenomesFilamentous2015}. The
+fast evolving regions are gene sparse and repeat rich, the latter seems to
 enable faster evolution on a molecular level with repeat induced point mutations
 \cite{dongTwospeedGenomesFilamentous2015}. There is evidence for this model for
 various \textit{Phytophthora} species including \textit{Phytophthora cinnamomi}
 \cite{engelbrechtGenomeDestructiveOomycete2021} and \textit{Phytophthora
-infestans} \cite{ayala-usmaWholeGenomeDuplication2021,dongTwospeedGenomesFilamentous2015},
+infestans}
+\cite{ayala-usmaWholeGenomeDuplication2021,dongTwospeedGenomesFilamentous2015},
 but there is also evidence that not all \textit{Phytophthora} species have this
 genome architecture, e.g. \textit{Phytophthora betacei}
 \cite{ayala-usmaWholeGenomeDuplication2021}.
@@ -191,7 +200,7 @@ genome architecture, e.g. \textit{Phytophthora betacei}
 \textit{Phytophthora cinnamomi} and \textit{Phytophthora infestans} receive lots
 of attention because of their impact on wildlife and agriculture:
 \textit{Phytophthora cinnamomi} is reported to target over 5000 different hosts
-such as avocado trees in Europe and natural vegeation in Australia
+such as avocado trees in Europe and natural vegetation in Australia
 \cite{hardhamPhytophthoraCinnamomi2018,solis-garciaPhytophthoraRootRot2020},
 \textit{Phytophthora infestans} is most famously known for its devestating
 impact on potatoes and tomatoes \cite{ayala-usmaWholeGenomeDuplication2021}.
@@ -200,7 +209,7 @@ impact on potatoes and tomatoes \cite{ayala-usmaWholeGenomeDuplication2021}.
 \section{Mash}
 The phylogenies discussed above are expensive both in terms of labor and in
 terms of computation: typical approaches include the prediction of conserved
-genes, the alignement of the corresponding sequences and then the inference of a
+genes, the alignment of the corresponding sequences and then the inference of a
 phylogenetic tree, for example using bayesian inference
 \cite{abadPhytophthoraTaxonomicPhylogenetic2023a,winkworthComparativeAnalysesComplete2022}.
 
@@ -230,9 +239,9 @@ computers, one can obtain the \textit{hash value} $h(i)$ for each such $k$-mer.
 For the sequence $A$ the \textit{Mash sketch} $S(A)$ is the set of the
 $s_{mash}$ smallest $h(i) ~ \forall i \in k(A)$. Note that the parameter
 $s_{mash}$ is called $s$ in the original Mash publication
-\cite{ondovMashFastGenome2016}, but as this parameter is also used in
-FracMinHash with different semantics, I denote it as $s_{mash}$. One can use the
-sketches of two genomes $A$ and $B$ to estimate the Jaccard similarity with 
+\cite{ondovMashFastGenome2016}, but as there is a parameter  with the same name
+but different semantics in FracMinHash, I denote it as $s_{mash}$. One can use
+the sketches of two genomes $A$ and $B$ to estimate the Jaccard similarity with 
 
 \begin{align}
   J(A, B) = \frac{|A \cap B|}{|A \cup B|} \approx \frac{|S(A \cup B) \cap S(A) \cap S(B)|}{|S(A) \cup S(B)|}
@@ -241,24 +250,23 @@ sketches of two genomes $A$ and $B$ to estimate the Jaccard similarity with
 This similarity can then be used to obtain a measure of distance using
 
 \begin{align}
-  D_{Mash}(A,B) = -\frac{1}{k}\ln{\frac{2J(A,B)}{1+J(A,B)}}
+  D_{mash}(A,B) = -\frac{1}{k}\ln{\frac{2J(A,B)}{1+J(A,B)}}
 \end{align}
 
-This method is widely used in different circumstances. In the original
+This method is widely used in different applications. In the original
 publication, the authors created Mash sketches for all RefSeq genomes, estimated
 the distances based on those and calcualted an evolutionary tree
-\cite{ondovMashFastGenome2016}. Mash is also incorportated into FastANI to
-estimate ANI scores, well, fast \cite{jainHighThroughputANI2018}.
+\cite{ondovMashFastGenome2016}. Mash is also incorporated into FastANI to
+estimate ANI scores \cite{jainHighThroughputANI2018}.
 
 A third use case for Mash is the creation of phylogenetic contexts using
 phylogenetic outlines \cite{bagciMicrobialPhylogeneticContext2021} in
-metagenomic studies. Here, one sequences all DNA found in a given sample, e.g.
-soil or sea water, and assembles (draft) genomes from the acquired reads
-\cite{kuninBioinformaticianGuideMetagenomics2008}. Outlines help with
-identifying the species to which the draft genome belongs. For this, the
-phylogenetic context is established by placing the draft genome in a
-phylogenetic outline using all sequences from a reference databases that have a
-Mash distance to the query below a user defined threshold
+metagenomic studies. In this context, one sequences all DNA found in a given
+sample, e.g. soil or sea water, and assembles (draft) genomes from the acquired
+reads \cite{kuninBioinformaticianGuideMetagenomics2008}. The phylogenetic
+context is established by placing the draft genome in a phylogenetic outline
+using all sequences from a reference databases that have a Mash distance to the
+query below a user defined threshold
 \cite{bagciMicrobialPhylogeneticContext2021}.
 
 Mash itself is implemented in a tool called \texttt{mash}
@@ -271,16 +279,15 @@ Mash is not the only method in the area of \textit{locality sensitive hashing}.
 A recently published method is called FracMinHash by
 \Citeauthor{irberLightweightCompositionalAnalysis2022}
 \cite{irberLightweightCompositionalAnalysis2022} and aims to tackle some of the
-issues with Mash, namely the fact that Mash is not optimal for containment
-estimation and that it is not optimal for distance estimation for genomes with
-different sizes
+issues of Mash, namely containment estimation and distance estimation for
+genomes with different sizes
 \cite{heraDerivingConfidenceIntervals2023,koslickiImprovingMinHashContainment2019}.
 
 The key idea of FracMinHash is to define a threshold $\frac{H}{s}$ with $H$
 being the largest value that $h$ can produce and $s$ a user defined scaling
 parameter with $0 < s \leq H$ such that a FracMinHash sketch only contains hash
-values below that threshold. As shown in Section~\ref{sec:res}, the sketch size can be
-approximated by $\frac{n}{s}$ where $n$ is the size of the input sequence
+values below that threshold. As shown in Section~\ref{sec:res}, the sketch size
+can be approximated by $\frac{n}{s}$ where $n$ is the size of the input sequence
 \cite{irberLightweightCompositionalAnalysis2022,heraDerivingConfidenceIntervals2023}.
 
 
@@ -290,14 +297,14 @@ Formally, the FracMinHash sketch is defined as
   \mathbf{FRAC}_s(A) = \{h(i) \leq \frac{H}{s} | \forall i \in k(A)\}
 \end{align}
 
-This approach has the advantage that the sketching can be applied to streams: it
-is known if a hash is part of the sketch as soon as the $k$-mer is hashed. This
-also applies when calculating the intersection between two sketches. 
+This approach has the advantage of being applicable to streams: it is known if a
+hash is part of the sketch as soon as the $k$-mer is hashed. This also applies
+when calculating the intersection between two sketches. 
 
 In Mash, to estimate the Jaccard index, it is required to also find the
 $s_{mash}$ smallest overall hashes of the two input sequences, i.e. $S(A \cup
 B)$. This is not needed for FracMinHash, as all hashes that are part of the
-input sketches already satisfy the condition $\leq \frac{H}{s}$. Thus, the
+input sketches already satisfy the condition $h(i) \leq \frac{H}{s}$. Thus, the
 Jaccard estimation (including a factor correcting for bias) is given in
 \cite{heraDerivingConfidenceIntervals2023} as
 
@@ -317,12 +324,11 @@ uses a Poisson model that assumes that all $k$-mers mutate independently
 \cite{ondovMashFastGenome2016,heraDerivingConfidenceIntervals2023,fanAssemblyAlignmentfreeMethod2015},
 whereas FracMinHash assumes a simple model in which each nucleotide $a_i$ of a
 sequence $A$ mutates at a fixed rate $p$
-\cite{heraDerivingConfidenceIntervals2023}. The authors note that such a
-mutated sequence $A'$ has an average nucleotide identity (ANI) of $1-p$ to $A$.
-As the inverse can be used to calculate a distance from any similarity ($D = 1 -
-I$), I will denote $p$ in the following as $D_{frac}$. Following this, the
-authors define an estimation of the distance in
-\cite{heraDerivingConfidenceIntervals2023} as
+\cite{heraDerivingConfidenceIntervals2023}. The authors note that such a mutated
+sequence $A'$ has an ANI of $1-p$ to $A$. As the inverse can be used to
+calculate a distance from any similarity ($D = 1 - I$), I will denote $p$ in the
+following as $D_{frac}$. Following this, the authors define an estimation of the
+distance in \cite{heraDerivingConfidenceIntervals2023} as
 
 \begin{align}
   D_{frac}(A, B) = 1 - (\frac{2J_{frac}(A,B)}{1+J_{frac}(A, B)})^{\frac{1}{k}}

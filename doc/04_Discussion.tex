@@ -16,64 +16,68 @@ previously calculated using Mash distances based on genome sequences of
 species that are in line with the clades and subclades described in literature
 \cite{abadPhytophthoraTaxonomicPhylogenetic2023a,yangExpandedPhylogenyGenus2017}.
 
-There are some differences between the splits based on the FracMinHash distances
-and the splits based on the Mash distances that also impact the interpretation
-of the results slightly. However, those differences are not substantially,
+There are some differences between the splits based on FracMinHash distances and
+the splits based on Mash distances that also impact the interpretation of the
+results slightly. We see that some splits are only present in the Mash variant,
+others only in the FracMinHash variant, the most notable being the difference
+regarding the $S = \{1, 2, 3, 4, 5, 6, 7\}|\{8, 10\}$ split. We also see a
+different total split weight. However, those differences are not substantially,
 especially when taking the differences between published phylogenies into
-account.
+account. 
 
-With a dataset of closely related species (such as dataset A), the choice of
+With a dataset of closely related species (such as dataset \textbf{A}), the
+choice of
 parameters $k$ and $s$ for sketching is not influencing the results
 considerably: choice of $k \in \{19, 20, 21, 25\}$ or $s \in \{1000, 2000,
-4000\}$ don't influcence clade clustering at all, only the placement of clades
+4000\}$ don't influence clade clustering at all, only the placement of clades
 differs to some degree that is again comparable to the differences between
 FracMinHash and Mash.
 
-The differences have impact, however, when including species with diverging
-genome lengths or that are only distantly related, e.g. when including bacterial
-or fungal genomes. Here, Mash isn't able to estimate evolutionary distances and
-outputs a distance of $1$ more often than FracMinHash. Considering the
-application of phylogenetic context, the user is required to give a distance
-threshold for all genomes that should be part of the result outline. In the
-experiments with dataset C, I have put all those genomes into the set of the
-query genomes, which implies they will always be part of the resulting outline.
-However, in a scenario where those are part of the reference database, the
-failure of Mash to estimate distances below $1$, e.g. for \textit{Venturia
-carpophila} would remove this species from the set (as setting a threshold of
-$1$ would imply having no threshold at all).
+The differences can matter, however, when including species with diverging
+genome lengths or species that are only distantly related, e.g. when including
+bacterial or fungal genomes. In this case, Mash isn't able to estimate
+evolutionary distances and outputs a distance of $1$ more often than
+FracMinHash. Considering the application of phylogenetic context, the user is
+required to give a distance threshold for all genomes that should be part of the
+result outline. In the experiments with dataset \textbf{C}, I have put all those
+genomes into the set of the query genomes, which implies they will always be
+part of the resulting outline. However, in a scenario where those are part of
+the reference database, the failure of Mash to estimate distances below $1$,
+e.g. for \textit{Venturia carpophila} would remove this species from the set (as
+setting a threshold of $1$ would imply having no threshold at all).
 
-Using a value of $s=2000$ for dataset C yields sketches for the highlighted
-genomes with sizes in the interval $[2832, 44796]$. The sketch of size $44796$
-belongs to \textit{Phytophthora infestans}, the sketch of size $2832$ to
-\textit{Thermogemmatispora aurantia}. This reflects the different genome sizes
-well, altough the sketches can become considerably larger compared to Mash
-sketches. The argument that FracMinHash performs better because sketch sizes
-are larger compared to Mash can be invalidaded by tuning the scaling parameter
-$s$ such that relevant genomes approximately have a sketch size of $10000$. In
-the experiments with dataset C, using values of $s=500$ (setting the bacterial
-genome sketches to $\approx 10000$) and $s=3500$ (setting the fungal genomes
-sketches to $\approx 10000$) didn't change the number of empty intersections of
-the calculated sketches for the comparison of the fungal queries to
-\textit{Phytophthora}. 
+Using a value of $s=2000$ for dataset \textbf{C} yields sketches for the
+highlighted genomes with sizes in the interval $[2832, 44796]$. The sketch of
+size $44796$ belongs to \textit{Phytophthora infestans}, the sketch of size
+$2832$ to \textit{Thermogemmatispora aurantia}. This reflects the different
+genome sizes well, altough the sketches can become considerably larger compared
+to Mash sketches. The argument that FracMinHash performs better because sketch
+sizes are larger compared to Mash can be invalidaded by tuning the scaling
+parameter $s$ such that relevant genomes approximately have a sketch size of
+$10000$. In the experiments with dataset \textbf{C}, using values of $s=500$
+(setting the bacterial genome sketches to $\approx 10000$) and $s=3500$ (setting
+the fungal genomes sketches to $\approx 10000$) didn't change the number of
+empty intersections of the calculated sketches for the comparison of the fungal
+queries to \textit{Phytophthora}. 
 
-Moreover, scaling the sketch according to the genome size seems a sensible thing
-to do to reflect the larger amount of data available for large genomes. Still,
-expecting the user to supply a value for $s$ can feel arbitrary, similar to
-$s_{mash}$ in Mash.
+Moreover, scaling the sketch according to the genome size seems generally a
+sensible thing to do to reflect the larger amount of data available for large
+genomes. Still, expecting the user to supply a value for $s$ can feel arbitrary,
+similar to $s_{mash}$ in Mash.
 
 As described in Chapter~\ref{sec:background}, \textit{Phytophthora} were
-considered fungi in the past because they share some aspects with true fungi.
+considered fungi in the past because they share some aspects with true fungi
 \cite{debaryResearchesNaturePotatofungus1876,rossmanWhyArePhytophthora2012}. The
-phylogenetic outline generated based on FracMinHash sketches in which fungal
-query genomes are placed between \textit{Phytophthora}, albeit with some
-distance, shows this relationship, or at least avoids clustering the fungal
-queries together with the bacterial queries. Although the AAI values for those
-comparisons are at the lower end of the range and the separation to the
-bacterial genomes is very small, the fact that the fungal query sequences are
-more closely related to the \textit{Phytophthora} reference sequences than the
-bacterial queries is also indicated here. The experiments with dataset C thus
-support the hypothesis that FracMinHash is better suited for distance estimation
-in those circumstances.
+phylogenetic outline based on FracMinHash sketches in which fungal query genomes
+are placed between \textit{Phytophthora}, albeit with some distance, shows this
+relationship, or at least avoids clustering the fungal queries together with the
+bacterial queries. Although the AAI values for those comparisons are at the
+lower end of the range and the separation to the bacterial genomes is very
+small, the fact that the fungal query sequences are more closely related to the
+\textit{Phytophthora} reference sequences than the bacterial queries is also
+indicated here. The experiments with dataset \textbf{C} thus support the
+hypothesis that FracMinHash is better suited for distance estimation in those
+circumstances.
 
 Altough the method is more sensitive for genomes with diverging genome sizes,
 there is a lower boundary in terms of genome size. This observation was already
@@ -90,15 +94,15 @@ of applicable sequences, as they tend to be even shorter than mtDNA
 A general assumption of \textit{locality sensitive hashing} methods is that
 hashes are evenly distributed across the genome. Using the coordinates of
 $k$-mers inside a FracMinHash sketch, we could observe windows in some genomes
-that contained more or less hashes that one would expect given the scaling
-parameter $s$. This is true for 37 out of the 64 \textit{Phytophthora} reference
-genomes. To ensure that this is result is not directly depending on a given hash
-seed, the calculations were performed for 9 different hash seeds, using the
-median count per window. From a practical point of view, having windows with
-more hashes than expected does not necessarily imply that this window is
-overrepresented in the sketch, i.e. the number of actual repeats was not
-included in the anlaysis. However, regions with lower counts than expected also
-exist and here, we can assume that those windows are underrepresented.
+that contained a different number of hashes that one would expect given the
+scaling parameter $s$. This is true for 37 out of the 64 \textit{Phytophthora}
+reference genomes. To ensure that this is result is not directly depending on a
+given hash seed, the calculations were performed for 9 different hash seeds,
+using the median count per window. From a practical point of view, having
+windows with more hashes than expected does not necessarily imply that this
+window is overrepresented in the sketch, i.e. the number of actual repeats was
+not included in the anlaysis. However, regions with lower counts than expected
+also exist and here, we can assume that those windows are underrepresented.
 
 The impact of this on the biological interpretation of the generated phylogenies
 is probably minimal, as those differences can be linked to low sequence
@@ -107,15 +111,17 @@ the same amount information as windows with high sequence complexity. This can
 be explained intuitively: assume the hash value $h(i)$ for a $k$-mer $i$ is
 smaller than $\frac{H}{s}$ and is therefore part of the FracMinHash sketch. Now,
 every other instance of this $k$-mer has the same hash value and is thus also
-represented in the sketch. If a $k$-mer is appearing repeatedly in a given
+represented in the window. If a $k$-mer is appearing repeatedly in a given
 window of size $w$, we can assume this window is repeat rich and thus probably
 has a low sequence complexity \cite{pirogovHighcomplexityRegionsMammalian2019}.
 The same applies if $h(i)$ is greater than $\frac{H}{s}$.
 
 For the reference genome of \textit{Phytophthora infestans}, there is not a
 single window with unusual hash counts that contains a CDS. Because of this, a
-potential link to the two-speeds-genome hypothesis for \textit{Phytophthora} -
-which is based repeat rich regions - could also not be verified.
+direct link to the two-speeds-genome hypothesis for \textit{Phytophthora} -
+which is based repeat rich regions - could also not be verified. However, some
+aspects were not covered in this thesis, e.g. the distance of windows with
+unusual counts to those containing the (effector) CDS.
 
 The genome size alone cannot explain the observation of those windows. While
 there is a trend that genomes with a larger total amount of analysed windows
@@ -147,10 +153,10 @@ of \texttt{sourmash}, \texttt{c++} in the case of \texttt{mash}) could play a
 role here. It is interesting, however, that \texttt{sourmash} is considerably
 slower than \texttt{mash} using only a single thread. Using a scaling parameter
 of $s=1000$ by default, most of the resulting sketches (median size is $54513$)
-are considerably larger than the $10000$ used by \texttt{mash}. This obviously
-adds computational cost and could be among the reasons why \texttt{sourmash}
-(and to some extend, \texttt{fmhdist}) is slower than \texttt{mash} in the
-benchmark.
+are considerably larger than the $10000$ used by \texttt{mash} in the
+benchmarking setup. This obviously adds computational cost and could be among
+the reasons why \texttt{sourmash} (and to some extend, \texttt{fmhdist}) is
+slower than \texttt{mash} in the benchmark.
 
 Altough \texttt{fmhdist} is slower, it is still very much usable on household
 notebooks, enabling rapid sketch calculations and thus, experiments with
