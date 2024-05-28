@@ -34,10 +34,10 @@ threshold can be calculated using $\frac{2^{64}}{s} -2^{63}$.
 Hash values that are smaller than that threshold are kept in the sketch. The
 sketch is saved in a serialized format on the hard disk. To estimate the Jaccard
 index, the containment index and from those the distances, the formulas
-discussed in section \ref{sec:background} were used
+discussed in Chapter~\ref{sec:background} were used
 \cite{heraDerivingConfidenceIntervals2023,irberLightweightCompositionalAnalysis2022}.
 
-The distances are then stored in Nexus file format using the
+The distances are stored in Nexus file format using the
 \texttt{splitstree6} 1.0.0 \cite{husonApplicationPhylogeneticNetworks2006}
 serialization capabilities.
 
@@ -185,10 +185,9 @@ expression search.
 \section{Analysis for shorter sequences}
 To get an idea of the practical lower boundaries of FracMinHash in terms of
 input genome size, dataset \textbf{B} was sketched. As this dataset consists of
-just a
-single long FASTA file, it was split into its records using \texttt{split-fasta}
-1.0.0 \cite{vashishtSplitfasta2020}. The files were then sketched using
-FracMinHash
+just a single long FASTA file, it was split into its records using
+\texttt{split-fasta} 1.0.0 \cite{vashishtSplitfasta2020}. The files were
+sketched using FracMinHash
 \cite{irberLightweightCompositionalAnalysis2022,heraDerivingConfidenceIntervals2023}
 in \texttt{fmhdist} using $k=21$ and the FarmHash 1.0 hash function
 \cite{pikeFarmhash2014,ZeroAllocationHashing2022} with random seed 42. The
@@ -322,7 +321,7 @@ single seed. The coordinates saved for each $k$-mer consist of the following:
   \item the hash value of the canonical $k$-mer
 \end{itemize}
 
-The coordinate files were then analysed with the script
+The coordinate files were analysed with the script
 \texttt{coordinates\_complexity\_correlation.py} using \texttt{python} 3.12
 \cite{vanrossumPythonReferenceManual2009} and \texttt{numpy} 1.26.3
 \cite{ArrayProgrammingNumPy}. For this analysis, each sequence in the FASTA file

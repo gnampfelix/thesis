@@ -12,7 +12,7 @@ sequences of \textit{Phytophthora}. This chapter aims to introduce those
 concepts such that the experiments and analyses can be better understood.
 
 \section{Phylogenetic trees and phylogenetic outlines}
-Phylogenetic trees visualize evolutionary relationship between different taxa.
+Phylogenetic trees visualize evolutionary relationships between different taxa.
 Such a tree can be rooted and is typically bifurcating, i.e. each internal node
 has exactly two children. Leaves of that tree are labelled by the set of taxa
 and the tree edges are usually drawn to scale, i.e. evolutionary distances are
@@ -20,7 +20,7 @@ represented by edge lengths. Formally, let $X$ be a set of $n$ taxa. A
 phylogenetic tree $T = (V, E)$ with the nodes $V$ and the edges $E$ on $X$ is a
 tree of which the leaves are bijectively labeled by $X$
 \cite{scornavaccaPhylogeneticTrees2010}. Internal nodes are usually not labeled.
-One way to calculate a rooted phylogenetic tree for $X$ using a distance matrix
+One way to calculate a rooted phylogenetic tree on $X$ using a distance matrix
 $D$ is Neighbor-Joining \cite{saitouNeighborjoiningMethodNew1987} by iteratively
 linking two nodes with a new parent node. Briefly, Neighbor-Joining starts with
 the star configuration, i.e. all taxa are represented by a leaf node and all
@@ -33,13 +33,13 @@ Figure~\ref{fig:exampleTree}.
 
 To serialize a tree, one could use the Newick format
 \cite{pavlopoulosReferenceGuideTree2010}. In this format, leaves are represented
-by their label, siblings are separated by comma. A tree is put in to
-parantheses, the same applies for subtrees. Two sibling subtrees are thus also
-separated by comma. The format supports the inclusion of edge lengths by putting
-them after a double colon after the subtree or leaf. This thesis mostly focusses
-on topology and less on actual edge lengths, so those won't be included in any
-given Newick string. The tree depicted in Figure~\ref{fig:exampleTree}
-serialized to Newick looks like this:
+by their label, siblings are separated by comma. A tree is put in parantheses,
+the same applies for subtrees. Two sibling subtrees are thus also separated by
+comma. The format supports the inclusion of edge lengths by putting them after a
+double colon after the subtree or leaf. This thesis mostly focusses on topology
+and less on actual edge lengths, so those won't be included in any given Newick
+string. The tree depicted in Figure~\ref{fig:exampleTree} serialized to Newick
+looks like this:
 
 \texttt{((A, B), C)}
 
@@ -80,7 +80,7 @@ as the length of the edge.
 Phylogenetic trees are widely used to communicate evolutionary relationships
 between species
 \cite{mandalComparativeGenomeAnalysis2022,winkworthComparativeAnalysesComplete2022,ayala-usmaWholeGenomeDuplication2021}.
-They are one of multiple different types type of \textit{phylogenetic networks}
+They are one of multiple different types of \textit{phylogenetic networks}
 \cite{husonApplicationPhylogeneticNetworks2006}. Depending on the use case, one
 might choose a different kind of phylogenetic network to communicate
 evolutionary relationships, e.g. \textit{splits networks} or
@@ -213,7 +213,7 @@ genes, the alignment of the corresponding sequences and then the inference of a
 phylogenetic tree, for example using bayesian inference
 \cite{abadPhytophthoraTaxonomicPhylogenetic2023a,winkworthComparativeAnalysesComplete2022}.
 
-In contrast to them, the methods used in this thesis, namely Neighbor-Joining
+In contrast to that, the methods used in this thesis, namely Neighbor-Joining
 and the Neighbor-Net algorithm for tree and network construction, respectively,
 rely on distance matrices for the involved taxa
 \cite{saitouNeighborjoiningMethodNew1987,bryantNeighborNetImprovedAlgorithms2023,bryantNeighborNetAgglomerativeMethod2004}.
@@ -268,7 +268,7 @@ This method is widely used in different applications. In the original
 publication, the authors created Mash sketches for all RefSeq genomes, estimated
 the distances based on those and calcualted an evolutionary tree
 \cite{ondovMashFastGenome2016}. Mash is also incorporated into FastANI to
-estimate ANI scores \cite{jainHighThroughputANI2018}.
+estimate ANI \cite{jainHighThroughputANI2018}.
 
 A third use case for Mash is the creation of phylogenetic contexts using
 phylogenetic outlines \cite{bagciMicrobialPhylogeneticContext2021} in
@@ -297,7 +297,7 @@ genomes with different sizes
 The key idea of FracMinHash is to define a threshold $\frac{H}{s}$ with $H$
 being the largest value that $h$ can produce and $s$ a user defined scaling
 parameter with $0 < s \leq H$ such that a FracMinHash sketch only contains hash
-values below that threshold. As shown in Section~\ref{sec:res}, the sketch size
+values below that threshold. As shown in Chapter~\ref{sec:res}, the sketch size
 can be approximated by $\frac{n}{s}$ where $n$ is the size of the input sequence
 \cite{irberLightweightCompositionalAnalysis2022,heraDerivingConfidenceIntervals2023}.
 

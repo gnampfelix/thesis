@@ -26,9 +26,8 @@ especially when taking the differences between published phylogenies into
 account. 
 
 With a dataset of closely related species (such as dataset \textbf{A}), the
-choice of
-parameters $k$ and $s$ for sketching is not influencing the results
-considerably: choice of $k \in \{19, 20, 21, 25\}$ or $s \in \{1000, 2000,
+choice of parameters $k$ and $s$ for sketching is not influencing the results
+considerably: choice of $k \in \{19, 20, 21, 25\}$ or $s \in \{500, 1000, 2000,
 4000\}$ don't influence clade clustering at all, only the placement of clades
 differs to some degree that is again comparable to the differences between
 FracMinHash and Mash.
@@ -38,13 +37,13 @@ genome lengths or species that are only distantly related, e.g. when including
 bacterial or fungal genomes. In this case, Mash isn't able to estimate
 evolutionary distances and outputs a distance of $1$ more often than
 FracMinHash. Considering the application of phylogenetic context, the user is
-required to give a distance threshold for all genomes that should be part of the
-result outline. In the experiments with dataset \textbf{C}, I have put all those
-genomes into the set of the query genomes, which implies they will always be
-part of the resulting outline. However, in a scenario where those are part of
-the reference database, the failure of Mash to estimate distances below $1$,
-e.g. for \textit{Venturia carpophila} would remove this species from the set (as
-setting a threshold of $1$ would imply having no threshold at all).
+required to give a distance threshold for all reference genomes that should be
+part of the result outline. In the experiments with dataset \textbf{C}, I have
+put all diverging genomes into the set of the query genomes, which implies they
+will always be part of the resulting outline. However, in a scenario where those
+are part of the reference database, the failure of Mash to estimate distances
+below $1$, e.g. for \textit{Venturia carpophila} would remove this species from
+the set (as setting a threshold of $1$ would imply having no threshold at all).
 
 Using a value of $s=2000$ for dataset \textbf{C} yields sketches for the
 highlighted genomes with sizes in the interval $[2832, 44796]$. The sketch of
@@ -104,6 +103,16 @@ window is overrepresented in the sketch, i.e. the number of actual repeats was
 not included in the anlaysis. However, regions with lower counts than expected
 also exist and here, we can assume that those windows are underrepresented.
 
+The genome size alone cannot explain the observation of those windows. While
+there is a trend that genomes with a larger total amount of analysed windows
+have windows with unusual counts, there are cases like \textit{Phytophthora
+castanetorum} with a total number of $n=6928$ analysed windows out of which
+$295$ had unusual counts. In contrast to this, there exists \textit{Phytophthora
+cinnamomi} with a total number of $n=10799$ analysed windows of which only $28$
+have unusual counts. Also, by construction of the analysis, ambiguous bases
+cannot explain the differences as all windows with a complexity score $C_m < 0$
+where excluded. 
+
 The impact of this on the biological interpretation of the generated phylogenies
 is probably minimal, as those differences can be linked to low sequence
 complexity in those windows. To put it differently, those windows don't store
@@ -116,22 +125,37 @@ window of size $w$, we can assume this window is repeat rich and thus probably
 has a low sequence complexity \cite{pirogovHighcomplexityRegionsMammalian2019}.
 The same applies if $h(i)$ is greater than $\frac{H}{s}$.
 
+It is interesting that not all windows that have a low sequence complexity $C_m$
+have unusual hash counts. One potential explanation could be the $k$-mer size in
+connection with the length of the repeated substring in the sequence. Macle and
+the Lempel-Ziv complexity it is based on define sequence complexity as the
+number of steps to iteratively extend a sequence by appending (or prepending, in
+the case of Macle) one of its substrings
+\cite{pirogovHighcomplexityRegionsMammalian2019,lempelComplexityFiniteSequences1976}.
+There could be cases in which the length of the repeating substring matches the
+length $k$ or is a multiple or factor of it. In this case, $k$-mers would also
+repeat and the number of unique $k$-mers decreases. As an example, consider a
+sequence $A = ATGCATGATG$. For $k=3$, we get the get $k(A) = \{ATG, TGC, GCA,
+CAT, TGA, GAT\}$. Here, two $k$-mers occur repeatedly and the number of unique
+$k$-mers is six. Then there could be cases in which the length of the repeating
+substring doesn't match $k$ or isn't a multiple or factor of it. In this
+scenario, a repeat instance cannot be divided into repeating $k$-mers or vice
+versa. Depending on the number of repeated instances, this could introduce
+unique $k$-mers. As an example, consider again a sequence $A = ATGCATGATG$. With
+$k=4$, we get $k(A)=\{ATGC, TGCA, GCAT, CATG, ATGA, TGAT, GATG\}$. Here, not a
+single $k$-mer is repeated, all $k$-mers are unique. Altough the sequence is
+extactly the same and with $k$ incremented, the total number of $k$-mers is even
+decreased (the number of $k$-mers in a sequence with length $l$ is $l-k+1$), we
+see more unique $k$-mers. However, to verify that this is the actual explanation
+for the observation, more tests that also analyse the nature of repeated
+$k$-mers are necessary. 
+
 For the reference genome of \textit{Phytophthora infestans}, there is not a
 single window with unusual hash counts that contains a CDS. Because of this, a
-direct link to the two-speeds-genome hypothesis for \textit{Phytophthora} -
-which is based repeat rich regions - could also not be verified. However, some
-aspects were not covered in this thesis, e.g. the distance of windows with
-unusual counts to those containing the (effector) CDS.
-
-The genome size alone cannot explain the observation of those windows. While
-there is a trend that genomes with a larger total amount of analysed windows
-have windows with unusual counts, there are cases like \textit{Phytophthora
-castanetorum} with a total number of $n=6928$ analysed windows out of which
-$295$ had unusual counts. In contrast to this, there exists \textit{Phytophthora
-cinnamomi} with a total number of $n=10799$ analysed windows of which only $28$
-have unusual counts. Also, by construction of the analysis, ambiguous bases
-cannot explain the differences as all windows with a complexity score $C_m < 0$
-where excluded. 
+direct link to the two-speed genome model for \textit{Phytophthora} - which is
+based repeat rich regions - could also not be verified. However, some aspects
+were not covered in this thesis, e.g. the distance of windows with unusual
+counts to those containing the (effector) CDS.
 
 Computationally, it is interesting that the existing tools all use MurMur hash
 to obtain hash values
@@ -162,6 +186,7 @@ slower than \texttt{mash} in the benchmark.
 \cleardoublepage
 
 \chapter{Conclusion}
+\label{sec:conc}
 In this thesis, I have implemented FracMinHash in a tool called \texttt{fmhdist}
 to obtain distances and phylogenies for genomic sequences of
 \textit{Phytophthora}. The results show that FracMinHash can in general be used
