@@ -235,19 +235,30 @@ substrings of length $k$, so called $k$-mers, using $k(A) = \{a_i \dots
 a_{i+k-1} | 1 \leq i < l-k-1\}$. Using a \textit{hash function} $h: \Omega
 \rightarrow [0, H]$ with typically $H=2^{64}$ or $H=2^{128}$ on modern
 computers, one can obtain the \textit{hash value} $h(i)$ for each such $k$-mer.
-
 For the sequence $A$ the \textit{Mash sketch} $S(A)$ is the set of the
 $s_{mash}$ smallest $h(i) ~ \forall i \in k(A)$. Note that the parameter
 $s_{mash}$ is called $s$ in the original Mash publication
 \cite{ondovMashFastGenome2016}, but as there is a parameter  with the same name
-but different semantics in FracMinHash, I denote it as $s_{mash}$. One can use
-the sketches of two genomes $A$ and $B$ to estimate the Jaccard similarity with 
+but different semantics in FracMinHash, I denote it as $s_{mash}$. As an
+example, consider the sequence $A=ATGCCCA$. For $k=4$, $k(A) = \{ATGC, TGCC,
+GCCC, CCCA\}$. Let's assume a hash function has generated hash values
+$h(i)~\forall i \in k(A)$ and let's call this set $h(A) = \{12, 1, 13, 7\}$.
+With $s_{mash}=2$, we keep the two smallest hash values and obtain $S(A) = \{1,
+7\}$ as the Mash sketch. Assume now the sequence $A$ is longer, i.e. $k(A)$
+contains more $k$-mers. We would process the next $k$-mer in the set and
+calculate its hash value. If the hash value is below $7$, we would need to
+update the sketch by removing $7$ and adding the new hash value.
+
+One can use the sketches of two genomes $A$ and $B$ to estimate the Jaccard
+similarity with 
 
 \begin{align}
   J(A, B) = \frac{|A \cap B|}{|A \cup B|} \approx \frac{|S(A \cup B) \cap S(A) \cap S(B)|}{|S(A) \cup S(B)|}
 \end{align}
 
-This similarity can then be used to obtain a measure of distance using
+The error of this estimation is bounded by $\epsilon =
+\mathcal{O}(\frac{1}{\sqrt{s_{mash}}})$ \cite{ondovMashFastGenome2016}. The
+similarity estimation can then be used to obtain a measure of distance with
 
 \begin{align}
   D_{mash}(A,B) = -\frac{1}{k}\ln{\frac{2J(A,B)}{1+J(A,B)}}
@@ -297,9 +308,16 @@ Formally, the FracMinHash sketch is defined as
   \mathbf{FRAC}_s(A) = \{h(i) \leq \frac{H}{s} | \forall i \in k(A)\}
 \end{align}
 
-This approach has the advantage of being applicable to streams: it is known if a
-hash is part of the sketch as soon as the $k$-mer is hashed. This also applies
-when calculating the intersection between two sketches. 
+Let's reconsider the example from the Mash section with the sequence
+$A=ATGCCCA$. For $k=4$, $k(A) = \{ATGC, TGCC, GCCC, CCCA\}$. Let's assume a hash
+function has generated hash values $h(i)~\forall i \in k(A)$ and let's call this
+set $h(A) = \{12, 1, 13, 7\}$. Assume that $H=2^4-1=15$ and $s=2$, we keep all
+hashes that satisfy $h(i) \leq \frac{15}{2}=7.5$ and obtain $\mathbf{FRAC}_s(A)
+= \{1, 7\}$ as the FracMinHash sketch. Again, let us assume now that $A$ is
+longer and $k(A)$ contains more $k$-mers. When we process the next $k$-mer in
+this set and calculate it's hash value, we only need to check if it is below the
+threshold of $7.5$, irregardless of the content of the FracMinHash sketch. This
+enables FracMinHash to operate on streams.
 
 In Mash, to estimate the Jaccard index, it is required to also find the
 $s_{mash}$ smallest overall hashes of the two input sequences, i.e. $S(A \cup
@@ -334,13 +352,19 @@ distance in \cite{heraDerivingConfidenceIntervals2023} as
   D_{frac}(A, B) = 1 - (\frac{2J_{frac}(A,B)}{1+J_{frac}(A, B)})^{\frac{1}{k}}
 \end{align}
 
-FracMinHash also defines a containment index and the corresponding distance:
+FracMinHash also defines a containment index and the corresponding distance for
+which the publication by \Citeauthor{heraDerivingConfidenceIntervals2023}
+derives confidence intervals \cite{heraDerivingConfidenceIntervals2023}. For the
+context of this thesis, those confidence intervals do not play a role in
+calculating the phylogenies.
+
 \begin{align}
   C_{frac}(A, B) = \frac{|\mathbf{FRAC}_S(A) \cap \mathbf{FRAC}_s(B)|}{|\mathbf{FRAC}_S(A)| (1-(1-s)^{|A|})}
 \end{align}
 \begin{align}
   D=1-C_{frac}^{\frac{1}{k}}
 \end{align}
+
 
 FracMinHash is implemented in a tool called \texttt{sourmash}
 \cite{irberLightweightCompositionalAnalysis2022,irberDecentralizingIndicesGenomic2020}.
