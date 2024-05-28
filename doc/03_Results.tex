@@ -107,7 +107,7 @@ Using Newick notation, this tree indicates the following topology:
 
 Again, the relationships of the clades 1, 2 and 4 are in line with literature
 \cite{abadPhytophthoraTaxonomicPhylogenetic2023a,yangExpandedPhylogenyGenus2017}.
-the clades 3, 6, 7 and 8 form a monophyletic group which is not in line with
+The clades 3, 6, 7 and 8 form a monophyletic group which is not in line with
 literature.
 
 \begin{figure}
@@ -141,10 +141,11 @@ placement of clades 3, 6, 7 and 8.
 
 \subsection*{Outlines}
 The phylogenetic outline that was calculated using the re-computed Mash
-distances for dataset A is shown in Figure~\ref{fig:mandalMashOutline}. Similar
-to the trees, clusters are well defined and in line with literature
+distances for dataset \textbf{A} is shown in Figure~\ref{fig:mandalMashOutline}.
+Similar to the trees, clusters are well defined and in line with literature
 \cite{abadPhytophthoraTaxonomicPhylogenetic2023a,yangExpandedPhylogenyGenus2017}.
-The outline also visualizes the subclades well.
+The outline also enables a distinction between different subclades, e.g. the the
+subclades of clade 1.
 
 \begin{figure}
   \centering
@@ -159,7 +160,7 @@ The outline also visualizes the subclades well.
   \label{fig:mandalMashOutline}
 \end{figure}
 
-The phyloegenetic outline that was calculated using the FracMinHash distance for
+The phylogenetic outline that was calculated using the FracMinHash distance for
 dataset \textbf{A} is depicted in Figure~\ref{fig:mandalFmhdistTree}. Again,
 clusters are well defined and in line with literature, the same holds true for
 the subclades
@@ -241,7 +242,7 @@ The impact of changing $s$ in the given range is small in terms of splits and
 outlines. Changing $s$ rotates or mirrors parts of the outline, introduces
 splits and removes others, but all of those differences have minor impact on
 interpreting the generated outline. This is also indicated by the differences in
-split weight, the total weight of splits for the four different variants of $s$
+split weight. The total weight of splits for the four different variants of $s$
 is in the interval $[1.3064, 1.3165]$. The weight of split differences is the
 range $[0.0419, 0.0805]$.
 
@@ -328,12 +329,11 @@ vexans} and \textit{Nothophytophthora sp.} are shared between the two trees.
 \sectionmark{Distantly related Genomes}
 The different outlines based on the \texttt{mashtree} and \texttt{fmhdist}
 ($s=2000$) distances of dataset \textbf{C}, respectively, are depicted in
-Figure~\ref{fig:avocadoOutlineComparison}. Of interest is the placement of the
-query genomes: the bacterial queries are very clearly separated from the all
-\textit{Phytophthora} reference genomes in both outlines. This is not true for
-the two fungal queries, they are placed in between the \textit{Phytophthora}
-reference genomes in the \texttt{fmhdist} variant but also as outliers in the
-\texttt{mashtree} variant.
+Figure~\ref{fig:avocadoOutlineComparison}. The bacterial queries are very
+clearly separated from the all \textit{Phytophthora} reference genomes in both
+outlines. This is not true for the two fungal queries, they are placed in
+between the \textit{Phytophthora} reference genomes in the \texttt{fmhdist}
+variant but also as outliers in the \texttt{mashtree} variant.
 
 \begin{figure}
   %\fontsize{8}{10}

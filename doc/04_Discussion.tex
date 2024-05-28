@@ -6,9 +6,9 @@
 \chapter{Discussion}
   \label{sec:diss}
 
-The aim of this thesis is to explore some aspects of FracMinHash in the context
-of phylogenies for \textit{Phytophthora} and to compare the results to
-outlines calculated with Mash.
+The aim of this thesis is to explore FracMinHash in the context of phylogenies
+for \textit{Phytophthora} and to compare the results to outlines calculated with
+Mash.
 
 FracMinHash is generally able to reproduce trees and outlines that were
 previously calculated using Mash distances based on genome sequences of
@@ -60,10 +60,10 @@ the fungal genomes sketches to $\approx 10000$) didn't change the number of
 empty intersections of the calculated sketches for the comparison of the fungal
 queries to \textit{Phytophthora}. 
 
-Moreover, scaling the sketch according to the genome size seems generally a
-sensible thing to do to reflect the larger amount of data available for large
-genomes. Still, expecting the user to supply a value for $s$ can feel arbitrary,
-similar to $s_{mash}$ in Mash.
+Moreover, scaling the sketch according to the genome size seems generally
+reasonable to reflect the larger amount of data available for large genomes.
+Still, expecting the user to supply a value for $s$ can feel arbitrary, similar
+to $s_{mash}$ in Mash.
 
 As described in Chapter~\ref{sec:background}, \textit{Phytophthora} were
 considered fungi in the past because they share some aspects with true fungi
@@ -96,7 +96,7 @@ hashes are evenly distributed across the genome. Using the coordinates of
 $k$-mers inside a FracMinHash sketch, we could observe windows in some genomes
 that contained a different number of hashes that one would expect given the
 scaling parameter $s$. This is true for 37 out of the 64 \textit{Phytophthora}
-reference genomes. To ensure that this is result is not directly depending on a
+reference genomes. To ensure that this result is not directly depending on a
 given hash seed, the calculations were performed for 9 different hash seeds,
 using the median count per window. From a practical point of view, having
 windows with more hashes than expected does not necessarily imply that this
@@ -127,10 +127,11 @@ The genome size alone cannot explain the observation of those windows. While
 there is a trend that genomes with a larger total amount of analysed windows
 have windows with unusual counts, there are cases like \textit{Phytophthora
 castanetorum} with a total number of $n=6928$ analysed windows out of which
-$295$ had unusual counts. Compare this to \textit{Phytophthora cinnamomi} with a
-total number of $n=10799$ analysed windows of which only $28$ have unusual
-counts. Also, by construction of the analysis, ambiguous bases cannot explain
-the differences as all windows with a complexity score $C_m < 0$ where excluded. 
+$295$ had unusual counts. In contrast to this, there exists \textit{Phytophthora
+cinnamomi} with a total number of $n=10799$ analysed windows of which only $28$
+have unusual counts. Also, by construction of the analysis, ambiguous bases
+cannot explain the differences as all windows with a complexity score $C_m < 0$
+where excluded. 
 
 Computationally, it is interesting that the existing tools all use MurMur hash
 to obtain hash values
