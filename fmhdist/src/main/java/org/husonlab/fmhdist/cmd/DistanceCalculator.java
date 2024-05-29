@@ -18,6 +18,9 @@ import splitstree6.data.DistancesBlock;
 import splitstree6.data.TaxaBlock;
 import splitstree6.io.writers.distances.NexusWriter;
 
+/**
+ * Class to calculate the evolutionary distances based on input sketches.
+ */
 public class DistanceCalculator {
     private boolean LOG_EMPTY_INTERSECTIONS = false;
 
@@ -37,6 +40,15 @@ public class DistanceCalculator {
         }
     }
 
+    /**
+     * Calculates three sets evolutionary distances: Mash Distance, FracMinHash
+     * containment distance and FracMinHash distance.
+     * @param input A CSV of sketches that should be included in distance
+     * calculations, each line must specify the path to the sketch file
+     * @param output Path to the output FracMinHash distance in Nexus format.
+     * The other two distances are stored using ".mash" and ".containment"
+     * suffixes.
+     */
     public void run(
             String input,
             String output

@@ -6,6 +6,11 @@ import java.io.InputStreamReader;
 
 import jloda.util.FileUtils;
 
+/**
+ * Iterator that produces k-mers of a fixed size for a given FASTA file. This
+ * iterator is based on a buffered reader that supplies lines of the file as
+ * needed. K-mers will never span multiple sequences in the FASTA.
+ */
 public class LineKMerIterator implements KMerIterator {
     private static boolean[] isLineContainingSkippableChar = new boolean[128];
     static {
@@ -58,7 +63,7 @@ public class LineKMerIterator implements KMerIterator {
     private boolean isPreloaded;
     private BufferedReader reader;
 
-        // Indices to keep track of the origin of the _current_ k-mer. The values
+    // Indices to keep track of the origin of the _current_ k-mer. The values
     // will always be copied from the preloaded variants (see below). The values
     // will be fed into the KMerCoordinates if the corresponding method
     // getCoordinates() is called. The separation enables to prepare the next
@@ -82,6 +87,16 @@ public class LineKMerIterator implements KMerIterator {
     private int preloadedSequencesBeforeRecord = 0;
     private int preloadedSkippedBeforeRecord = 0;
 
+    /**
+     * Creates a new LineKMerIterator that decomposes underlying file into its
+     * k-mers.
+     * @param k The k-mer size to apply
+     * @param reader The reader from which the lines of the FASTA file should be
+     * read
+     * @param skipN Bool flag, if set to false, k-mers containing ambiguous
+     * bases won't be skipped.
+     * @throws IOException
+     */
     public LineKMerIterator(int k, BufferedReader reader, boolean skipN) throws IOException {
         this.k = k;
         this.kmer = new byte[k];
@@ -109,6 +124,16 @@ public class LineKMerIterator implements KMerIterator {
         this.preload();
     }
 
+/**
+     * Creates a new LineKMerIterator that decomposes underlying file into its
+     * k-mers.
+     * @param k The k-mer size to apply
+     * @param fileName Path to the Fasta file to read. This could also be a URL
+     * or a path to a zip/gzip file.
+     * @param skipN Bool flag, if set to false, k-mers containing ambiguous
+     * bases won't be skipped.
+     * @throws IOException
+     */
     public LineKMerIterator(int k, String fileName, boolean skipN) throws IOException {
        this(k, new BufferedReader(new InputStreamReader(FileUtils.getInputStreamPossiblyZIPorGZIP(fileName))), skipN);
     }

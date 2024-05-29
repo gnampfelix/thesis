@@ -28,6 +28,9 @@ import splitstree6.data.DistancesBlock;
 import splitstree6.data.TaxaBlock;
 import splitstree6.io.writers.distances.NexusWriter;
 
+/**
+ * Calculates the distances to the closest genomes in a reference database
+ */
 public class ReferenceDistanceCalculator {
     private int sParameter;
     private int kParameter;
@@ -104,6 +107,20 @@ public class ReferenceDistanceCalculator {
         return sketches;
     }
 
+    /**
+     * Calculates the distances from the input query to the closest genomes in
+     * the database. Calculates three sets evolutionary distances: Mash
+     * Distance, FracMinHash containment distance and FracMinHash distance.
+     * @param input Path to a CSV containing paths to sketches, one per line.
+     * This will be the query sequences.
+     * @param output Path to the output FracMinHash distance in Nexus format.
+     * The other two distances are stored using ".mash" and ".containment"
+     * suffixes.
+     * @param database Path to the database. This can be either an SQLite
+     * database or a csv file listing paths to sketches.
+     * @param maxDistance The maximum distance of a reference sequence to a
+     * query sequence to be included in the output.
+     */
     public void run(
             String input,
             String output,

@@ -21,9 +21,22 @@ import jloda.util.FileLineIterator;
 import jloda.util.Single;
 import net.openhft.hashing.LongHashFunction;
 
+/**
+ * Class to create a reference database given a set of NCBI accession codes.
+ */
 public class DatabaseCreator {
     private static NcbiApi api = new NcbiApi("https://api.ncbi.nlm.nih.gov/datasets/v2alpha");
 
+    /**
+     * Creates a new reference database. 
+     * @param input path to a CSV, each line stating an NCBI accession code
+     * @param output path to the output database
+     * @param kParameter k-mer size for FracMinHash
+     * @param sParameter scaling parameters for FracMinHash
+     * @param hashFunction the hash function that should be used to create the FracMinHash sketch
+     * @param hashFunctionName the name of that hash function, it will be written to the database
+     * @param randomSeed the random seed that was applied to create the hash function
+     */
     public void run(
             String input,
             String output,

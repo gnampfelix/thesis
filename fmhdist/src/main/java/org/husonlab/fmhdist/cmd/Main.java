@@ -25,7 +25,7 @@ public class Main {
             ),
             new ArgsOptions.Command(
                 COMPARE_SKETCH_COMMAND,
-                "Calculate the pairwise distances for all query sketches"
+                "Calculate the pairwise distances for all query sketches."
             ),
             new ArgsOptions.Command(
                 COMPARE_REF_SKETCH_COMMAND,
@@ -34,10 +34,10 @@ public class Main {
             ),
             new ArgsOptions.Command(
                 SKETCH_COMMAND,
-                "Calculate the sketch for all given sequences and store them on the file system"),
+                "Calculate the sketch for all given sequences and store them on the file system."),
             new ArgsOptions.Command(
                 OUTLINE_COMMAND,
-                "Calculates the phylogenetic outline based on the given distances")
+                "Calculates the phylogenetic outline based on the given distances. The output is stored in SVG format.")
             
             );
 
@@ -51,8 +51,8 @@ public class Main {
                 "(b - for %s command) sequence file paths or URLs to fasta files (gzip ok), " +
                 "a path per line. Optional name of the resulting sketch can be separated by comma\n" +
                 "(c -  for %s and %s command) sketch file paths, a path per line. Optional name of " +
-                "taxon in the distance matrix can be separated by comma",
-                CREATE_DB_COMMAND, SKETCH_COMMAND, COMPARE_REF_SKETCH_COMMAND, COMPARE_SKETCH_COMMAND),
+                "taxon in the distance matrix can be separated by comma. For the %s command, this is expected to be a distance mattrix in Nexus format",
+                CREATE_DB_COMMAND, SKETCH_COMMAND, COMPARE_REF_SKETCH_COMMAND, COMPARE_SKETCH_COMMAND, OUTLINE_COMMAND),
             ""
         );
 

@@ -9,11 +9,27 @@ import org.husonlab.fmhdist.util.LineKMerIterator;
 
 import net.openhft.hashing.LongHashFunction;
 
+/**
+ * Composite to connect a sketch to a given genome.
+ */
 public class GenomeSketch {
     private Genome genome;
     private FracMinHashSketch sketch;
     private static Logger logger = Logger.getLogger(GenomeSketch.class.getName());
 
+    /**
+     * Creates a new GenomeSketch by calculating the FracMinHash sketch of the
+     * given genome.
+     * @param genome the input genome to sketch
+     * @param kSize the k-mer size to apply
+     * @param sParam the scaling parameter to apply
+     * @param hashFunction the hash function to use
+     * @param seed the random seed that was used to generate the hash function
+     * @param prepareCoordinates boolean flag to indicate if the KMerCoordinates
+     * will be exported later. 
+     * @return A new GenomeSketch
+     * @throws IOException
+     */
     public static GenomeSketch sketch(Genome genome, int kSize, int sParam, LongHashFunction hashFunction, int seed, boolean prepareCoordinates) throws IOException {
         logger.fine("Calculating sketch for " + genome.getAccession());
         final GenomeSketch result = new GenomeSketch(genome);

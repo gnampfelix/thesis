@@ -21,8 +21,25 @@ import jloda.util.FileLineIterator;
 import jloda.util.Single;
 import net.openhft.hashing.LongHashFunction;
 
+/**
+ * Class to calculate the FracMinHash sketches of the given input genomes.
+ */
 public class SequenceSketcher {
 
+    /**
+     * Calculates the FracMinHash sketches for the given sequence file.
+     * @param input Path to a CSV file containing the paths to sequence files
+     * that should be used.
+     * @param output Path to the directory in which the FracMinHash sketches
+     * should be stored
+     * @param kParameter The k-mer size for sketching
+     * @param sParameter The FracMinHash scaling parameters s
+     * @param hashFunction The hash function that should be applied
+     * @param randomSeed The random seed that was used to generate the hash
+     * function
+     * @param saveCoordinates If set to true, the k-mer coordinates of all
+     * k-mers that are part of the sketch are also stored.
+     */
     public void run(
             String input,
             String output,

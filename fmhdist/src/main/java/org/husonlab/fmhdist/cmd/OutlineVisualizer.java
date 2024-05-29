@@ -28,7 +28,23 @@ import splitstree6.data.TaxaBlock;
 import splitstree6.io.readers.NexusImporter;
 import splitstree6.layout.splits.algorithms.PhylogeneticOutline;
 
+/**
+ * Class to create an SVG of a phylogenetic outline.
+ */
 public class OutlineVisualizer {
+    /**
+     * Calculates the phylogenetic outline for the given distances and stores it
+     * as an SVG.
+     * @param input Path to the input distances in Nexus format
+     * @param output Path to the output SVG
+     * @param width width of the generated image
+     * @param height height of the generated image
+     * @param scale scaling factor, i.e. how large is the outline
+     * @param xOffset offset of the outline in x direction
+     * @param yOffset offset of the outline in y direction
+     * @param labels optional path to a TSV file specifying the display names
+     * for taxa
+     */
     public void run(String input, String output, int width, int height, int scale, int xOffset, int yOffset, String labels) {
         Logger logger = Logger.getLogger(OutlineVisualizer.class.getName());
         try {       
