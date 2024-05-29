@@ -1,4 +1,6 @@
 # Summary
+This directory represents experiments with dataset **B** of the thesis.
+
 This directory contains all artifacts generated when trying to replicate the
 phylogenies described by [Winkworth _et
 al._](https://academic.oup.com/gbe/article/14/4/evac049/6568501).

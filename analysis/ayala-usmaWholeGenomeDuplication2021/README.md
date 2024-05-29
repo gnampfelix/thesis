@@ -1,5 +1,9 @@
 # Summary
 
+The content of this directory is not directly included in the thesis. I did the
+same analysis with dataset **C** (`../ref-db`). However, I initially planned to
+do the following:
+
 Here, I want to analyze the genomes of _P. infestans_ T30-4, _P. infestans_
 RC10-1, _P. ramorum_ and _P. sojae_ in terms of any correlation between hash
 density in a given window and effector gene density in that window.
@@ -21,8 +25,8 @@ The last ingredient for each genome is the annotation file in GTF format. I use
 this to obtain the locations of the effector genes.
 
 For each genome, the density of the hashes is analysed using the
-`coordinates_complexity_correlation.py` script with non-overlapping windows of
-size $w=10000$ and the computed sequence complexities.
+`../../misc/coordinates_complexity_correlation.py` script with non-overlapping
+windows of size $w=10000$ and the computed sequence complexities.
 
 It turns out that there are regions with a lower density as one would expect
 (expected density is calculated using the scaling parameter $s$ of FracMinHash,
