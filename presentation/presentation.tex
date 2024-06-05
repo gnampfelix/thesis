@@ -1,0 +1,107 @@
+\documentclass[aspectratio=169]{beamer}
+\usetheme[progressbar=foot,numbering=fraction]{metropolis} % Use metropolis theme
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\usepackage[backend=biber,
+            style=authortitle,
+            maxnames=5,
+            isbn=false,
+            sortcites=true,
+            hyperref=false,
+            url=false]{biblatex}
+\addbibresource{mylit.bib}
+\setbeamerfont{footnote}{size=\scriptsize}
+\title{Application of FracMinHash to analyse the phylogenetic context of \textit{Phytophthora}}
+
+\date{\today}
+\author{ Felix Seidel \\
+\href{mailto:felix.seidel@student.uni-tuebingen.de}{felix.seidel@student.uni-tuebingen.de}
+}
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Overview}
+    \tableofcontents
+\end{frame}
+
+\section{A short story}
+\begin{frame}{The setting}
+    Picture of idyllic farms, potato, maybe avocado?
+\end{frame}
+
+\begin{frame}{The villain: \textit{Phytophthora}}
+    Picture of affected plants, maybe three bullet points (yearly damage)
+\end{frame}
+
+\begin{frame}{The hero?}
+    "Unfortunately, we cannot just walk to some mountain and throw jewelrey in
+    it to defeat the villain" Research on the modes of operation, effector
+    genes, and \textbf{phylogeny} of that species
+\end{frame}
+
+\section{Background}
+\begin{frame}{Phylogenetic Tree}
+
+\end{frame}
+
+\begin{frame}{Phylogenetic Outline \footcite{bryantNeighborNetImprovedAlgorithms2023,bagciMicrobialPhylogeneticContext2021}}
+    
+\end{frame}
+
+\begin{frame}{Phylogenetic Context \footcite{bagciMicrobialPhylogeneticContext2021}}
+    
+\end{frame}
+
+\begin{frame}{FracMinHash \footcite{irberLightweightCompositionalAnalysis2022}}
+    I think I skip Mash, if I need more time I can add it. Need to ensure that
+    this slide is to get some distance estimation that we can use to calculate
+    the outlines
+\end{frame}
+
+\section{Phylogenetic Context of \textit{Phytophthora}}
+\begin{frame}{The implementation with \texttt{fmhdist}}
+    Maybe some block diagram to illustrate the pipeline?
+\end{frame}
+
+\begin{frame}{An outline produced by \texttt{fmhdist}} 
+    don't provide slide that
+    discusses the big outlines, boring and not much value. mention it, but don't discuss this.
+\end{frame}
+
+\begin{frame}{Compare this to Mash}
+    maybe put both outlines on one slide?
+\end{frame}
+
+\begin{frame}{Origin of the hashes in the sketch (1)}
+    Show plot that I've used in the thesis, maybe without the complexity, then
+    with the complexity
+\end{frame}
+
+\begin{frame}{Origin of the hashes in the sketch (2)}
+    Show the plot for P. infestans
+\end{frame}
+
+\begin{frame}{Statistical analysis}
+    some genomes have those windows, some don't
+\end{frame}
+
+\begin{frame}{Benchmarks}
+
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}{Method works in general}
+
+\end{frame}
+
+\begin{frame}{Potential next steps}
+    
+\end{frame}
+
+\begin{frame}[standout]
+    Thanks!
+\end{frame}
+\end{document}
