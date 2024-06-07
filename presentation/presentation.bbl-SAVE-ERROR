@@ -1,0 +1,519 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nty/global//global/global}
+    \entry{bagciMicrobialPhylogeneticContext2021}{article}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=29edd404464e8167ed5cc517519db462}{%
+           family={Bagci},
+           familyi={B\bibinitperiod},
+           given={Caner},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=17d844761cdec480fe5c1fcfca96979f}{%
+           family={Bryant},
+           familyi={B\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d71349d7d63fa3a6da9a606acc7849f1}{%
+           family={Cetinkaya},
+           familyi={C\bibinitperiod},
+           given={Banu},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a4ecd8c07c458a21a3731a3916efc66f}{%
+           family={Huson},
+           familyi={H\bibinitperiod},
+           given={Daniel\bibnamedelima H},
+           giveni={D\bibinitperiod\bibinitdelim H\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{4c5243b0f70e61d614353ca689716963}
+      \strng{fullhash}{6dfeb7795148c44edf8664df38428583}
+      \strng{bibnamehash}{4c5243b0f70e61d614353ca689716963}
+      \strng{authorbibnamehash}{4c5243b0f70e61d614353ca689716963}
+      \strng{authornamehash}{4c5243b0f70e61d614353ca689716963}
+      \strng{authorfullhash}{6dfeb7795148c44edf8664df38428583}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Microbial studies typically involve the sequencing and assembly of draft genomes for individual microbes or whole microbiomes. Given a draft genome, one first task is to determine its phylogenetic context, that is, to place it relative to the set of related reference genomes. We provide a new interactive graphical tool that addresses this task using Mash sketches to compare against all bacterial and archaeal representative genomes in the Genome Taxonomy Database taxonomy, all within the framework of SplitsTree5. The phylogenetic context of the query sequences is then displayed as a phylogenetic outline, a new type of phylogenetic network that is more general than a phylogenetic tree, but significantly less complex than other types of phylogenetic networks. We propose to use such networks, rather than trees, to represent phylogenetic context, because they can express uncertainty in the placement of taxa, whereas a tree must always commit to a specific branching pattern. We illustrate the new method using a number of draft genomes of different assembly quality.}
+      \field{day}{1}
+      \field{issn}{1759-6653}
+      \field{journaltitle}{Genome Biology and Evolution}
+      \field{month}{9}
+      \field{number}{9}
+      \field{shortjournal}{Genome Biology and Evolution}
+      \field{title}{Microbial {{Phylogenetic Context Using Phylogenetic Outlines}}}
+      \field{urlday}{25}
+      \field{urlmonth}{7}
+      \field{urlyear}{2023}
+      \field{volume}{13}
+      \field{year}{2021}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{evab213}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.1093/gbe/evab213
+      \endverb
+      \verb{file}
+      \verb /home/gnampfelix/Zotero/storage/UJ99NEMU/Bagci_2021_Microbial Phylogenetic Context Using Phylogenetic Outlines.pdf;/home/gnampfelix/Zotero/storage/HTIYI2IF/6370152.html
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1093/gbe/evab213
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1093/gbe/evab213
+      \endverb
+    \endentry
+    \entry{bryantNeighborNetImprovedAlgorithms2023}{article}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=17d844761cdec480fe5c1fcfca96979f}{%
+           family={Bryant},
+           familyi={B\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a4ecd8c07c458a21a3731a3916efc66f}{%
+           family={Huson},
+           familyi={H\bibinitperiod},
+           given={Daniel\bibnamedelima H.},
+           giveni={D\bibinitperiod\bibinitdelim H\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{d9d2dbd80ff9690b69fbc50fadcc235e}
+      \strng{fullhash}{d9d2dbd80ff9690b69fbc50fadcc235e}
+      \strng{bibnamehash}{d9d2dbd80ff9690b69fbc50fadcc235e}
+      \strng{authorbibnamehash}{d9d2dbd80ff9690b69fbc50fadcc235e}
+      \strng{authornamehash}{d9d2dbd80ff9690b69fbc50fadcc235e}
+      \strng{authorfullhash}{d9d2dbd80ff9690b69fbc50fadcc235e}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{NeighborNet constructs phylogenetic networks to visualize distance data. It is a popular method used in a wide range of applications. While several studies have investigated its mathematical features, here we focus on computational aspects. The algorithm operates in three steps. We present a new simplified formulation of the first step, which aims at computing a circular ordering. We provide the first technical description of the second step, the estimation of split weights. We review the third step by constructing and drawing the network. Finally, we discuss how the networks might best be interpreted, review related approaches, and present some open questions.}
+      \field{day}{20}
+      \field{eprinttype}{pmid}
+      \field{issn}{2673-7647}
+      \field{journaltitle}{Frontiers in Bioinformatics}
+      \field{month}{9}
+      \field{shortjournal}{Front Bioinform}
+      \field{shorttitle}{{{NeighborNet}}}
+      \field{title}{{{NeighborNet}}: Improved Algorithms and Implementation}
+      \field{urlday}{12}
+      \field{urlmonth}{5}
+      \field{urlyear}{2024}
+      \field{volume}{3}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{1178600}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.3389/fbinf.2023.1178600
+      \endverb
+      \verb{eprint}
+      \verb 37799982
+      \endverb
+      \verb{file}
+      \verb /home/gnampfelix/Zotero/storage/4STKHX2A/Bryant_Huson_2023_NeighborNet.paper.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10548196/
+      \endverb
+      \verb{url}
+      \verb https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10548196/
+      \endverb
+    \endentry
+    \entry{heraDerivingConfidenceIntervals2023}{article}{}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=1c0946e96c7df9f51f33cc828f895727}{%
+           family={Hera},
+           familyi={H\bibinitperiod},
+           given={Mahmudur\bibnamedelima Rahman},
+           giveni={M\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=87c46bb0f9c8647a504a06e79aa0c225}{%
+           family={Pierce-Ward},
+           familyi={P\bibinithyphendelim W\bibinitperiod},
+           given={N.\bibnamedelimi Tessa},
+           giveni={N\bibinitperiod\bibinitdelim T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9e1847c60d224da3fbb55bb89eef4a77}{%
+           family={Koslicki},
+           familyi={K\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {Cold Spring Harbor Lab}%
+      }
+      \strng{namehash}{6722b1456754adecc004f3a76fcbc03d}
+      \strng{fullhash}{2f61b6979b8fea4a38814ea6f39778cd}
+      \strng{bibnamehash}{6722b1456754adecc004f3a76fcbc03d}
+      \strng{authorbibnamehash}{6722b1456754adecc004f3a76fcbc03d}
+      \strng{authornamehash}{6722b1456754adecc004f3a76fcbc03d}
+      \strng{authorfullhash}{2f61b6979b8fea4a38814ea6f39778cd}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Sketching methods offer computational biologists scalable techniques to analyze data sets that continue to grow in size. MinHash is one such technique to estimate set similarity that has enjoyed recent broad application. However, traditional MinHash has previously been shown to perform poorly when applied to sets of very dissimilar sizes. FracMinHash was recently introduced as a modification of MinHash to compensate for this lack of performance when set sizes differ. This approach has been successfully applied to metagenomic taxonomic profiling in the widely used tool sourmash gather. Although experimental evidence has been encouraging, FracMinHash has not yet been analyzed from a theoretical perspective. In this paper, we perform such an analysis to derive various statistics of FracMinHash, and prove that although FracMinHash is not unbiased (in the sense that its expected value is not equal to the quantity it attempts to estimate), this bias is easily corrected for both the containment and Jaccard index versions. Next, we show how FracMinHash can be used to compute point estimates as well as confidence intervals for evolutionary mutation distance between a pair of sequences by assuming a simple mutation model. We also investigate edge cases in which these analyses may fail to effectively warn the users of FracMinHash indicating the likelihood of such cases. Our analyses show that FracMinHash estimates the containment of a genome in a large metagenome more accurately and more precisely compared with traditional MinHash, and the point estimates and confidence intervals perform significantly better in estimating mutation distances.}
+      \field{day}{1}
+      \field{eprinttype}{pmid}
+      \field{issn}{1088-9051, 1549-5469}
+      \field{journaltitle}{Genome Research}
+      \field{langid}{english}
+      \field{month}{7}
+      \field{number}{7}
+      \field{shortjournal}{Genome Res.}
+      \field{title}{Deriving Confidence Intervals for Mutation Rates across a Wide Range of Evolutionary Distances Using {{FracMinHash}}}
+      \field{urlday}{23}
+      \field{urlmonth}{5}
+      \field{urlyear}{2024}
+      \field{volume}{33}
+      \field{year}{2023}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{1061\bibrangedash 1068}
+      \range{pages}{8}
+      \verb{doi}
+      \verb 10.1101/gr.277651.123
+      \endverb
+      \verb{eprint}
+      \verb 37344105
+      \endverb
+      \verb{file}
+      \verb /home/gnampfelix/Zotero/storage/XIVBUN4Y/Hera_2023_Deriving confidence intervals for mutation rates across a wide range of.paper.pdf
+      \endverb
+      \verb{urlraw}
+      \verb https://genome.cshlp.org/content/33/7/1061
+      \endverb
+      \verb{url}
+      \verb https://genome.cshlp.org/content/33/7/1061
+      \endverb
+    \endentry
+    \entry{irberLightweightCompositionalAnalysis2022}{report}{}
+      \name{author}{7}{}{%
+        {{un=0,uniquepart=base,hash=6ff76d805e874ab04935e27fda9813d7}{%
+           family={Irber},
+           familyi={I\bibinitperiod},
+           given={Luiz},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=3b2280811f3f225dc4a750240f5e7962}{%
+           family={Brooks},
+           familyi={B\bibinitperiod},
+           given={Phillip\bibnamedelima T.},
+           giveni={P\bibinitperiod\bibinitdelim T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=34bbcfcbefc0b15c265baa40cfd46a73}{%
+           family={Reiter},
+           familyi={R\bibinitperiod},
+           given={Taylor},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=87c46bb0f9c8647a504a06e79aa0c225}{%
+           family={Pierce-Ward},
+           familyi={P\bibinithyphendelim W\bibinitperiod},
+           given={N.\bibnamedelimi Tessa},
+           giveni={N\bibinitperiod\bibinitdelim T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=1c0946e96c7df9f51f33cc828f895727}{%
+           family={Hera},
+           familyi={H\bibinitperiod},
+           given={Mahmudur\bibnamedelima Rahman},
+           giveni={M\bibinitperiod\bibinitdelim R\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9e1847c60d224da3fbb55bb89eef4a77}{%
+           family={Koslicki},
+           familyi={K\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=6c3d75b262ff31c4c460a38dcfaa01c7}{%
+           family={Brown},
+           familyi={B\bibinitperiod},
+           given={C.\bibnamedelimi Titus},
+           giveni={C\bibinitperiod\bibinitdelim T\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{institution}{1}{%
+        {Bioinformatics}%
+      }
+      \strng{namehash}{d431c77f731b62b4d35904794c7953d1}
+      \strng{fullhash}{5c146ab91e8d0c065e372aab07eb9aea}
+      \strng{bibnamehash}{d431c77f731b62b4d35904794c7953d1}
+      \strng{authorbibnamehash}{d431c77f731b62b4d35904794c7953d1}
+      \strng{authornamehash}{d431c77f731b62b4d35904794c7953d1}
+      \strng{authorfullhash}{5c146ab91e8d0c065e372aab07eb9aea}
+      \field{sortinit}{I}
+      \field{sortinithash}{8d291c51ee89b6cd86bf5379f0b151d8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{The identi cation of reference genomes and taxonomic labels from metagenome data underlies many microbiome studies. Here we describe two algorithms for compositional analysis of metagenome sequencing data. We rst investigate the FracMinHash sketching technique, a derivative of modulo hash that supports Jaccard containment estimation between sets of di erent sizes. We implement FracMinHash in the sourmash software, evaluate its accuracy, and demonstrate large-scale containment searches of metagenomes using 700,000 microbial reference genomes. We next frame shotgun metagenome compositional analysis as the problem of nding a minimum collection of reference genomes that “cover” the known k-mers in a metagenome, a minimum set cover problem. We implement a greedy approximate solution using FracMinHash sketches, and evaluate its accuracy for taxonomic assignment using a CAMI community benchmark. Finally, we show that the minimum metagenome cover can be used to guide the selection of reference genomes for read mapping. sourmash is available as open source software under the BSD 3-Clause license at github.com/diblab/sourmash/.}
+      \field{day}{12}
+      \field{langid}{english}
+      \field{month}{1}
+      \field{title}{Lightweight Compositional Analysis of Metagenomes with {{FracMinHash}} and Minimum Metagenome Covers}
+      \field{type}{preprint}
+      \field{urlday}{25}
+      \field{urlmonth}{7}
+      \field{urlyear}{2023}
+      \field{year}{2022}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \verb{doi}
+      \verb 10.1101/2022.01.11.475838
+      \endverb
+      \verb{file}
+      \verb /home/gnampfelix/Zotero/storage/TEGP7GI4/Irber_2022_Lightweight compositional analysis of metagenomes with FracMinHash and minimum.paper.pdf
+      \endverb
+      \verb{urlraw}
+      \verb http://biorxiv.org/lookup/doi/10.1101/2022.01.11.475838
+      \endverb
+      \verb{url}
+      \verb http://biorxiv.org/lookup/doi/10.1101/2022.01.11.475838
+      \endverb
+    \endentry
+    \entry{ondovMashFastGenome2016}{article}{}
+      \name{author}{7}{}{%
+        {{un=0,uniquepart=base,hash=95753832bf0d7e74963f7e68cbf9d788}{%
+           family={Ondov},
+           familyi={O\bibinitperiod},
+           given={Brian\bibnamedelima D.},
+           giveni={B\bibinitperiod\bibinitdelim D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=8f8b469847acb851e81bd3f38cb35884}{%
+           family={Treangen},
+           familyi={T\bibinitperiod},
+           given={Todd\bibnamedelima J.},
+           giveni={T\bibinitperiod\bibinitdelim J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=f52951be5bd1190b2cccf503c7d57e54}{%
+           family={Melsted},
+           familyi={M\bibinitperiod},
+           given={Páll},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d3cb540537895a801500a74bbafb214e}{%
+           family={Mallonee},
+           familyi={M\bibinitperiod},
+           given={Adam\bibnamedelima B.},
+           giveni={A\bibinitperiod\bibinitdelim B\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=1f7d4b5d7f78443f953c24bb09936ff9}{%
+           family={Bergman},
+           familyi={B\bibinitperiod},
+           given={Nicholas\bibnamedelima H.},
+           giveni={N\bibinitperiod\bibinitdelim H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4def616bcffd6e6a73f4def2ebf17b10}{%
+           family={Koren},
+           familyi={K\bibinitperiod},
+           given={Sergey},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=e91092485ba69e6028a9683e414ec094}{%
+           family={Phillippy},
+           familyi={P\bibinitperiod},
+           given={Adam\bibnamedelima M.},
+           giveni={A\bibinitperiod\bibinitdelim M\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{37d5bf5e9a00d3788b8b2ff136b40dca}
+      \strng{fullhash}{2a8f8561a62b0eebfb43dd2f9e117500}
+      \strng{bibnamehash}{37d5bf5e9a00d3788b8b2ff136b40dca}
+      \strng{authorbibnamehash}{37d5bf5e9a00d3788b8b2ff136b40dca}
+      \strng{authornamehash}{37d5bf5e9a00d3788b8b2ff136b40dca}
+      \strng{authorfullhash}{2a8f8561a62b0eebfb43dd2f9e117500}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{shorttitle}
+      \field{abstract}{Mash extends the MinHash dimensionality-reduction technique to include a pairwise mutation distance and P value significance test, enabling the efficient clustering and search of massive sequence collections. Mash reduces large sequences and sequence sets to small, representative sketches, from which global mutation distances can be rapidly estimated. We demonstrate several use cases, including the clustering of all 54,118 NCBI RefSeq genomes in 33 CPU h; real-time database search using assembled or unassembled Illumina, Pacific Biosciences, and Oxford Nanopore data; and the scalable clustering of hundreds of metagenomic samples by composition. Mash is freely released under a BSD license (https://github.com/marbl/mash).}
+      \field{day}{20}
+      \field{issn}{1474-760X}
+      \field{journaltitle}{Genome Biology}
+      \field{month}{6}
+      \field{number}{1}
+      \field{shortjournal}{Genome Biology}
+      \field{shorttitle}{Mash}
+      \field{title}{Mash: Fast Genome and Metagenome Distance Estimation Using {{MinHash}}}
+      \field{urlday}{6}
+      \field{urlmonth}{10}
+      \field{urlyear}{2023}
+      \field{volume}{17}
+      \field{year}{2016}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{132}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1186/s13059-016-0997-x
+      \endverb
+      \verb{file}
+      \verb /home/gnampfelix/Zotero/storage/7L8GCPMN/Ondov_2016_Mash.paper.pdf;/home/gnampfelix/Zotero/storage/TSNKY6XW/s13059-016-0997-x.html
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1186/s13059-016-0997-x
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1186/s13059-016-0997-x
+      \endverb
+      \keyw{Alignment,Comparative genomics,Genomic distance,Metagenomics,Nanopore,Sequencing}
+    \endentry
+    \entry{pirogovHighcomplexityRegionsMammalian2019}{article}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=269402d598f1c06a38fb533b42257c75}{%
+           family={Pirogov},
+           familyi={P\bibinitperiod},
+           given={Anton},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4d6919073d880168a14b48232c336ddb}{%
+           family={Pfaffelhuber},
+           familyi={P\bibinitperiod},
+           given={Peter},
+           giveni={P\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=dc1476aa6d9946e688e696a91dc515ed}{%
+           family={Börsch-Haubold},
+           familyi={B\bibinithyphendelim H\bibinitperiod},
+           given={Angelika},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=cb85e5118ea1dce98f95cfa15e047129}{%
+           family={Haubold},
+           familyi={H\bibinitperiod},
+           given={Bernhard},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{f58fb2489f273a0a5799f0f4c6fcd563}
+      \strng{fullhash}{d5f16b9c2262832ebcec2145267d293c}
+      \strng{bibnamehash}{f58fb2489f273a0a5799f0f4c6fcd563}
+      \strng{authorbibnamehash}{f58fb2489f273a0a5799f0f4c6fcd563}
+      \strng{authornamehash}{f58fb2489f273a0a5799f0f4c6fcd563}
+      \strng{authorfullhash}{d5f16b9c2262832ebcec2145267d293c}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{abstract}{Unique sequence regions are associated with genetic function in vertebrate genomes. However, measuring uniqueness, or absence of long repeats, along a genome is conceptually and computationally difficult. Here we use a variant of the Lempel-Ziv complexity, the match complexity, Cm, and augment it by deriving its null distribution for random sequences. We then apply Cm to the human and mouse genomes to investigate the relationship between sequence complexity and function.We implemented Cm in the program macle and show through simulation that the newly derived null distribution of Cm is accurate. This allows us to delineate high-complexity regions in the human and mouse genomes. Using our program macle2go, we find that these regions are twofold enriched for genes. Moreover, the genes contained in these regions are more than 10-fold enriched for developmental functions.Source code for macle and macle2go is available from www.github.com/evolbioinf/macle and www.github.com/evolbioinf/macle2go, respectively; Cm browser tracks from guanine.evolbio.mgp.de/complexity.Supplementary data are available at Bioinformatics online.}
+      \field{day}{1}
+      \field{issn}{1367-4803}
+      \field{journaltitle}{Bioinformatics}
+      \field{month}{6}
+      \field{number}{11}
+      \field{shortjournal}{Bioinformatics}
+      \field{title}{High-Complexity Regions in Mammalian Genomes Are Enriched for Developmental Genes}
+      \field{urlday}{11}
+      \field{urlmonth}{2}
+      \field{urlyear}{2024}
+      \field{volume}{35}
+      \field{year}{2019}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{1813\bibrangedash 1819}
+      \range{pages}{7}
+      \verb{doi}
+      \verb 10.1093/bioinformatics/bty922
+      \endverb
+      \verb{file}
+      \verb /home/gnampfelix/Zotero/storage/YWARW5WK/Pirogov_2019_High-complexity regions in mammalian genomes are enriched for developmental.paper.pdf;/home/gnampfelix/Zotero/storage/5J7VA9NJ/5161082.html
+      \endverb
+      \verb{urlraw}
+      \verb https://doi.org/10.1093/bioinformatics/bty922
+      \endverb
+      \verb{url}
+      \verb https://doi.org/10.1093/bioinformatics/bty922
+      \endverb
+    \endentry
+    \entry{scornavaccaSplitsUnrootedPhylogenetic2010}{incollection}{}
+      \name{editor}{3}{}{%
+        {{un=0,uniquepart=base,hash=1b9f30d2895c9eb26cb8a004e035bbe0}{%
+           family={Scornavacca},
+           familyi={S\bibinitperiod},
+           given={Celine},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=a4ecd8c07c458a21a3731a3916efc66f}{%
+           family={Huson},
+           familyi={H\bibinitperiod},
+           given={Daniel\bibnamedelima H.},
+           giveni={D\bibinitperiod\bibinitdelim H\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=70fe968cff909a0faf715f1918b9a415}{%
+           family={Rupp},
+           familyi={R\bibinitperiod},
+           given={Regula},
+           giveni={R\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{location}{1}{%
+        {Cambridge}%
+      }
+      \list{publisher}{1}{%
+        {Cambridge University Press}%
+      }
+      \strng{namehash}{b4b40d6289b847fc9c9e206463e10a01}
+      \strng{fullhash}{eda03d7aad6a3d35c60f56adf089debe}
+      \strng{bibnamehash}{b4b40d6289b847fc9c9e206463e10a01}
+      \strng{editorbibnamehash}{b4b40d6289b847fc9c9e206463e10a01}
+      \strng{editornamehash}{b4b40d6289b847fc9c9e206463e10a01}
+      \strng{editorfullhash}{eda03d7aad6a3d35c60f56adf089debe}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{labelnamesource}{editor}
+      \field{labeltitlesource}{title}
+      \field{abstract}{The concept of a split plays an important role in the mathematics of phylogeny. It is motivated by the simple, but crucial, observation that every edge e in an unrooted phylogenetic tree T defines a bipartition of the underlying taxon set X into two non-empty and disjoint subsets, A and B, known as a split. The splits of an unrooted phylogenetic tree uniquely define the topology of the tree and splits are used, for example, to compare different trees or to compute consensus trees. Any set of splits that is compatible corresponds to a phylogenetic tree and so one possible way to generalize from trees to networks is to consider sets of splits that are incompatible.Splits provide the basis of unrooted phylogenetic trees and a large class of unrooted phylogenetic networks, namely split networks, just as clusters provide the basic building blocks for rooted phylogenetic trees and networks (see Chapter 6). The foundation for the theory of split networks was laid down in a seminal paper by Bandelt and Dress [9].OverviewFigure 5.1 shows the relationships between some of the main concepts introduced in this chapter. The focus is on splits, and on split networks as an important type of unrooted phylogenetic networks. We compare splits to clusters, since the two concepts are closely related to each other. We describe the Buneman graph construction that provides a canonical split network for an arbitrary set of splits. We shall see that splits can be compatible, circular or weakly compatible.}
+      \field{booktitle}{Phylogenetic {{Networks}}: {{Concepts}}, {{Algorithms}} and {{Applications}}}
+      \field{isbn}{978-0-521-75596-2}
+      \field{title}{Splits and Unrooted Phylogenetic Networks}
+      \field{urlday}{22}
+      \field{urlmonth}{5}
+      \field{urlyear}{2024}
+      \field{year}{2010}
+      \field{dateera}{ce}
+      \field{urldateera}{ce}
+      \field{pages}{87\bibrangedash 126}
+      \range{pages}{40}
+      \verb{doi}
+      \verb 10.1017/CBO9780511974076.008
+      \endverb
+      \verb{file}
+      \verb /home/gnampfelix/Zotero/storage/CYT3R94S/2010_Splits and unrooted phylogenetic networks.paper.pdf;/home/gnampfelix/Zotero/storage/7BTZ55H5/D39CF04A317F1777D0CDB5C1E0E5E563.html
+      \endverb
+      \verb{urlraw}
+      \verb https://www.cambridge.org/core/books/phylogenetic-networks/splits-and-unrooted-phylogenetic-networks/D39CF04A317F1777D0CDB5C1E0E5E563
+      \endverb
+      \verb{url}
+      \verb https://www.cambridge.org/core/books/phylogenetic-networks/splits-and-unrooted-phylogenetic-networks/D39CF04A317F1777D0CDB5C1E0E5E563
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+

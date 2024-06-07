@@ -4,9 +4,11 @@
 \usepackage{booktabs}
 \usepackage{graphics, graphicx, svg}
 \usepackage{amsmath}      % Math environments
+\usepackage{amssymb}
 \usepackage{url}
 \usepackage{longtable}
 \usepackage{tikz}
+\usetikzlibrary{positioning}
 
 \usepackage[backend=biber,
             style=authortitle,
@@ -16,7 +18,7 @@
             hyperref=false,
             url=false]{biblatex}
 \addbibresource{mylit.bib}
-\setbeamerfont{footnote}{size=\scriptsize}
+\setbeamerfont{footnote}{size=\tiny}
 \title{Application of FracMinHash to analyse the phylogenetic context of \textit{Phytophthora}}
 
 \date{\today}
@@ -33,26 +35,182 @@
 
 \section{A short story}
 \begin{frame}{The setting}
-    Picture of idyllic farms, potato, maybe avocado?
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.5\textwidth]{figures/potato_farm.jpg}
+        \caption{A potato farm in Sweden\footnote{Magnusson, \url{https://flic.kr/p/85qcc9}, CC BY-ND 2.0}.}
+        \label{fig:farm}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{The trace}
+\begin{columns}
+    \begin{column}{0.5\textwidth}
+        \begin{figure}
+            \centering
+            \includegraphics[width=1.0\textwidth]{figures/infestans_leaf.jpg}
+            \caption{Infected potato plant\footnotemark{}.}
+            \label{fig:infestans_leaf}
+        \end{figure}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+        \begin{figure}
+            \centering
+            \includegraphics[width=1.0\textwidth]{figures/infestans_potato.jpg}
+            \caption{Infected potato tuber\footnotemark{}.}
+            \label{fig:infestans_tuber}
+        \end{figure}
+    \end{column}
+\end{columns}
+\footnotetext{Cooke, \url{https://flic.kr/p/nPy5Qa}, CC BY-SA 2.0}
+\footnotetext{Millet, \url{https://flic.kr/p/qRXVt}, CC BY-NC-ND 2.0}
 \end{frame}
 
 \begin{frame}{The villain: \textit{Phytophthora}}
-    Picture of affected plants, maybe three bullet points (yearly damage)
+    \begin{columns}
+        \begin{column}{0.3\textwidth}
+            \centering
+            \textit{Phytophthora\\infestans}
+        \end{column}
+        \begin{column}{0.3\textwidth}
+            \centering
+            \textit{Phytophthora\\cinnamomi}
+        \end{column}
+        \begin{column}{0.3\textwidth}
+            \centering
+            \textit{Phytophthora\\ramorum}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 \begin{frame}{The hero?}
-    "Unfortunately, we cannot just walk to some mountain and throw jewelrey in
-    it to defeat the villain" Research on the modes of operation, effector
-    genes, and \textbf{phylogeny} of that species
+    \begin{columns}
+        \begin{column}{0.3\textwidth}
+            \centering
+            \textbf{Research on Phylogeny}\footnotemark{}\footnotemark{}
+        \end{column}
+        \begin{column}{0.3\textwidth}
+            \centering
+            \textbf{Research on effector proteins\footnotemark{} and genome
+            architecture\footnotemark{}}
+        \end{column}
+        \begin{column}{0.3\textwidth}
+            \centering
+            \textbf{Research on impact on microbial communities\footnotemark}
+        \end{column}
+    \end{columns}
+    \footnotetext{\cite{yangExpandedPhylogenyGenus2017}}
+    \footnotetext{\cite{abadPhytophthoraTaxonomicPhylogenetic2023a}}
+    \footnotetext{\cite{raffaeleAnalysesGenomeArchitecture2010}}
+    \footnotetext{\cite{dongTwospeedGenomesFilamentous2015}}
+    \footnotetext{\cite{solis-garciaPhytophthoraRootRot2020}}
 \end{frame}
 
 \section{Background}
-\begin{frame}{Phylogenetic Outline \footcite{bryantNeighborNetImprovedAlgorithms2023,bagciMicrobialPhylogeneticContext2021}}
-    
+\begin{frame}{Phylogenetic Trees \footcite{scornavaccaSplitsUnrootedPhylogenetic2010}\footcite{bryantNeighborNetImprovedAlgorithms2023}\footcite{bagciMicrobialPhylogeneticContext2021}}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item $X$: set of $n$ taxa
+                \item $D$: distance matrix for $X$
+                \item $S = A | B$: a bipartition of $X$ (split) based on $D$
+                \item $\omega(S)$: the weight of $S$
+                \item $\Sigma$: the set of all splits
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{figure}
+                \tikzstyle{main} = [draw, circle, fill] \tikzstyle{color_edge} =
+                [color=mLightGreen]
+                \begin{tikzpicture}[node distance={10mm}, minimum size={2mm},
+                    inner sep={0pt}, thick] 
+                    
+                    \node[](l0){}; 
+                    \node[below = of l0](l1){}; 
+                    \node[below = of l1](l2){}; \node[below = of l2](l3){};
+              
+                    \node[main, right = 5mm of l1](abc){};
+                    \node[main, right = 5mm of l2] (ba){} edge[color_edge](abc);
+                    \node[right = 0mm of l3] (b) {B} edge(ba);
+                    \node[right = 10mm of l3](a) {A} edge(ba);
+                    \node[right = 0mm of l0] (c) {C} edge(abc);
+                    \node[right = 10mm of l0] (d) {D} edge (abc);
+                \end{tikzpicture}
+            \end{figure}
+        \end{column}
+    \end{columns} 
+\end{frame}
+
+\begin{frame}{Phylogenetic Outlines \footcite{scornavaccaSplitsUnrootedPhylogenetic2010}\footcite{bryantNeighborNetImprovedAlgorithms2023}\footcite{bagciMicrobialPhylogeneticContext2021}}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item $X$: set of $n$ taxa
+                \item $D$: distance matrix for $X$
+                \item $S = A | B$: a bipartition of $X$ (split) based on $D$
+                \item $\omega(S)$: the weight of $S$
+                \item $\Sigma$: the set of all splits
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{figure}
+                \tikzstyle{main} = [draw, circle, fill]
+                \tikzstyle{color_edge} = [color=mLightGreen]
+                \begin{tikzpicture}[node distance={10mm}, minimum size={2mm},
+                    inner sep={0pt}, thick] 
+                    
+                    \node[](l0){};
+                    \node[below = of l0](l1){};
+                    \node[below = of l1](l2){};
+                    \node[below = of l2](l3){};
+                    \node[below = of l3](l4){};
+
+                    \node[right = 20mm of l0](c){C};
+                    \node[main, right = 20mm of l1](i1){} edge(c);
+                    \node[main, right = 10mm of l2](i2){} edge[color_edge](i1);
+                    \node[main, right = 30mm of l2](i4){} edge(i1);
+                    \node[main, right = 20mm of l3](i3){} edge(i2) edge[color_edge](i4);
+
+                    \node[right = 0mm of l2](b) {B} edge(i2);
+                    \node[right = 20mm of l4](a) {A} edge(i3);
+                    \node[right = 40mm of l2](d) {D} edge(i4);
+                \end{tikzpicture}
+            \end{figure}
+        \end{column}
+    \end{columns} 
 \end{frame}
 
 \begin{frame}{Phylogenetic Context \footcite{bagciMicrobialPhylogeneticContext2021}}
-    
+    \begin{figure}
+        \tikzstyle{main} = [draw, circle, fill]
+        \tikzstyle{draft} = [text=mLightGreen]
+        \tikzstyle{color_edge} = [color=mLightGreen]
+        \begin{tikzpicture}[node distance={10mm}, minimum size={2mm},
+            inner sep={0pt}, thick] 
+            
+            \node[](l0){};
+            \node[below = of l0](l1){};
+            \node[below = of l1](l2){};
+            \node[below = 5mm of l1](l15){};
+            \node[below = of l2](l3){};
+            \node[below = 5mm of l2](l25){};
+            \node[below = of l3](l4){};
+
+            \node[right = 20mm of l0](c){C};
+            \node[main, right = 20mm of l1](i1){} edge(c);
+            \node[main, right = 18mm of l15](i10){} edge(i1);
+            \node[main, right = 10mm of l2](i2){} edge(i10);
+            \node[main, right = 30mm of l2](i4){} edge(i1);
+            \node[main, right = 28mm of l25](i20){} edge(i4);
+            \node[main, right = 20mm of l3](i3){} edge(i2) edge(i20);
+            
+
+            \node[right = 0mm of l2](b) {B} edge(i2);
+            \node[right = 20mm of l4](a) {A} edge(i3);
+            \node[right = 40mm of l2](d) {D} edge(i4);
+            \node[draft, below right = 5mm and 35mm of l3](unkown){?} edge[color_edge](i20);
+        \end{tikzpicture}
+    \end{figure}
 \end{frame}
 
 \begin{frame}{FracMinHash \footcite{irberLightweightCompositionalAnalysis2022} (1)}
@@ -288,12 +446,26 @@
 \end{frame}
 
 \section{Conclusion}
-\begin{frame}{Method works in general}
-
-\end{frame}
-
-\begin{frame}{Potential next steps}
-    
+\begin{frame}{Conclusion}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \textbf{Summary}
+            \begin{itemize}
+                \item FracMinHash is a solid foundation for Phylogenetic outlines.
+                \item Distantly related genomes are better represented.
+                \item Some \textit{Phytophthora} genomes have windows with
+                unusual densities.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \textbf{Open questions}
+            \begin{itemize}
+                \item What happens to the left and the right of windows with
+                unusual densities?
+                \item Can we use this method to assign a label to a draft genome?
+            \end{itemize}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 \begin{frame}[standout]
